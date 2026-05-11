@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma'
-import Link from 'next/link'
 
 function StatCard({ label, value, sub, color = '#00068D' }: { label: string; value: string | number; sub?: string; color?: string }) {
   return (

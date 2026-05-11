@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import SpaceTree, { SpaceData } from '@/components/spaces/SpaceTree'
 
 export default function SpacesPageClient({ initialSpaces }: { initialSpaces: SpaceData[] }) {
@@ -50,21 +51,21 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
       {/* Header */}
       <header className="bg-white border-b border-[#D8D8D8] px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <a href="/" className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#00068D]">
+          <Link href="/" className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#00068D]">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
               <path d="M12 3v18M3 12h18" /><path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
             </svg>
-          </a>
+          </Link>
           <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#00068D' }}>NouveLLM</span>
           <span className="w-px h-4 bg-[#D8D8D8]" />
           <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.8rem', color: '#0D0D0D' }}>
             Espaces documentaires
           </span>
         </div>
-        <a href="/" className="text-[10px] text-[#8A8A8A] hover:text-[#00068D] transition-colors"
+        <Link href="/" className="text-[10px] text-[#8A8A8A] hover:text-[#00068D] transition-colors"
           style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, letterSpacing: '0.04em' }}>
           ← Retour à la conversation
-        </a>
+        </Link>
       </header>
 
       <div className="max-w-4xl mx-auto px-8 py-8 space-y-6">

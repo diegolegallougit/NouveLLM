@@ -11,7 +11,7 @@ function generateCode(name: string): string {
   return `${prefix || 'SES'}-${suffix}-${rand}`
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const session = await auth()
   const user = session?.user as { id?: string; role?: string } | undefined
   if (!user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

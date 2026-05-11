@@ -48,7 +48,6 @@ export async function POST(req: NextRequest) {
   // Pass folder path filter as input variable (for workflows that support it)
   if (folderPaths.length > 0) {
     inputs.folder_filter = folderPaths.join(',')
-    console.log('[RAG] Folder filter requested:', folderPaths)
   }
 
   // Inject active meta-prompt as system context

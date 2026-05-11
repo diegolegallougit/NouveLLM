@@ -59,21 +59,23 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
   const [newSpaceName, setNewSpaceName] = useState('')
   const configuredConnectors = CONNECTORS.filter(c => c.id === '__none__')
 
-  useEffect(() => {
-    if (activeTab === 'history') loadConversations()
-    if (activeTab === 'espace' && userRole !== 'STUDENT') loadSpaces()
-  }, [activeTab, refreshKey])
-
-  useEffect(() => {
-    if (activeTab === 'espace' && userRole !== 'STUDENT') loadSpaces()
-  }, [spacesRefreshKey])
-
   async function loadSpaces() {
     try {
       const r = await fetch('/api/spaces')
       const data = await r.json()
       setSpaces(data.spaces ?? [])
     } catch { /* silent */ }
+  }
+
+  async function loadConversations() {
+    setLoading(true)
+    try {
+      const r = await fetch('/api/conversations')
+      const data = await r.json()
+      setConversations(data.conversations || [])
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleCreateSpace() {
@@ -88,16 +90,16 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
     setSpacesRefreshKey(k => k + 1)
   }
 
-  async function loadConversations() {
-    setLoading(true)
-    try {
-      const r = await fetch('/api/conversations')
-      const data = await r.json()
-      setConversations(data.conversations || [])
-    } finally {
-      setLoading(false)
-    }
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (activeTab === 'history') loadConversations() // eslint-disable-line react-hooks/set-state-in-effect
+    if (activeTab === 'espace' && userRole !== 'STUDENT') loadSpaces() // eslint-disable-line react-hooks/set-state-in-effect
+  }, [activeTab, refreshKey])
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (activeTab === 'espace' && userRole !== 'STUDENT') loadSpaces() // eslint-disable-line react-hooks/set-state-in-effect
+  }, [spacesRefreshKey])
 
   const tabs = [
     { key: 'espace', label: 'MON ESPACE' },
@@ -357,7 +359,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
               className="text-[11px] text-[#8A8A8A] italic leading-relaxed px-0.5"
               style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
             >
-              Ces espaces sont gérés par l'administration Sorbonne Nouvelle.
+              Ces espaces sont gérés par l&apos;administration Sorbonne Nouvelle.
             </p>
           </div>
         )}

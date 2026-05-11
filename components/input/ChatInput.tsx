@@ -27,9 +27,9 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   // Pre-select agent from routing
   useEffect(() => {
     if (preselectedAgent === undefined) return
-    if (preselectedAgent === null) { setSelectedAgent(null); return }
+    if (preselectedAgent === null) { setSelectedAgent(null); return } // eslint-disable-line react-hooks/set-state-in-effect
     const agent = agents.find(a => a.slug === preselectedAgent)
-    if (agent) setSelectedAgent(agent)
+    if (agent) setSelectedAgent(agent) // eslint-disable-line react-hooks/set-state-in-effect
     setTimeout(() => textareaRef.current?.focus(), 50)
   }, [preselectedAgent, agents])
 

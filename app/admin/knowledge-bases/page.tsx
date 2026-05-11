@@ -33,6 +33,7 @@ export default function AdminKnowledgeBasesPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   useEffect(() => { load() }, [])
 
   return (

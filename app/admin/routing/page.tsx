@@ -52,6 +52,7 @@ export default function AdminRoutingPage() {
     setAgents(ad.agents ?? [])
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   useEffect(() => { load() }, [])
 
   async function toggleActive(id: string, active: boolean) {

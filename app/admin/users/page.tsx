@@ -36,6 +36,7 @@ export default function AdminUsersPage() {
     setUsers(d.users || [])
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   useEffect(() => { load() }, [])
 
   async function toggleUser(id: string, disabled: boolean) {

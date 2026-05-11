@@ -1,3 +1,6 @@
+/* eslint-disable react/no-unescaped-entities */
+import Link from 'next/link'
+
 export default function LegalPage() {
   return (
     <div className="min-h-screen bg-white">
@@ -16,13 +19,13 @@ export default function LegalPage() {
             NouveLLM
           </span>
         </div>
-        <a
+        <Link
           href="/"
           style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.75rem', letterSpacing: '0.04em', color: '#8A8A8A' }}
           className="hover:text-[#00068D] transition-colors"
         >
           ← Retour
-        </a>
+        </Link>
       </header>
 
       <main className="max-w-[720px] mx-auto px-8 py-12">

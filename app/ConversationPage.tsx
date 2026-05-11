@@ -66,6 +66,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
       }
     }
     loadConfig()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

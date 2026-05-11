@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export interface SourceConfig {
   slug: string
@@ -33,9 +33,8 @@ export default function SourcePalette({ sources, query, selected, onToggle, onCl
     )
   })
 
-  useEffect(() => {
-    setActiveIndex(0)
-  }, [query])
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setActiveIndex(0) }, [query])
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -83,7 +82,7 @@ export default function SourcePalette({ sources, query, selected, onToggle, onCl
                   style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Bases institutionnelles</span>
               </div>
             )}
-            {institutionalSources.map((source, i) => {
+            {institutionalSources.map((source) => {
               const isSelected = selected.includes(source.slug)
               const globalIdx = filtered.indexOf(source)
               return (

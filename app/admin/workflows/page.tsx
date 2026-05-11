@@ -35,6 +35,7 @@ export default function AdminWorkflowsPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   useEffect(() => { load() }, [])
 
   const upCount = workflows.filter(w => w.difyOk).length

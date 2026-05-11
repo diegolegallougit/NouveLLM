@@ -20,13 +20,155 @@ interface MetaPromptsData {
   active: MetaPrompt | null
 }
 
+type FormState = { title: string; description: string; content: string; isPublic: boolean }
+
+interface MPRowProps {
+  mp: MetaPrompt
+  canEdit?: boolean
+  canDuplicate?: boolean
+  activeId: string | null
+  working: string | null
+  editingId: string | null
+  form: FormState
+  onActivate: (id: string) => void
+  onDeactivate: (id: string) => void
+  onDuplicate: (id: string) => void
+  onDelete: (id: string) => void
+  onStartEdit: (mp: MetaPrompt) => void
+  onCancelEdit: () => void
+  onSaveEdit: (id: string) => void
+  onFormChange: (patch: Partial<FormState>) => void
+}
+
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <p className="px-1 text-[9px] uppercase tracking-widest text-[#8A8A8A] mt-3 mb-1"
+      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+      {label}
+    </p>
+  )
+}
+
+function MPRow({ mp, canEdit = false, canDuplicate = true, activeId, working, editingId, form, onActivate, onDeactivate, onDuplicate, onDelete, onStartEdit, onCancelEdit, onSaveEdit, onFormChange }: MPRowProps) {
+  const isActive = activeId === mp.id
+  const isWorking = working === mp.id
+
+  if (editingId === mp.id) {
+    return (
+      <div className="border border-[#2B2EB8] rounded-xl p-3 space-y-2 bg-[#F8F8FF]">
+        <input value={form.title} onChange={e => onFormChange({ title: e.target.value })}
+          placeholder="Titre" className="w-full px-3 py-1.5 text-sm rounded-lg border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]"
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }} />
+        <input value={form.description} onChange={e => onFormChange({ description: e.target.value })}
+          placeholder="Description (optionnelle)" className="w-full px-3 py-1.5 text-sm rounded-lg border border-[#D8D8D8] focus:outline-none"
+          style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
+        <textarea value={form.content} onChange={e => onFormChange({ content: e.target.value })}
+          placeholder="Contenu du méta-prompt…" rows={4}
+          className="w-full px-3 py-1.5 text-sm rounded-lg border border-[#D8D8D8] focus:outline-none resize-none"
+          style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1.5 text-xs text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+            <input type="checkbox" checked={form.isPublic} onChange={e => onFormChange({ isPublic: e.target.checked })} />
+            Partager avec la communauté
+          </label>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button onClick={onCancelEdit}
+            className="px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-xs text-[#5A5A5A] hover:bg-[#F2F2F2]"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>Annuler</button>
+          <button onClick={() => onSaveEdit(mp.id)} disabled={working === 'edit'}
+            className="px-4 py-1.5 rounded-lg text-xs text-white disabled:opacity-50"
+            style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+            {working === 'edit' ? '…' : 'ENREGISTRER'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`flex items-start gap-3 px-3 py-2.5 rounded-xl border transition-all ${isActive ? 'bg-[#E8E9F8] border-[#2B2EB8]' : 'bg-white border-[#D8D8D8] hover:bg-[#FAFAFA]'}`}>
+      <span className="text-base flex-shrink-0 mt-0.5">
+        {mp.level === 'INSTITUTIONAL' ? '📌' : mp.level === 'SHARED' ? '👤' : '✏️'}
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: isActive ? '#00068D' : '#0D0D0D' }}>
+            {mp.title}
+          </span>
+          {isActive && (
+            <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#00068D] text-white"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>ACTIF</span>
+          )}
+          {mp.uses > 0 && (
+            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.7rem', color: '#8A8A8A' }}>
+              {mp.uses} utilisation{mp.uses > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+        {mp.description && (
+          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A', marginTop: '1px' }}>
+            {mp.description}
+          </p>
+        )}
+        {!mp.description && (
+          <p className="truncate" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#C8C8C8', marginTop: '1px', fontStyle: 'italic' }}>
+            {mp.content.slice(0, 80)}…
+          </p>
+        )}
+        {mp.author?.name && mp.level === 'SHARED' && (
+          <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.68rem', color: '#8A8A8A', marginTop: '2px' }}>
+            Par {mp.author.name}
+          </p>
+        )}
+      </div>
+      <div className="flex items-center gap-1 flex-shrink-0">
+        {isActive ? (
+          <button onClick={() => onDeactivate(mp.id)} disabled={isWorking}
+            className="text-[10px] px-2.5 py-1 rounded-lg border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2] disabled:opacity-50"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+            {isWorking ? '…' : 'DÉSACTIVER'}
+          </button>
+        ) : (
+          <button onClick={() => onActivate(mp.id)} disabled={isWorking}
+            className="text-[10px] px-2.5 py-1 rounded-lg border border-[#00068D] text-[#00068D] hover:bg-[#E8E9F8] disabled:opacity-50"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+            {isWorking ? '…' : 'ACTIVER'}
+          </button>
+        )}
+        {canDuplicate && (
+          <button onClick={() => onDuplicate(mp.id)} disabled={isWorking}
+            className="text-[10px] px-2.5 py-1 rounded-lg border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2] disabled:opacity-50"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+            Dupliquer
+          </button>
+        )}
+        {canEdit && (
+          <>
+            <button onClick={() => onStartEdit(mp)}
+              className="text-[10px] px-2.5 py-1 rounded-lg border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2]"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+              Modifier
+            </button>
+            <button onClick={() => onDelete(mp.id)} disabled={isWorking}
+              className="text-[10px] px-2.5 py-1 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-50"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+              ✕
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function MetaPromptsPanel() {
   const [data, setData] = useState<MetaPromptsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState({ title: '', description: '', content: '', isPublic: false })
+  const [form, setForm] = useState<FormState>({ title: '', description: '', content: '', isPublic: false })
 
   async function load() {
     const r = await fetch('/api/meta-prompts')
@@ -35,6 +177,7 @@ export default function MetaPromptsPanel() {
     setLoading(false)
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   useEffect(() => { load() }, [])
 
   async function activate(id: string) {
@@ -103,126 +246,19 @@ export default function MetaPromptsPanel() {
 
   const activeId = data.active?.id ?? null
 
-  function MPRow({ mp, canEdit = false, canDuplicate = true }: { mp: MetaPrompt; canEdit?: boolean; canDuplicate?: boolean }) {
-    const isActive = activeId === mp.id
-    const isWorking = working === mp.id
-
-    if (editingId === mp.id) {
-      return (
-        <div className="border border-[#2B2EB8] rounded-xl p-3 space-y-2 bg-[#F8F8FF]">
-          <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            placeholder="Titre" className="w-full px-3 py-1.5 text-sm rounded-lg border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]"
-            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }} />
-          <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-            placeholder="Description (optionnelle)" className="w-full px-3 py-1.5 text-sm rounded-lg border border-[#D8D8D8] focus:outline-none"
-            style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
-          <textarea value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-            placeholder="Contenu du méta-prompt…" rows={4}
-            className="w-full px-3 py-1.5 text-sm rounded-lg border border-[#D8D8D8] focus:outline-none resize-none"
-            style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
-          <div className="flex items-center gap-2">
-            <label className="flex items-center gap-1.5 text-xs text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
-              <input type="checkbox" checked={form.isPublic} onChange={e => setForm(f => ({ ...f, isPublic: e.target.checked }))} />
-              Partager avec la communauté
-            </label>
-          </div>
-          <div className="flex gap-2 justify-end">
-            <button onClick={() => setEditingId(null)}
-              className="px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-xs text-[#5A5A5A] hover:bg-[#F2F2F2]"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>Annuler</button>
-            <button onClick={() => saveEdit(mp.id)} disabled={working === 'edit'}
-              className="px-4 py-1.5 rounded-lg text-xs text-white disabled:opacity-50"
-              style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
-              {working === 'edit' ? '…' : 'ENREGISTRER'}
-            </button>
-          </div>
-        </div>
-      )
-    }
-
-    return (
-      <div className={`flex items-start gap-3 px-3 py-2.5 rounded-xl border transition-all ${isActive ? 'bg-[#E8E9F8] border-[#2B2EB8]' : 'bg-white border-[#D8D8D8] hover:bg-[#FAFAFA]'}`}>
-        <span className="text-base flex-shrink-0 mt-0.5">
-          {mp.level === 'INSTITUTIONAL' ? '📌' : mp.level === 'SHARED' ? '👤' : '✏️'}
-        </span>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: isActive ? '#00068D' : '#0D0D0D' }}>
-              {mp.title}
-            </span>
-            {isActive && (
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#00068D] text-white"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>ACTIF</span>
-            )}
-            {mp.uses > 0 && (
-              <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.7rem', color: '#8A8A8A' }}>
-                {mp.uses} utilisation{mp.uses > 1 ? 's' : ''}
-              </span>
-            )}
-          </div>
-          {mp.description && (
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A', marginTop: '1px' }}>
-              {mp.description}
-            </p>
-          )}
-          {!mp.description && (
-            <p className="truncate" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#C8C8C8', marginTop: '1px', fontStyle: 'italic' }}>
-              {mp.content.slice(0, 80)}…
-            </p>
-          )}
-          {mp.author?.name && mp.level === 'SHARED' && (
-            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.68rem', color: '#8A8A8A', marginTop: '2px' }}>
-              Par {mp.author.name}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {isActive ? (
-            <button onClick={() => deactivate(mp.id)} disabled={isWorking}
-              className="text-[10px] px-2.5 py-1 rounded-lg border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2] disabled:opacity-50"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
-              {isWorking ? '…' : 'DÉSACTIVER'}
-            </button>
-          ) : (
-            <button onClick={() => activate(mp.id)} disabled={isWorking}
-              className="text-[10px] px-2.5 py-1 rounded-lg border border-[#00068D] text-[#00068D] hover:bg-[#E8E9F8] disabled:opacity-50"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
-              {isWorking ? '…' : 'ACTIVER'}
-            </button>
-          )}
-          {canDuplicate && (
-            <button onClick={() => duplicate(mp.id)} disabled={isWorking}
-              className="text-[10px] px-2.5 py-1 rounded-lg border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2] disabled:opacity-50"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
-              Dupliquer
-            </button>
-          )}
-          {canEdit && (
-            <>
-              <button onClick={() => { setEditingId(mp.id); setForm({ title: mp.title, description: mp.description ?? '', content: mp.content, isPublic: mp.isPublic }) }}
-                className="text-[10px] px-2.5 py-1 rounded-lg border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2]"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
-                Modifier
-              </button>
-              <button onClick={() => deleteMP(mp.id)} disabled={isWorking}
-                className="text-[10px] px-2.5 py-1 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-50"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
-                ✕
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  function SectionHeader({ label }: { label: string }) {
-    return (
-      <p className="px-1 text-[9px] uppercase tracking-widest text-[#8A8A8A] mt-3 mb-1"
-        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
-        {label}
-      </p>
-    )
+  const rowProps = {
+    activeId,
+    working,
+    editingId,
+    form,
+    onActivate: activate,
+    onDeactivate: deactivate,
+    onDuplicate: duplicate,
+    onDelete: deleteMP,
+    onStartEdit: (mp: MetaPrompt) => { setEditingId(mp.id); setForm({ title: mp.title, description: mp.description ?? '', content: mp.content, isPublic: mp.isPublic }) },
+    onCancelEdit: () => setEditingId(null),
+    onSaveEdit: saveEdit,
+    onFormChange: (patch: Partial<FormState>) => setForm(f => ({ ...f, ...patch })),
   }
 
   return (
@@ -246,7 +282,7 @@ export default function MetaPromptsPanel() {
       {data.institutional.length > 0 && (
         <>
           <SectionHeader label="─── Bibliothèque institutionnelle ───" />
-          {data.institutional.map(mp => <MPRow key={mp.id} mp={mp} canEdit={false} canDuplicate />)}
+          {data.institutional.map(mp => <MPRow key={mp.id} mp={mp} canEdit={false} canDuplicate {...rowProps} />)}
         </>
       )}
 
@@ -254,7 +290,7 @@ export default function MetaPromptsPanel() {
       {data.shared.length > 0 && (
         <>
           <SectionHeader label="─── Partagés par la communauté ───" />
-          {data.shared.map(mp => <MPRow key={mp.id} mp={mp} canEdit={false} canDuplicate />)}
+          {data.shared.map(mp => <MPRow key={mp.id} mp={mp} canEdit={false} canDuplicate {...rowProps} />)}
         </>
       )}
 
@@ -266,7 +302,7 @@ export default function MetaPromptsPanel() {
           Aucun méta-prompt personnel — créez-en un ci-dessous.
         </p>
       )}
-      {data.personal.map(mp => <MPRow key={mp.id} mp={mp} canEdit canDuplicate={false} />)}
+      {data.personal.map(mp => <MPRow key={mp.id} mp={mp} canEdit canDuplicate={false} {...rowProps} />)}
 
       {/* Create form */}
       {creating ? (

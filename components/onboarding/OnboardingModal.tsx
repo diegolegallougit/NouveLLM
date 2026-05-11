@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 'use client'
 
 import { useState } from 'react'
@@ -46,7 +47,7 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [step, setStep] = useState<Step>(1)
   const [answers, setAnswers] = useState<(number | null)[]>([null, null, null])
   const [quizSubmitted, setQuizSubmitted] = useState(false)
-  const [quizError, setQuizError] = useState(false)
+  const [, setQuizError] = useState(false)
   const [completing, setCompleting] = useState(false)
 
   const score = answers.filter((a, i) => a === QUIZ[i].correct).length

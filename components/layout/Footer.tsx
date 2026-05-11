@@ -44,7 +44,7 @@ export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2
       .catch(() => null)
   }, [isStudent])
 
-  function handleSurveyComplete(tokenEarned: number) {
+  function handleSurveyComplete(_tokenEarned: number) {
     setPendingSurveys(prev => prev.filter(s => s.id !== activeSurvey?.id))
     setActiveSurvey(null)
     // Refresh quota after token earn

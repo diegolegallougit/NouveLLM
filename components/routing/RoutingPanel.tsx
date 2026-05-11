@@ -63,7 +63,7 @@ export default function RoutingPanel({ onSelectAgent, onExpertMode, conversation
   function selectOption(opt: RoutingOption) {
     if (opt.comingSoon) return
     if (opt.agentSlug === 'session-cours') {
-      window.location.href = '/sessions/new'
+      window.location.assign('/sessions/new')
       return
     }
     onSelectAgent(opt.agentSlug)

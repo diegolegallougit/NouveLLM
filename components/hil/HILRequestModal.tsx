@@ -164,7 +164,7 @@ export default function HILRequestModal({ contact, conversationId, onClose, onDo
                     style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontStyle: 'italic' }}
                     onClick={generateSummary}
                   >
-                    Cliquez sur "Générer" pour créer un résumé de votre contexte de travail…
+                    Cliquez sur &ldquo;Générer&rdquo; pour créer un résumé de votre contexte de travail…
                   </div>
                 )}
               </div>

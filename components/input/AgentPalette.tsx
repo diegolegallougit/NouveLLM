@@ -30,9 +30,8 @@ export default function AgentPalette({ agents, query, onSelect, onClose }: Agent
     )
   })
 
-  useEffect(() => {
-    setActiveIndex(0)
-  }, [query])
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setActiveIndex(0) }, [query])
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {

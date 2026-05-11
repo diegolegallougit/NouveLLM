@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Message, { MessageData } from '@/components/chat/Message'
-import ProcessingState from '@/components/chat/ProcessingState'
 
 interface SessionAgent {
   id: string
