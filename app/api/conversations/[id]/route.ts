@@ -10,6 +10,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { id } = await params
 
+  // Strict ownership: conversation.userId must equal session.user.id.
+  // Combining both in the where clause means any mismatch returns null → 404,
+  // which is indistinguishable from a missing resource (no information leak).
   const conversation = await prisma.conversation.findFirst({
     where: { id, userId: session.user.id },
     include: {
@@ -19,6 +22,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   if (!conversation) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  // Belt-and-suspenders: double-check ownership even if findFirst was correct.
+  if (conversation.userId !== session.user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   return NextResponse.json({ conversation })

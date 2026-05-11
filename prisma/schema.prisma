@@ -49,6 +49,7 @@ model User {
   password      String?
   role          Role           @default(EC)
   onboarded     Boolean        @default(false)
+  externalId    String?
   deletedAt     DateTime?
   createdAt     DateTime       @default(now())
   accounts      Account[]
@@ -158,6 +159,7 @@ model Message {
   agentUsed      String?
   sources        String?
   tokenCount     Int?
+  feedback       String?
   createdAt      DateTime     @default(now())
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }

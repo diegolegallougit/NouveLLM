@@ -21,6 +21,7 @@ export interface MessageData {
   sources?: Source[]
   createdAt?: Date
   isStreaming?: boolean
+  feedback?: 'positive' | 'negative' | null
 }
 
 function formatTime(date?: Date) {
@@ -46,12 +47,25 @@ interface MessageProps {
 
 export default function Message({ message, userName = 'Vous', userInitials = 'V', onRegenerate }: MessageProps) {
   const [copied, setCopied] = useState(false)
+  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(message.feedback ?? null)
   const isUser = message.role === 'user'
 
   function handleCopy() {
     navigator.clipboard.writeText(message.content)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function handleFeedback(value: 'positive' | 'negative') {
+    const next = feedback === value ? null : value
+    setFeedback(next)
+    if (!message.id.startsWith('assistant-')) {
+      await fetch(`/api/messages/${message.id}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback: next ?? 'positive' }),
+      }).catch(() => null)
+    }
   }
 
   if (isUser) {
@@ -155,11 +169,19 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
                 Régénérer
               </button>
             )}
-            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] text-[#8A8A8A] hover:bg-[#F2F2F2] hover:text-green-600 transition-all" aria-label="Réponse utile">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" /></svg>
+            <button
+              onClick={() => handleFeedback('positive')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] transition-all ${feedback === 'positive' ? 'bg-green-50 text-green-600' : 'text-[#8A8A8A] hover:bg-[#F2F2F2] hover:text-green-600'}`}
+              aria-label="Réponse utile"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill={feedback === 'positive' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" /></svg>
             </button>
-            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] text-[#8A8A8A] hover:bg-[#F2F2F2] hover:text-red-500 transition-all" aria-label="Réponse à améliorer">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" /></svg>
+            <button
+              onClick={() => handleFeedback('negative')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] transition-all ${feedback === 'negative' ? 'bg-red-50 text-red-500' : 'text-[#8A8A8A] hover:bg-[#F2F2F2] hover:text-red-500'}`}
+              aria-label="Réponse à améliorer"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill={feedback === 'negative' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" /></svg>
             </button>
           </div>
         )}

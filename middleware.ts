@@ -23,6 +23,13 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
+  // Admin pages require ADMIN role
+  if (pathname.startsWith('/admin')) {
+    if (token.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/', req.url))
+    }
+  }
+
   return NextResponse.next()
 }
 
