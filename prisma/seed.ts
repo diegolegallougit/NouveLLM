@@ -393,6 +393,66 @@ async function main() {
     })
   }
 
+  // ── DocumentSpaces sample ─────────────────────────────────────────────────
+  const existingSpace = await prisma.documentSpace.findUnique({ where: { slug: 'cours-traductologie-l3' } })
+  if (!existingSpace) {
+    const space = await prisma.documentSpace.create({
+      data: {
+        slug: 'cours-traductologie-l3',
+        name: 'Cours Traductologie L3',
+        description: 'Supports de cours Traductologie L3 — UFR LCCE',
+        icon: '📖',
+        ownerId: ecUser.id,
+        enrichmentGroups: JSON.stringify(['ec_langues']),
+      },
+    })
+
+    const folderCM = await prisma.documentFolder.create({
+      data: { name: 'Cours magistraux', slug: 'cours-magistraux', spaceId: space.id },
+    })
+    const folderRessources = await prisma.documentFolder.create({
+      data: { name: 'Ressources', slug: 'ressources', spaceId: space.id },
+    })
+
+    await prisma.spaceDocument.createMany({
+      data: [
+        {
+          name: 'CM1_v3_final_VRAI.pdf',
+          displayName: 'Introduction à la traductologie',
+          description: 'Présentation des théories fondatrices de la discipline et des grands courants.',
+          folderId: folderCM.id,
+          spaceId: space.id,
+          difyFileId: 'stub-file-001',
+          uploadedById: ecUser.id,
+          size: 204800,
+          mimeType: 'application/pdf',
+        },
+        {
+          name: 'CM2_Ladmiral_Meschonnic.pdf',
+          displayName: 'Théories de Ladmiral et Meschonnic',
+          description: 'Analyse comparée des théories sourcières et ciblistes en traductologie.',
+          folderId: folderCM.id,
+          spaceId: space.id,
+          difyFileId: 'stub-file-002',
+          uploadedById: ecUser.id,
+          size: 186000,
+          mimeType: 'application/pdf',
+        },
+        {
+          name: 'glossaire_traductologie.pdf',
+          displayName: 'Glossaire de traductologie',
+          description: 'Lexique des termes techniques de la traductologie pour étudiants L3.',
+          folderId: folderRessources.id,
+          spaceId: space.id,
+          difyFileId: 'stub-file-003',
+          uploadedById: ecUser.id,
+          size: 98000,
+          mimeType: 'application/pdf',
+        },
+      ],
+    })
+  }
+
   console.log('Seed complete.')
   console.log('Demo EC:    camille.daniaux@sorbonne-nouvelle.fr / demo1234')
   console.log('Admin:      transvers.art@gmail.com / demo1234')

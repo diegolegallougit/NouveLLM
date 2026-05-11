@@ -62,6 +62,8 @@ model User {
   sessionParticipants CourseSessionParticipant[]
   surveyResponses     SurveyResponse[]
   hilRequests         HILRequest[]
+  ownedSpaces         DocumentSpace[] @relation("OwnedSpaces")
+  uploadedDocuments   SpaceDocument[] @relation("UploadedDocuments")
 }
 
 enum Role {
@@ -342,4 +344,55 @@ enum HILStatus {
   PENDING
   SENT
   COMPLETED
+}
+
+// ─── Espaces documentaires ────────────────────────────────────────────────────
+
+model DocumentSpace {
+  id               String           @id @default(cuid())
+  slug             String           @unique
+  name             String
+  description      String?
+  icon             String           @default("📁")
+  ownerId          String
+  owner            User             @relation("OwnedSpaces", fields: [ownerId], references: [id], onDelete: Cascade)
+  difyDatasetId    String?
+  enrichmentGroups String           @default("[]")
+  folders          DocumentFolder[]
+  documents        SpaceDocument[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model DocumentFolder {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String
+  description String?
+  spaceId     String
+  space       DocumentSpace    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      DocumentFolder?  @relation("FolderTree", fields: [parentId], references: [id])
+  children    DocumentFolder[] @relation("FolderTree")
+  documents   SpaceDocument[]
+  createdAt   DateTime         @default(now())
+
+  @@unique([spaceId, slug])
+}
+
+model SpaceDocument {
+  id           String          @id @default(cuid())
+  name         String
+  displayName  String?
+  description  String?
+  folderId     String?
+  folder       DocumentFolder? @relation(fields: [folderId], references: [id])
+  spaceId      String
+  space        DocumentSpace   @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  difyFileId   String
+  uploadedById String
+  uploadedBy   User            @relation("UploadedDocuments", fields: [uploadedById], references: [id])
+  uploadedAt   DateTime        @default(now())
+  size         Int?
+  mimeType     String?
 }

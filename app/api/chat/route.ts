@@ -10,13 +10,24 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { message, agentSlug, conversationId, uploadedFileId, courseSessionId } = body as {
+  const { message, agentSlug, sourceSlugs, conversationId, uploadedFileId, courseSessionId } = body as {
     message: string
     agentSlug?: string
     sourceSlugs?: string[]
     conversationId?: string
     uploadedFileId?: string
     courseSessionId?: string
+  }
+
+  // Resolve folder filters from #spaceSlug/folderSlug tokens
+  const folderPaths: string[] = []
+  const institutionalSlugs: string[] = []
+  for (const slug of sourceSlugs ?? []) {
+    if (slug.includes('/')) {
+      folderPaths.push(slug) // e.g. "cours-traductologie-l3/cours-magistraux"
+    } else {
+      institutionalSlugs.push(slug)
+    }
   }
 
   // Resolve agent API key and inputs
@@ -32,6 +43,13 @@ export async function POST(req: NextRequest) {
       const inputBuilder = AGENT_INPUTS[agentSlug]
       if (inputBuilder) inputs = inputBuilder(message)
     }
+  }
+
+  // Pass folder path filter as input variable (for workflows that support it)
+  if (folderPaths.length > 0) {
+    inputs.folder_filter = folderPaths.join(',')
+    // TODO: when personal Dify datasets are connected, add dataset_ids and metadata filter
+    console.log('[RAG] Folder filter requested:', folderPaths)
   }
 
   // Get or create conversation in DB

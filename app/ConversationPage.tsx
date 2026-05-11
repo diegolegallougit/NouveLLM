@@ -36,13 +36,36 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const showOnboarding = isStudent && needsOnboarding && !onboardingDone
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/config/agents').then((r) => r.json()),
-      fetch('/api/config/sources').then((r) => r.json()),
-    ]).then(([agentData, sourceData]) => {
+    async function loadConfig() {
+      const [agentData, sourceData] = await Promise.all([
+        fetch('/api/config/agents').then((r) => r.json()),
+        fetch('/api/config/sources').then((r) => r.json()),
+      ])
       setAgents(agentData.agents || [])
-      setSources(sourceData.sources || [])
-    })
+      const institutionalSources: SourceConfig[] = sourceData.sources || []
+
+      if (!isStudent) {
+        const spacesData = await fetch('/api/spaces').then(r => r.json())
+        const folderSources: SourceConfig[] = (spacesData.spaces ?? []).flatMap((space: {
+          slug: string; name: string; folders: { slug: string; name: string; _count: { documents: number } }[]
+        }) =>
+          space.folders.map(folder => ({
+            slug: `${space.slug}/${folder.slug}`,
+            label: folder.name,
+            icon: '📂',
+            description: folder.name,
+            docCount: folder._count?.documents ?? 0,
+            access: 'PERSONAL',
+            isFolder: true,
+            spaceName: space.name,
+          }))
+        )
+        setSources([...institutionalSources, ...folderSources])
+      } else {
+        setSources(institutionalSources)
+      }
+    }
+    loadConfig()
   }, [])
 
   useEffect(() => {
@@ -227,6 +250,11 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
             activeConversationId={conversationId}
             onNewConversation={handleNewConversation}
             refreshKey={sidebarRefreshKey}
+            userRole={userRole}
+            onFolderToken={(token) => {
+              // Insert #spaceSlug/folderSlug token into the chat input via a custom event
+              window.dispatchEvent(new CustomEvent('chat:insert-source', { detail: { token } }))
+            }}
           />
         )}
 

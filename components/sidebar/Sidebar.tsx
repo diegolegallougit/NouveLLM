@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import SpaceTree, { SpaceData } from '@/components/spaces/SpaceTree'
 
 interface Conversation {
   id: string
@@ -15,6 +16,8 @@ interface SidebarProps {
   activeConversationId?: string
   onNewConversation: () => void
   refreshKey?: number
+  onFolderToken?: (token: string) => void
+  userRole?: string
 }
 
 const CONNECTORS = [
@@ -45,19 +48,45 @@ function formatRelativeDate(dateStr: string) {
   return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
 }
 
-export default function Sidebar({ onSelectConversation, activeConversationId, onNewConversation, refreshKey }: SidebarProps) {
+export default function Sidebar({ onSelectConversation, activeConversationId, onNewConversation, refreshKey, onFolderToken, userRole }: SidebarProps) {
   const [activeTab, setActiveTab] = useState<'espace' | 'history' | 'inst'>('history')
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(false)
   const [connectorDrawerOpen, setConnectorDrawerOpen] = useState(false)
-  // Simulated connector state — in production, fetched from /api/connectors
-  const configuredConnectors = CONNECTORS.filter(c => c.id === '__none__') // none configured yet
+  const [spaces, setSpaces] = useState<SpaceData[]>([])
+  const [spacesRefreshKey, setSpacesRefreshKey] = useState(0)
+  const [creatingSpace, setCreatingSpace] = useState(false)
+  const [newSpaceName, setNewSpaceName] = useState('')
+  const configuredConnectors = CONNECTORS.filter(c => c.id === '__none__')
 
   useEffect(() => {
-    if (activeTab === 'history') {
-      loadConversations()
-    }
+    if (activeTab === 'history') loadConversations()
+    if (activeTab === 'espace' && userRole !== 'STUDENT') loadSpaces()
   }, [activeTab, refreshKey])
+
+  useEffect(() => {
+    if (activeTab === 'espace' && userRole !== 'STUDENT') loadSpaces()
+  }, [spacesRefreshKey])
+
+  async function loadSpaces() {
+    try {
+      const r = await fetch('/api/spaces')
+      const data = await r.json()
+      setSpaces(data.spaces ?? [])
+    } catch { /* silent */ }
+  }
+
+  async function handleCreateSpace() {
+    if (!newSpaceName.trim()) return
+    await fetch('/api/spaces', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newSpaceName.trim() }),
+    })
+    setNewSpaceName('')
+    setCreatingSpace(false)
+    setSpacesRefreshKey(k => k + 1)
+  }
 
   async function loadConversations() {
     setLoading(true)
@@ -185,16 +214,59 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                 </div>
               </div>
             )}
-            <div>
-              <p className="text-[9px] text-[#8A8A8A] uppercase tracking-widest mb-2"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
-                Espaces personnels
-              </p>
-              <p className="text-[11px] text-[#8A8A8A] italic leading-relaxed"
-                style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>
-                Liez un connecteur pour importer vos documents et les utiliser comme sources.
-              </p>
-            </div>
+            {userRole !== 'STUDENT' && (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-[9px] text-[#8A8A8A] uppercase tracking-widest"
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                    Espaces documentaires
+                  </p>
+                  <button
+                    onClick={() => setCreatingSpace(v => !v)}
+                    className="w-5 h-5 flex items-center justify-center rounded text-[#8A8A8A] hover:text-[#00068D] hover:bg-[#E8E9F8] transition-all"
+                    title="Nouvel espace">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                  </button>
+                </div>
+
+                {creatingSpace && (
+                  <div className="flex items-center gap-1 mb-2 bg-[#F8F8FF] p-1.5 rounded-lg">
+                    <input
+                      autoFocus
+                      value={newSpaceName}
+                      onChange={e => setNewSpaceName(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleCreateSpace(); if (e.key === 'Escape') setCreatingSpace(false) }}
+                      placeholder="Nom de l'espace"
+                      className="flex-1 min-w-0 text-[11px] px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]"
+                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                    />
+                    <button onClick={handleCreateSpace}
+                      className="text-[9px] px-2 py-0.5 rounded bg-[#00068D] text-white flex-shrink-0"
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>OK</button>
+                    <button onClick={() => setCreatingSpace(false)}
+                      className="text-[9px] px-1 text-[#8A8A8A]">✕</button>
+                  </div>
+                )}
+
+                {spaces.length === 0 && !creatingSpace ? (
+                  <p className="text-[10px] text-[#C8C8C8] italic"
+                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>
+                    Aucun espace — cliquez + pour en créer un.
+                  </p>
+                ) : (
+                  <div className="space-y-1">
+                    {spaces.map(space => (
+                      <SpaceTree
+                        key={space.id}
+                        space={space}
+                        onFolderToken={onFolderToken}
+                        onRefresh={() => setSpacesRefreshKey(k => k + 1)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

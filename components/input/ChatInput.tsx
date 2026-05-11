@@ -27,14 +27,26 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   // Pre-select agent from routing
   useEffect(() => {
     if (preselectedAgent === undefined) return
-    if (preselectedAgent === null) {
-      setSelectedAgent(null)
-      return
-    }
+    if (preselectedAgent === null) { setSelectedAgent(null); return }
     const agent = agents.find(a => a.slug === preselectedAgent)
     if (agent) setSelectedAgent(agent)
     setTimeout(() => textareaRef.current?.focus(), 50)
   }, [preselectedAgent, agents])
+
+  // Listen for folder token insertion from sidebar
+  useEffect(() => {
+    function handleInsertSource(e: Event) {
+      const { token } = (e as CustomEvent<{ token: string }>).detail
+      if (!token) return
+      const source = sources.find(s => s.slug === token)
+      if (source) {
+        setSelectedSources(prev => prev.includes(token) ? prev : [...prev, token])
+        setTimeout(() => textareaRef.current?.focus(), 50)
+      }
+    }
+    window.addEventListener('chat:insert-source', handleInsertSource)
+    return () => window.removeEventListener('chat:insert-source', handleInsertSource)
+  }, [sources])
 
   // Auto-resize textarea
   useEffect(() => {
