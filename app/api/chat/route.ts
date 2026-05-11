@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
   let fullText = ''
   let difyNewConvId: string | undefined
   let retrieverResources: DifySource[] = []
+  let totalTokens: number | undefined
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -113,6 +114,9 @@ export async function POST(req: NextRequest) {
                 if (event.metadata?.retriever_resources) {
                   retrieverResources = event.metadata.retriever_resources
                 }
+                if (event.metadata?.usage?.total_tokens) {
+                  totalTokens = event.metadata.usage.total_tokens
+                }
               } else if (event.event === 'error') {
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', message: event.message })}\n\n`))
               }
@@ -134,6 +138,7 @@ export async function POST(req: NextRequest) {
           content: fullText,
           agentUsed: agentSlug ?? null,
           sources: sources.length > 0 ? JSON.stringify(sources) : null,
+          tokenCount: totalTokens ?? null,
         },
       })
 

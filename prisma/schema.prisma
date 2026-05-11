@@ -49,6 +49,7 @@ model User {
   password      String?
   role          Role           @default(EC)
   onboarded     Boolean        @default(false)
+  deletedAt     DateTime?
   createdAt     DateTime       @default(now())
   accounts      Account[]
   sessions      Session[]

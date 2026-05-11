@@ -6,6 +6,7 @@ import Footer from '@/components/layout/Footer'
 import Message, { MessageData, Source } from '@/components/chat/Message'
 import ChatInput from '@/components/input/ChatInput'
 import Sidebar from '@/components/sidebar/Sidebar'
+import OnboardingModal from '@/components/onboarding/OnboardingModal'
 import { AgentConfig } from '@/components/input/AgentPalette'
 import { SourceConfig } from '@/components/input/SourcePalette'
 
@@ -14,16 +15,22 @@ interface Props {
   userRole: string
   userInitials: string
   userId: string
+  needsOnboarding?: boolean
 }
 
-export default function ConversationPage({ userName, userRole, userInitials }: Props) {
+export default function ConversationPage({ userName, userRole, userInitials, needsOnboarding = false }: Props) {
   const [agents, setAgents] = useState<AgentConfig[]>([])
   const [sources, setSources] = useState<SourceConfig[]>([])
   const [messages, setMessages] = useState<MessageData[]>([])
   const [conversationId, setConversationId] = useState<string | undefined>()
   const [isStreaming, setIsStreaming] = useState(false)
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0)
+  const [onboardingDone, setOnboardingDone] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  const isStudent = userRole === 'STUDENT'
+  const showSidebar = !isStudent
+  const showOnboarding = isStudent && needsOnboarding && !onboardingDone
 
   useEffect(() => {
     Promise.all([
@@ -203,16 +210,20 @@ export default function ConversationPage({ userName, userRole, userInitials }: P
 
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden">
+      {showOnboarding && <OnboardingModal onComplete={() => setOnboardingDone(true)} />}
+
       <Header userName={userName} userRole={userRole} userInitials={userInitials} />
 
       <div className="flex flex-1 min-h-0">
-        {/* Sidebar */}
-        <Sidebar
-          onSelectConversation={loadConversation}
-          activeConversationId={conversationId}
-          onNewConversation={handleNewConversation}
-          refreshKey={sidebarRefreshKey}
-        />
+        {/* Sidebar — EC/Admin only */}
+        {showSidebar && (
+          <Sidebar
+            onSelectConversation={loadConversation}
+            activeConversationId={conversationId}
+            onNewConversation={handleNewConversation}
+            refreshKey={sidebarRefreshKey}
+          />
+        )}
 
         {/* Main area */}
         <div className="flex flex-col flex-1 min-w-0">
@@ -251,7 +262,7 @@ export default function ConversationPage({ userName, userRole, userInitials }: P
         </div>
       </div>
 
-      <Footer />
+      <Footer userRole={userRole} />
     </div>
   )
 }
