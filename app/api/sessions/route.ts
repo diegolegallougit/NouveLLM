@@ -108,7 +108,9 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3001'
+  const host = req.headers.get('host') ?? 'localhost:3001'
+  const proto = req.headers.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'http')
+  const baseUrl = `${proto}://${host}`
   const link = `${baseUrl}/session/${code}`
 
   const qrSvg = await QRCode.toString(link, { type: 'svg', width: 256, margin: 2 })
