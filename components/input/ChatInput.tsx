@@ -9,11 +9,12 @@ interface ChatInputProps {
   sources: SourceConfig[]
   onSend: (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File) => void
   disabled?: boolean
+  preselectedAgent?: string
 }
 
 type PaletteMode = null | 'agent' | 'source'
 
-export default function ChatInput({ agents, sources, onSend, disabled }: ChatInputProps) {
+export default function ChatInput({ agents, sources, onSend, disabled, preselectedAgent }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [text, setText] = useState('')
@@ -22,6 +23,18 @@ export default function ChatInput({ agents, sources, onSend, disabled }: ChatInp
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig | null>(null)
   const [selectedSources, setSelectedSources] = useState<string[]>([])
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+
+  // Pre-select agent from routing
+  useEffect(() => {
+    if (preselectedAgent === undefined) return
+    if (preselectedAgent === null) {
+      setSelectedAgent(null)
+      return
+    }
+    const agent = agents.find(a => a.slug === preselectedAgent)
+    if (agent) setSelectedAgent(agent)
+    setTimeout(() => textareaRef.current?.focus(), 50)
+  }, [preselectedAgent, agents])
 
   // Auto-resize textarea
   useEffect(() => {

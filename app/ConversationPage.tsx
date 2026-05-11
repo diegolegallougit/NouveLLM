@@ -7,6 +7,7 @@ import Message, { MessageData, Source } from '@/components/chat/Message'
 import ChatInput from '@/components/input/ChatInput'
 import Sidebar from '@/components/sidebar/Sidebar'
 import OnboardingModal from '@/components/onboarding/OnboardingModal'
+import RoutingPanel from '@/components/routing/RoutingPanel'
 import { AgentConfig } from '@/components/input/AgentPalette'
 import { SourceConfig } from '@/components/input/SourcePalette'
 
@@ -26,6 +27,8 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const [isStreaming, setIsStreaming] = useState(false)
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0)
   const [onboardingDone, setOnboardingDone] = useState(false)
+  const [expertMode, setExpertMode] = useState(false)
+  const [pendingAgent, setPendingAgent] = useState<string | null | undefined>(undefined)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const isStudent = userRole === 'STUDENT'
@@ -78,6 +81,8 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   function handleNewConversation() {
     setMessages([])
     setConversationId(undefined)
+    setExpertMode(false)
+    setPendingAgent(undefined)
   }
 
   const handleSend = useCallback(
@@ -229,7 +234,18 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         <div className="flex flex-col flex-1 min-w-0">
           <div className="flex-1 overflow-y-auto nl-scroll" style={{ background: '#ffffff' }}>
             {messages.length === 0 ? (
-              <EmptyState agents={agents} onSuggest={handleSend} />
+              expertMode ? (
+                <EmptyState agents={agents} onSuggest={handleSend} onRoutingMode={() => setExpertMode(false)} />
+              ) : (
+                <RoutingPanel
+                  onSelectAgent={(slug) => {
+                    setPendingAgent(slug)
+                    setExpertMode(true)
+                  }}
+                  onExpertMode={() => setExpertMode(true)}
+                  conversationId={conversationId}
+                />
+              )
             ) : (
               <div className="max-w-[760px] mx-auto px-8 py-8 space-y-7">
                 {messages.map((msg, i) => (
@@ -256,8 +272,12 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
           <ChatInput
             agents={agents}
             sources={sources}
-            onSend={handleSend}
+            onSend={(msg, agent, srcs, file) => {
+              setPendingAgent(undefined)
+              handleSend(msg, agent, srcs, file)
+            }}
             disabled={isStreaming}
+            preselectedAgent={pendingAgent ?? undefined}
           />
         </div>
       </div>
@@ -270,9 +290,11 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
 function EmptyState({
   agents,
   onSuggest,
+  onRoutingMode,
 }: {
   agents: AgentConfig[]
   onSuggest: (msg: string, agent?: string) => void
+  onRoutingMode?: () => void
 }) {
   const suggestions = [
     { text: "Créer une bibliographie sur l'IA en enseignement supérieur", agent: 'bibliographie', icon: '📚' },
@@ -306,6 +328,19 @@ function EmptyState({
           structurées
         </p>
       </div>
+
+      {onRoutingMode && (
+        <button
+          onClick={onRoutingMode}
+          className="mb-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#8A8A8A] hover:text-[#00068D] hover:bg-[#E8E9F8] transition-all"
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.03em' }}
+        >
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M19 12H5M5 12l7-7M5 12l7 7" />
+          </svg>
+          Vue guidée
+        </button>
+      )}
 
       {agents.length > 0 && (
         <div className="grid grid-cols-2 gap-3 max-w-xl w-full">

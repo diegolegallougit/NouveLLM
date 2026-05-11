@@ -45,15 +45,37 @@ interface MessageProps {
   onRegenerate?: () => void
 }
 
+const HIL_REGEX = /\[HIL_SUGGESTION:([a-z0-9-]+)\]/
+
 export default function Message({ message, userName = 'Vous', userInitials = 'V', onRegenerate }: MessageProps) {
   const [copied, setCopied] = useState(false)
   const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(message.feedback ?? null)
   const isUser = message.role === 'user'
 
+  // Detect HIL suggestion token in assistant content
+  const hilMatch = !isUser ? message.content.match(HIL_REGEX) : null
+  const hilSlug = hilMatch ? hilMatch[1] : null
+  const cleanContent = hilSlug ? message.content.replace(HIL_REGEX, '').trim() : message.content
+
   function handleCopy() {
-    navigator.clipboard.writeText(message.content)
+    navigator.clipboard.writeText(cleanContent)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  function handleExportMD() {
+    const date = new Date().toLocaleDateString('fr-FR')
+    const sourcesSection = message.sources && message.sources.length > 0
+      ? `\n\n---\n**Sources consultées**\n${message.sources.map(s => `- [${s.title}](${s.url ?? s.domain})`).join('\n')}`
+      : ''
+    const md = `# Réponse NouveLLM\n*${date}*\n\n${cleanContent}${sourcesSection}`
+    const blob = new Blob([md], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `nouvellm-${Date.now()}.md`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   async function handleFeedback(value: 'positive' | 'negative') {
@@ -135,7 +157,28 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
           <ProcessingState agentSlug={message.agentUsed} />
         ) : (
           <div className={`nl-prose${message.isStreaming ? ' nl-cursor' : ''}`}>
-            <div dangerouslySetInnerHTML={{ __html: formatContent(message.content) }} />
+            <div dangerouslySetInnerHTML={{ __html: formatContent(cleanContent) }} />
+          </div>
+        )}
+
+        {/* HIL suggestion banner */}
+        {!message.isStreaming && hilSlug && (
+          <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#E8E9F8] border border-[#C5C7F0]">
+            <span className="text-base flex-shrink-0">💡</span>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#00068D', flex: 1 }}>
+              Vous pourriez bénéficier d&apos;un accompagnement humain pour cette question.
+            </p>
+            <a
+              href="#hil"
+              onClick={(e) => {
+                e.preventDefault()
+                window.dispatchEvent(new CustomEvent('hil:open', { detail: { slug: hilSlug } }))
+              }}
+              className="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-lg border border-[#2B2EB8] text-[#00068D] hover:bg-[#2B2EB8] hover:text-white transition-all"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+            >
+              Contacter →
+            </a>
           </div>
         )}
 
@@ -157,6 +200,15 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
               )}
               {copied ? 'Copié' : 'Copier'}
+            </button>
+            <button
+              onClick={handleExportMD}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] text-[#8A8A8A] hover:bg-[#F2F2F2] hover:text-[#0D0D0D] transition-all"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}
+              aria-label="Exporter en Markdown"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7,10 12,15 17,10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              .md
             </button>
             {onRegenerate && (
               <button

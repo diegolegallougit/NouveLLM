@@ -239,6 +239,160 @@ async function main() {
     create: { userId: adminUser.id, groupId: adminGroup.id },
   })
 
+  // ── Routing families ──────────────────────────────────────────────────────
+  const ROUTING_FAMILIES = [
+    {
+      slug: 'produire-document',
+      label: 'Produire un document',
+      icon: '✍️',
+      description: 'Rédiger, structurer, exporter un contenu',
+      order: 1,
+      questions: [{
+        question: 'Quel type de document ?',
+        order: 1,
+        options: [
+          { label: 'Note de service / CR / Rapport', agentSlug: 'redaction', order: 1 },
+          { label: 'Fiche de cours ECTS', agentSlug: 'fiche-cours', order: 2 },
+          { label: 'Questionnaire LimeSurvey', agentSlug: null, order: 3, comingSoon: true },
+          { label: 'Autre document', agentSlug: 'redaction', order: 4 },
+        ],
+      }],
+    },
+    {
+      slug: 'travailler-cours',
+      label: 'Travailler sur mes cours',
+      icon: '📚',
+      description: 'Concevoir, optimiser, évaluer mes enseignements',
+      order: 2,
+      questions: [{
+        question: 'Que voulez-vous faire ?',
+        order: 1,
+        options: [
+          { label: 'Concevoir un module pédagogique', agentSlug: 'module', order: 1 },
+          { label: "Préparer un sujet d'examen", agentSlug: 'examen', order: 2 },
+          { label: 'Optimiser/séquencer un cours', agentSlug: null, order: 3, comingSoon: true },
+          { label: 'Créer une session étudiants', agentSlug: 'session-cours', order: 4 },
+        ],
+      }],
+    },
+    {
+      slug: 'chercher-comprendre',
+      label: 'Chercher et comprendre',
+      icon: '🔍',
+      description: 'Explorer la littérature, analyser des documents',
+      order: 3,
+      questions: [{
+        question: 'Que cherchez-vous ?',
+        order: 1,
+        options: [
+          { label: 'Une bibliographie disciplinaire', agentSlug: 'bibliographie', order: 1 },
+          { label: 'Analyser un document uploadé', agentSlug: 'analyse', order: 2 },
+          { label: 'Répondre à une question libre', agentSlug: null, order: 3 },
+        ],
+      }],
+    },
+    {
+      slug: 'transformer-contenu',
+      label: 'Transformer un contenu',
+      icon: '🌍',
+      description: 'Traduire, reformuler, adapter',
+      order: 4,
+      questions: [{
+        question: 'Quel type de transformation ?',
+        order: 1,
+        options: [
+          { label: 'Traduire un texte SHS', agentSlug: 'traduction', order: 1 },
+          { label: 'Reformuler / adapter le niveau', agentSlug: 'redaction', order: 2 },
+        ],
+      }],
+    },
+    {
+      slug: 'piloter-evaluer',
+      label: 'Piloter et évaluer',
+      icon: '📊',
+      description: 'Préparer des réunions, bilans, rapports',
+      order: 5,
+      questions: [{
+        question: 'Quel besoin ?',
+        order: 1,
+        options: [
+          { label: 'Préparer une réunion / COPIL', agentSlug: 'briefing', order: 1 },
+          { label: 'Bilan annuel de cours', agentSlug: null, order: 2, comingSoon: true },
+          { label: "Rapport d'activité", agentSlug: 'redaction', order: 3 },
+        ],
+      }],
+    },
+    {
+      slug: 'aide-humaine',
+      label: "Demander de l'aide humaine",
+      icon: '🤝',
+      description: "Contacter un expert : IP, documentaliste, service admin",
+      order: 6,
+      questions: [],
+    },
+  ]
+
+  for (const fam of ROUTING_FAMILIES) {
+    const { questions, ...famData } = fam
+    const family = await prisma.routingFamily.upsert({
+      where: { slug: famData.slug },
+      update: { label: famData.label, icon: famData.icon, description: famData.description, order: famData.order },
+      create: famData,
+    })
+    // Only seed questions if they don't exist yet
+    const existingCount = await prisma.routingQuestion.count({ where: { familyId: family.id } })
+    if (existingCount === 0) {
+      for (const q of questions) {
+        const { options, ...qData } = q
+        const question = await prisma.routingQuestion.create({
+          data: { ...qData, familyId: family.id },
+        })
+        for (const opt of options) {
+          const { comingSoon, ...optRest } = opt as typeof opt & { comingSoon?: boolean }
+          await prisma.routingOption.create({
+            data: { ...optRest, questionId: question.id, comingSoon: comingSoon ?? false },
+          })
+        }
+      }
+    }
+  }
+
+  // ── Expert contacts ────────────────────────────────────────────────────────
+  const EXPERT_CONTACTS = [
+    {
+      slug: 'ingenieur-pedagogique',
+      name: 'Service BAPP',
+      role: "Bureau d'Accompagnement à la Pédagogie et aux Projets",
+      description: 'Concevoir ou restructurer un module, scénario pédagogique, outils d\'évaluation',
+      scope: JSON.stringify(['ec_base']),
+      contactEmail: 'bapp@sorbonne-nouvelle.fr',
+    },
+    {
+      slug: 'bibliothecaire',
+      name: 'Bibliothèques USN',
+      role: 'Documentaliste / Bibliothécaire',
+      description: 'Ressources documentaires, accès bases de données, HAL, droits d\'auteur',
+      scope: JSON.stringify(['ec_base', 'student_base']),
+      contactEmail: 'bibliotheques@sorbonne-nouvelle.fr',
+    },
+    {
+      slug: 'service-scolarite',
+      name: 'Service scolarité',
+      role: 'Scolarité centrale',
+      description: 'Procédures administratives, maquettes, habilitations, inscriptions',
+      scope: JSON.stringify(['ec_base', 'student_base']),
+      contactEmail: 'scolarite@sorbonne-nouvelle.fr',
+    },
+  ]
+
+  for (const ec of EXPERT_CONTACTS) {
+    await prisma.expertContact.upsert({
+      where: { slug: ec.slug },
+      update: { name: ec.name, role: ec.role, description: ec.description, contactEmail: ec.contactEmail },
+      create: ec,
+    })
+  }
+
   console.log('Seed complete.')
   console.log('Demo EC:    camille.daniaux@sorbonne-nouvelle.fr / demo1234')
   console.log('Admin:      transvers.art@gmail.com / demo1234')

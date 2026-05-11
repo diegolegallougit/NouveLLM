@@ -49,6 +49,9 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
   const [activeTab, setActiveTab] = useState<'espace' | 'history' | 'inst'>('history')
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(false)
+  const [connectorDrawerOpen, setConnectorDrawerOpen] = useState(false)
+  // Simulated connector state — in production, fetched from /api/connectors
+  const configuredConnectors = CONNECTORS.filter(c => c.id === '__none__') // none configured yet
 
   useEffect(() => {
     if (activeTab === 'history') {
@@ -115,58 +118,80 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
 
         {/* MON ESPACE */}
         {activeTab === 'espace' && (
-          <div className="p-3 space-y-5">
-            <div>
-              <p
-                className="text-[9px] text-[#8A8A8A] uppercase tracking-widest mb-2"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
-              >
-                Connecteurs
-              </p>
-              <div className="space-y-1.5">
-                {CONNECTORS.map((c) => (
-                  <div
-                    key={c.id}
-                    className="flex items-center justify-between px-2.5 py-2 rounded-lg bg-white border border-[#D8D8D8]"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs">{c.icon}</span>
-                      <span
-                        className="text-[11px] text-[#3A3A3A]"
-                        style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
-                      >
-                        {c.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className="text-[9px] text-[#8A8A8A] italic"
-                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}
-                      >
-                        non connecté
-                      </span>
-                      <button
-                        className="text-[9px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A] hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
-                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.03em' }}
-                      >
-                        LIER
-                      </button>
-                    </div>
+          <div className="p-3 space-y-4">
+            {configuredConnectors.length > 0 ? (
+              /* Progressive disclosure: connectors configured → collapse into drawer */
+              <div>
+                <button
+                  onClick={() => setConnectorDrawerOpen(o => !o)}
+                  className="flex items-center justify-between w-full px-2 py-1.5 rounded-lg hover:bg-[#F2F2F2] transition-all"
+                >
+                  <span className="text-[9px] text-[#8A8A8A] uppercase tracking-widest"
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                    Sources externes ⚙
+                  </span>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" strokeWidth="2.5"
+                    className={`transition-transform ${connectorDrawerOpen ? 'rotate-180' : ''}`}>
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+                {connectorDrawerOpen && (
+                  <div className="space-y-1.5 mt-2">
+                    {configuredConnectors.map((c) => (
+                      <div key={c.id} className="flex items-center justify-between px-2.5 py-2 rounded-lg bg-white border border-[#D8D8D8]">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs">{c.icon}</span>
+                          <span className="text-[11px] text-[#3A3A3A]"
+                            style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>{c.name}</span>
+                        </div>
+                        <span className="text-[9px] text-[#2E7D32]"
+                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Lié</span>
+                      </div>
+                    ))}
+                    <button className="text-[9px] text-[#8A8A8A] hover:text-[#00068D] px-2 py-1 transition-all"
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+                      + Ajouter un connecteur
+                    </button>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
+            ) : (
+              /* No connectors yet → show LIER buttons */
+              <div>
+                <p className="text-[9px] text-[#8A8A8A] uppercase tracking-widest mb-2"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                  Connecteurs
+                </p>
+                <div className="space-y-1.5">
+                  {CONNECTORS.map((c) => (
+                    <div key={c.id}
+                      className="flex items-center justify-between px-2.5 py-2 rounded-lg bg-white border border-[#D8D8D8]">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs">{c.icon}</span>
+                        <span className="text-[11px] text-[#3A3A3A]"
+                          style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>{c.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] text-[#8A8A8A] italic"
+                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>non connecté</span>
+                        <button
+                          className="text-[9px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A] hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
+                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.03em' }}>
+                          LIER
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div>
-              <p
-                className="text-[9px] text-[#8A8A8A] uppercase tracking-widest mb-2"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
-              >
+              <p className="text-[9px] text-[#8A8A8A] uppercase tracking-widest mb-2"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
                 Espaces personnels
               </p>
-              <p
-                className="text-[11px] text-[#8A8A8A] italic leading-relaxed"
-                style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
-              >
+              <p className="text-[11px] text-[#8A8A8A] italic leading-relaxed"
+                style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>
                 Liez un connecteur pour importer vos documents et les utiliser comme sources.
               </p>
             </div>

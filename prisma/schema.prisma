@@ -61,6 +61,7 @@ model User {
   courseSessions      CourseSession[]
   sessionParticipants CourseSessionParticipant[]
   surveyResponses     SurveyResponse[]
+  hilRequests         HILRequest[]
 }
 
 enum Role {
@@ -271,4 +272,74 @@ model SurveyResponse {
   createdAt   DateTime @default(now())
 
   @@unique([surveyId, userId])
+}
+
+// ─── Routing intelligent ──────────────────────────────────────────────────────
+
+model RoutingFamily {
+  id          String            @id @default(cuid())
+  slug        String            @unique
+  label       String
+  icon        String
+  description String
+  order       Int               @default(0)
+  active      Boolean           @default(true)
+  questions   RoutingQuestion[]
+  createdAt   DateTime          @default(now())
+}
+
+model RoutingQuestion {
+  id       String          @id @default(cuid())
+  familyId String
+  family   RoutingFamily   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  question String
+  order    Int             @default(0)
+  options  RoutingOption[]
+}
+
+model RoutingOption {
+  id             String          @id @default(cuid())
+  questionId     String
+  question       RoutingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  label          String
+  agentSlug      String?
+  nextQuestionId String?
+  order          Int             @default(0)
+  comingSoon     Boolean         @default(false)
+}
+
+// ─── Human in the Loop ───────────────────────────────────────────────────────
+
+model ExpertContact {
+  id           String       @id @default(cuid())
+  slug         String       @unique
+  name         String
+  role         String
+  description  String
+  scope        String
+  contactEmail String
+  calendarUrl  String?
+  tchapId      String?
+  active       Boolean      @default(true)
+  requests     HILRequest[]
+}
+
+model HILRequest {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expertContactId String
+  expert          ExpertContact @relation(fields: [expertContactId], references: [id])
+  contextSummary  String
+  userMessage     String
+  conversationId  String?
+  status          HILStatus     @default(PENDING)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+enum HILStatus {
+  PENDING
+  SENT
+  COMPLETED
 }
