@@ -21,7 +21,7 @@ export const AGENT_INPUTS: Record<string, (message: string) => Record<string, st
   bibliographie: (msg) => ({
     sujet: msg,
     discipline: 'Sciences Humaines et Sociales',
-    niveau: 'master',
+    niveau: 'Master',
     nb_refs: '10',
   }),
   redaction: (msg) => ({
