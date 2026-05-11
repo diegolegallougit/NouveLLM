@@ -5,6 +5,7 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Message, { MessageData, Source } from '@/components/chat/Message'
 import ChatInput from '@/components/input/ChatInput'
+import Sidebar from '@/components/sidebar/Sidebar'
 import { AgentConfig } from '@/components/input/AgentPalette'
 import { SourceConfig } from '@/components/input/SourcePalette'
 
@@ -21,10 +22,9 @@ export default function ConversationPage({ userName, userRole, userInitials }: P
   const [messages, setMessages] = useState<MessageData[]>([])
   const [conversationId, setConversationId] = useState<string | undefined>()
   const [isStreaming, setIsStreaming] = useState(false)
+  const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Load config on mount
   useEffect(() => {
     Promise.all([
       fetch('/api/config/agents').then((r) => r.json()),
@@ -35,19 +35,68 @@ export default function ConversationPage({ userName, userRole, userInitials }: P
     })
   }, [])
 
-  // Auto-scroll to bottom
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  async function loadConversation(convId: string) {
+    try {
+      const r = await fetch(`/api/conversations/${convId}`)
+      const data = await r.json()
+      if (!data.conversation) return
+
+      const msgs: MessageData[] = data.conversation.messages.map((m: {
+        id: string
+        role: string
+        content: string
+        agentUsed?: string
+        sources?: string
+        createdAt: string
+      }) => ({
+        id: m.id,
+        role: m.role === 'USER' ? 'user' : 'assistant',
+        content: m.content,
+        agentUsed: m.agentUsed || undefined,
+        sources: m.sources ? JSON.parse(m.sources) : undefined,
+        createdAt: new Date(m.createdAt),
+      }))
+
+      setMessages(msgs)
+      setConversationId(convId)
+    } catch (err) {
+      console.error('Failed to load conversation:', err)
+    }
+  }
+
+  function handleNewConversation() {
+    setMessages([])
+    setConversationId(undefined)
+  }
+
   const handleSend = useCallback(
-    async (message: string, agentSlug?: string, sourceSlugs?: string[]) => {
+    async (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File) => {
       if (isStreaming) return
+
+      // Upload file first if provided
+      let uploadedFileId: string | undefined
+      if (file) {
+        try {
+          const form = new FormData()
+          form.append('file', file)
+          const uploadRes = await fetch('/api/upload', { method: 'POST', body: form })
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json()
+            uploadedFileId = uploadData.id
+          }
+        } catch {
+          // proceed without file if upload fails
+        }
+      }
 
       const userMsg: MessageData = {
         id: `user-${Date.now()}`,
         role: 'user',
-        content: message,
+        content: file ? `${message}\n\n📎 ${file.name}` : message,
         createdAt: new Date(),
       }
 
@@ -73,6 +122,7 @@ export default function ConversationPage({ userName, userRole, userInitials }: P
             agentSlug,
             sourceSlugs,
             conversationId,
+            uploadedFileId,
           }),
         })
 
@@ -83,7 +133,7 @@ export default function ConversationPage({ userName, userRole, userInitials }: P
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
         let buffer = ''
-        let sources: Source[] = []
+        let finalSources: Source[] = []
         let agentLabel: string | undefined
 
         while (true) {
@@ -111,7 +161,7 @@ export default function ConversationPage({ userName, userRole, userInitials }: P
                   )
                 )
               } else if (event.type === 'done') {
-                sources = event.sources || []
+                finalSources = event.sources || []
                 agentLabel = event.agentLabel
               } else if (event.type === 'error') {
                 throw new Error(event.message)
@@ -122,14 +172,14 @@ export default function ConversationPage({ userName, userRole, userInitials }: P
           }
         }
 
-        // Finalize message
         setMessages((prev) =>
           prev.map((m) =>
             m.id === streamingId
-              ? { ...m, isStreaming: false, sources, agentLabel }
+              ? { ...m, isStreaming: false, sources: finalSources, agentLabel }
               : m
           )
         )
+        setSidebarRefreshKey((k) => k + 1)
       } catch (err) {
         console.error('Chat error:', err)
         setMessages((prev) =>
@@ -151,20 +201,22 @@ export default function ConversationPage({ userName, userRole, userInitials }: P
     [isStreaming, conversationId]
   )
 
-  function handleNewConversation() {
-    setMessages([])
-    setConversationId(undefined)
-  }
-
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden">
       <Header userName={userName} userRole={userRole} userInitials={userInitials} />
 
       <div className="flex flex-1 min-h-0">
-        {/* Main conversation area */}
+        {/* Sidebar */}
+        <Sidebar
+          onSelectConversation={loadConversation}
+          activeConversationId={conversationId}
+          onNewConversation={handleNewConversation}
+          refreshKey={sidebarRefreshKey}
+        />
+
+        {/* Main area */}
         <div className="flex flex-col flex-1 min-w-0">
-          {/* Scroll area */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto nl-scroll" style={{ background: '#ffffff' }}>
+          <div className="flex-1 overflow-y-auto nl-scroll" style={{ background: '#ffffff' }}>
             {messages.length === 0 ? (
               <EmptyState agents={agents} onSuggest={handleSend} />
             ) : (
@@ -190,7 +242,6 @@ export default function ConversationPage({ userName, userRole, userInitials }: P
             )}
           </div>
 
-          {/* Input */}
           <ChatInput
             agents={agents}
             sources={sources}
@@ -205,12 +256,18 @@ export default function ConversationPage({ userName, userRole, userInitials }: P
   )
 }
 
-function EmptyState({ agents, onSuggest }: { agents: AgentConfig[]; onSuggest: (msg: string, agent?: string) => void }) {
+function EmptyState({
+  agents,
+  onSuggest,
+}: {
+  agents: AgentConfig[]
+  onSuggest: (msg: string, agent?: string) => void
+}) {
   const suggestions = [
-    { text: 'Créer une bibliographie sur l\'IA en enseignement supérieur', agent: 'bibliographie', icon: '📚' },
+    { text: "Créer une bibliographie sur l'IA en enseignement supérieur", agent: 'bibliographie', icon: '📚' },
     { text: 'Rédiger une fiche de cours ECTS pour un module Licence', agent: 'fiche-cours', icon: '📋' },
     { text: 'Concevoir un module pédagogique sur la sociolinguistique', agent: 'module', icon: '📖' },
-    { text: 'Préparer un sujet d\'examen sur la traductologie', agent: 'examen', icon: '🎯' },
+    { text: "Préparer un sujet d'examen sur la traductologie", agent: 'examen', icon: '🎯' },
   ]
 
   return (
@@ -222,31 +279,45 @@ function EmptyState({ agents, onSuggest }: { agents: AgentConfig[]; onSuggest: (
             <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
           </svg>
         </div>
-        <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.5rem', letterSpacing: '-0.02em', color: '#0D0D0D' }}>
+        <h2
+          style={{
+            fontFamily: 'Gilroy, sans-serif',
+            fontWeight: 800,
+            fontSize: '1.5rem',
+            letterSpacing: '-0.02em',
+            color: '#0D0D0D',
+          }}
+        >
           Bonjour, comment puis-je vous aider ?
         </h2>
         <p className="mt-2 text-sm text-[#8A8A8A]" style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>
-          Posez une question, ou utilisez un agent <span className="nl-token-agent">@</span> pour des tâches structurées
+          Posez une question, ou utilisez un agent <span className="nl-token-agent">@</span> pour des tâches
+          structurées
         </p>
       </div>
 
       {agents.length > 0 && (
         <div className="grid grid-cols-2 gap-3 max-w-xl w-full">
-          {suggestions.filter(s => agents.find(a => a.slug === s.agent)).map((s) => (
-            <button
-              key={s.agent}
-              onClick={() => onSuggest(s.text, s.agent)}
-              className="flex items-start gap-3 p-4 rounded-xl border border-[#D8D8D8] bg-white hover:bg-[#F0F1FB] hover:border-[#2B2EB8] transition-all text-left group"
-            >
-              <span className="text-xl flex-shrink-0">{s.icon}</span>
-              <div>
-                <p className="text-xs text-[#3A3A3A] leading-relaxed" style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>
-                  {s.text}
-                </p>
-                <span className="mt-1.5 inline-block nl-token-agent text-[10px]">@{s.agent}</span>
-              </div>
-            </button>
-          ))}
+          {suggestions
+            .filter((s) => agents.find((a) => a.slug === s.agent))
+            .map((s) => (
+              <button
+                key={s.agent}
+                onClick={() => onSuggest(s.text, s.agent)}
+                className="flex items-start gap-3 p-4 rounded-xl border border-[#D8D8D8] bg-white hover:bg-[#F0F1FB] hover:border-[#2B2EB8] transition-all text-left"
+              >
+                <span className="text-xl flex-shrink-0">{s.icon}</span>
+                <div>
+                  <p
+                    className="text-xs text-[#3A3A3A] leading-relaxed"
+                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                  >
+                    {s.text}
+                  </p>
+                  <span className="mt-1.5 inline-block nl-token-agent text-[10px]">@{s.agent}</span>
+                </div>
+              </button>
+            ))}
         </div>
       )}
     </div>

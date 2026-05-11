@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import SourcesBlock from './SourcesBlock'
+import ProcessingState from './ProcessingState'
 
 export interface Source {
   title: string
@@ -116,9 +117,13 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
         </div>
 
         {/* Content */}
-        <div className={`nl-prose${message.isStreaming ? ' nl-cursor' : ''}`}>
-          <div dangerouslySetInnerHTML={{ __html: formatContent(message.content) }} />
-        </div>
+        {message.isStreaming && !message.content ? (
+          <ProcessingState agentSlug={message.agentUsed} />
+        ) : (
+          <div className={`nl-prose${message.isStreaming ? ' nl-cursor' : ''}`}>
+            <div dangerouslySetInnerHTML={{ __html: formatContent(message.content) }} />
+          </div>
+        )}
 
         {/* Sources */}
         {!message.isStreaming && <SourcesBlock sources={message.sources || []} />}

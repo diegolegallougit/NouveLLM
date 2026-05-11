@@ -1,0 +1,92 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+
+const STEPS_BY_AGENT: Record<string, string[]> = {
+  bibliographie: [
+    'Analyse du sujet et des paramètres...',
+    'Recherche bibliographique...',
+    'Filtrage et évaluation des sources...',
+    'Formatage des références...',
+  ],
+  module: [
+    'Analyse du syllabus...',
+    'Structuration pédagogique...',
+    'Alignement avec les objectifs...',
+    'Rédaction du module...',
+  ],
+  'fiche-cours': [
+    'Analyse des paramètres ECTS...',
+    'Structuration du contenu...',
+    'Vérification des crédits et prérequis...',
+    'Rédaction de la fiche...',
+  ],
+  examen: [
+    'Analyse des compétences cibles...',
+    'Conception des questions...',
+    'Calibrage du niveau...',
+    'Finalisation du sujet...',
+  ],
+  traduction: [
+    'Analyse du texte source...',
+    'Traduction...',
+    'Révision et cohérence...',
+  ],
+  briefing: [
+    'Collecte des informations...',
+    'Analyse du contexte...',
+    'Rédaction du briefing...',
+  ],
+}
+
+const DEFAULT_STEPS = [
+  'Analyse de la question...',
+  'Recherche dans les sources...',
+  'Synthèse documentaire...',
+  'Rédaction de la réponse...',
+]
+
+export default function ProcessingState({ agentSlug }: { agentSlug?: string }) {
+  const steps = (agentSlug && STEPS_BY_AGENT[agentSlug]) || DEFAULT_STEPS
+  const [currentStep, setCurrentStep] = useState(0)
+
+  useEffect(() => {
+    if (currentStep >= steps.length - 1) return
+    const timer = setTimeout(() => setCurrentStep((s) => s + 1), 1400)
+    return () => clearTimeout(timer)
+  }, [currentStep, steps.length])
+
+  return (
+    <div className="space-y-2 py-1">
+      {steps.slice(0, currentStep + 1).map((step, i) => (
+        <div key={i} className="flex items-center gap-2.5">
+          {i < currentStep ? (
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#2B2EB8"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              className="flex-shrink-0"
+            >
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          ) : (
+            <span
+              className="nl-spinner flex-shrink-0"
+              style={{ width: 13, height: 13 }}
+            />
+          )}
+          <span
+            className={i < currentStep ? 'text-[#8A8A8A]' : 'text-[#3A3A3A]'}
+            style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.8rem' }}
+          >
+            {step}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}

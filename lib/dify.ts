@@ -69,19 +69,31 @@ export async function streamDifyChat({
   conversationId,
   userId,
   inputs = {},
+  uploadedFileId,
 }: {
   apiKey: string
   query: string
   conversationId?: string
   userId: string
   inputs?: Record<string, string>
+  uploadedFileId?: string
 }): Promise<Response> {
-  const body = {
+  const body: Record<string, unknown> = {
     inputs,
     query,
     response_mode: 'streaming',
     conversation_id: conversationId || '',
     user: userId,
+  }
+
+  if (uploadedFileId) {
+    body.files = [
+      {
+        type: 'document',
+        transfer_method: 'local_file',
+        upload_file_id: uploadedFileId,
+      },
+    ]
   }
 
   return fetch(`${DIFY_BASE_URL}/v1/chat-messages`, {

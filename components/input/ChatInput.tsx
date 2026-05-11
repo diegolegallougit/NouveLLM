@@ -7,7 +7,7 @@ import SourcePalette, { SourceConfig } from './SourcePalette'
 interface ChatInputProps {
   agents: AgentConfig[]
   sources: SourceConfig[]
-  onSend: (message: string, agentSlug?: string, sourceSlugs?: string[]) => void
+  onSend: (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File) => void
   disabled?: boolean
 }
 
@@ -15,11 +15,13 @@ type PaletteMode = null | 'agent' | 'source'
 
 export default function ChatInput({ agents, sources, onSend, disabled }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [text, setText] = useState('')
   const [paletteMode, setPaletteMode] = useState<PaletteMode>(null)
   const [paletteQuery, setPaletteQuery] = useState('')
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig | null>(null)
   const [selectedSources, setSelectedSources] = useState<string[]>([])
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   // Auto-resize textarea
   useEffect(() => {
@@ -90,10 +92,11 @@ export default function ChatInput({ agents, sources, onSend, disabled }: ChatInp
   function handleSend() {
     const trimmed = text.trim()
     if (!trimmed || disabled) return
-    onSend(trimmed, selectedAgent?.slug, selectedSources.length > 0 ? selectedSources : undefined)
+    onSend(trimmed, selectedAgent?.slug, selectedSources.length > 0 ? selectedSources : undefined, selectedFile ?? undefined)
     setText('')
     setSelectedAgent(null)
     setSelectedSources([])
+    setSelectedFile(null)
     setPaletteMode(null)
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
@@ -114,10 +117,23 @@ export default function ChatInput({ agents, sources, onSend, disabled }: ChatInp
     }
   }
 
-  const hasContent = text.trim().length > 0 || selectedAgent !== null || selectedSources.length > 0
+  const hasContent = text.trim().length > 0 || selectedAgent !== null || selectedSources.length > 0 || selectedFile !== null
 
   return (
     <div className="relative px-6 pb-4 bg-white border-t border-[#D8D8D8] flex-shrink-0">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept=".pdf,.doc,.docx,.txt,.md,.csv,.xls,.xlsx,.ppt,.pptx"
+        onChange={(e) => {
+          const file = e.target.files?.[0] ?? null
+          setSelectedFile(file)
+          e.target.value = ''
+        }}
+      />
+
       {/* Palette overlay */}
       {paletteMode === 'agent' && (
         <AgentPalette
@@ -138,7 +154,7 @@ export default function ChatInput({ agents, sources, onSend, disabled }: ChatInp
       )}
 
       {/* Tokens row */}
-      {(selectedAgent || selectedSources.length > 0) && (
+      {(selectedAgent || selectedSources.length > 0 || selectedFile) && (
         <div className="flex flex-wrap items-center gap-2 pt-3 pb-1">
           {selectedAgent && (
             <div className="flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-lg bg-[#E8E9F8] border border-[#2B2EB8]">
@@ -148,6 +164,26 @@ export default function ChatInput({ agents, sources, onSend, disabled }: ChatInp
                 onClick={handleRemoveAgent}
                 className="w-4 h-4 rounded-full flex items-center justify-center text-[#00068D] hover:bg-[#2B2EB8] hover:text-white transition-all"
                 aria-label="Retirer l'agent"
+              >
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+          {selectedFile && (
+            <div className="flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-lg bg-[#FFF8E1] border border-[#FFD54F]">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F57F17" strokeWidth="2" strokeLinecap="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              <span className="text-xs text-[#F57F17]" style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>
+                {selectedFile.name.length > 24 ? selectedFile.name.slice(0, 22) + '…' : selectedFile.name}
+              </span>
+              <button
+                onClick={() => setSelectedFile(null)}
+                className="w-4 h-4 rounded-full flex items-center justify-center text-[#F57F17] hover:bg-[#FFD54F] transition-all"
+                aria-label="Retirer le fichier"
               >
                 <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
                   <path d="M18 6L6 18M6 6l12 12" />
@@ -193,6 +229,17 @@ export default function ChatInput({ agents, sources, onSend, disabled }: ChatInp
         {/* Toolbar */}
         <div className="flex items-center justify-between px-3 pb-2">
           <div className="flex items-center gap-1">
+            {/* 📎 file */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#FFF8E1] hover:text-[#F57F17] transition-all"
+              title="Joindre un document"
+              aria-label="Joindre un document"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+              </svg>
+            </button>
             {/* @ trigger */}
             <button
               onClick={() => {
@@ -230,6 +277,7 @@ export default function ChatInput({ agents, sources, onSend, disabled }: ChatInp
                   setText('')
                   setSelectedAgent(null)
                   setSelectedSources([])
+                  setSelectedFile(null)
                 }}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-red-50 hover:text-red-500 transition-all"
                 title="Effacer"

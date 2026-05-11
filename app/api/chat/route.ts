@@ -10,11 +10,12 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { message, agentSlug, conversationId } = body as {
+  const { message, agentSlug, conversationId, uploadedFileId } = body as {
     message: string
     agentSlug?: string
     sourceSlugs?: string[]
     conversationId?: string
+    uploadedFileId?: string
   }
 
   // Resolve agent API key and inputs
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
     conversationId: difyConvId,
     userId: session.user.id,
     inputs,
+    uploadedFileId,
   })
 
   if (!difyResponse.ok || !difyResponse.body) {
