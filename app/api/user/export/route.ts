@@ -6,6 +6,10 @@ import archiver from 'archiver'
 import { PassThrough } from 'stream'
 import { NextResponse } from 'next/server'
 
+function fmtTime(date: Date) {
+  return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+}
+
 function convToMarkdown(conv: {
   title: string | null
   createdAt: Date
@@ -13,25 +17,33 @@ function convToMarkdown(conv: {
 }): string {
   const lines: string[] = []
   lines.push(`# ${conv.title ?? 'Conversation sans titre'}`)
-  lines.push(`*Créée le ${conv.createdAt.toLocaleDateString('fr-FR')}*\n`)
+  lines.push(`*Exporté depuis NouveLLM — Université Sorbonne Nouvelle*`)
+  lines.push(`*Date : ${conv.createdAt.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}*`)
+  lines.push('')
 
   for (const msg of conv.messages) {
+    lines.push('---')
     if (msg.role === 'USER') {
-      lines.push(`**Vous**\n\n${msg.content}\n`)
+      lines.push(`**Vous** — ${fmtTime(msg.createdAt)}`)
+      lines.push('')
+      lines.push(msg.content)
     } else {
-      const agent = msg.agentUsed ? ` (@${msg.agentUsed})` : ''
-      lines.push(`**NouveLLM**${agent}\n\n${msg.content}`)
+      const agent = msg.agentUsed ? ` — Agent : @${msg.agentUsed}` : ''
+      lines.push(`**NouveLLM** — ${fmtTime(msg.createdAt)}${agent}`)
+      lines.push('')
+      lines.push(msg.content)
       if (msg.sources) {
         try {
           const srcs = JSON.parse(msg.sources) as { title: string; url?: string; domain: string }[]
           if (srcs.length > 0) {
-            lines.push('\n*Sources :*')
-            srcs.forEach(s => lines.push(`- [${s.title}](${s.url ?? s.domain})`))
+            lines.push('')
+            lines.push('*Sources consultées :*')
+            srcs.forEach(s => lines.push(`- ${s.title} → ${s.url ?? s.domain}`))
           }
         } catch { /* skip */ }
       }
-      lines.push('')
     }
+    lines.push('')
   }
 
   return lines.join('\n')
