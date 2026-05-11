@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NouveLLM
 
-## Getting Started
+Interface IA institutionnelle de l'Université Sorbonne Nouvelle — projet pilote INTEGRIA (ANR-25-CMAS-0024). NouveLLM expose les workflows Dify (bibliographie, traduction, analyse, rédaction…) à travers une interface web sécurisée avec gestion des rôles, sessions de cours, quotas et conformité RGPD.
 
-First, run the development server:
+---
+
+## Lancer le projet
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 1. Dépendances
+npm install
+
+# 2. Base de données SQLite (crée nouvellm.db + applique toutes les migrations)
+npx prisma migrate deploy
+npx prisma generate
+
+# 3. Données initiales (agents, sources, groupes, comptes de test)
+npx ts-node --project tsconfig.json prisma/seed.ts
+
+# 4. Serveur de développement
+npm run dev -- --port 3001
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrir http://localhost:3001
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Comptes de test
 
-## Learn More
+| Rôle | Email | Mot de passe |
+|---|---|---|
+| Enseignant-Chercheur | camille.daniaux@sorbonne-nouvelle.fr | demo1234 |
+| Administrateur | transvers.art@gmail.com | demo1234 |
+| Étudiant | etudiant.test@sorbonne-nouvelle.fr | demo1234 |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Variables d'environnement
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Créer un fichier `.env` à la racine :
 
-## Deploy on Vercel
+```env
+# Auth
+AUTH_SECRET="une-chaine-aleatoire-32-chars-min"
+NEXTAUTH_URL="http://localhost:3001"
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Dify (URL directe du conteneur, sans passer par nginx)
+DIFY_BASE_URL="http://172.19.0.5:5001"
+DIFY_IIIAAS_API_KEY="app-xxxx"   # Workflow générique IIIAAS
+DIFY_AITUDIANT_API_KEY="app-xxxx" # Workflow étudiant
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Les clés API par agent sont stockées dans la base (table `Agent.difyApiKey`) et gérées via le panel admin `/admin/agents`.
+
+---
+
+## Architecture
+
+**Next.js 16 App Router** — pages serveur + composants client, streaming SSE natif.  
+**Prisma 7 + SQLite** (driver adapter `better-sqlite3`, sans moteur binaire) — migrable vers PostgreSQL via `scripts/migrate-to-postgres.md`.  
+**NextAuth v5 (beta)** — JWT, credentials provider, middleware Edge pour le RBAC (`STUDENT / EC / ADMIN`).  
+**Dify** — orchestrateur de workflows LLM sur port 5001 ; chaque agent a son `difyApiKey` + `difyAppId`; le streaming est consommé en SSE `event: message` / `event: message_end`.  
+**Sessions de cours** — un EC crée une session avec agents filtrés + QR code SVG ; les étudiants rejoignent via `/session/[code]` ; les tokens sont imputés à la session, pas au quota étudiant.
+
+---
+
+## Structure des dossiers clés
+
+```
+app/
+  page.tsx              — Page principale (server component, dispatch rôle)
+  ConversationPage.tsx  — Interface de chat (streaming, agents, upload)
+  admin/                — Panel admin (dashboard, agents, sources, users)
+  sessions/             — Gestion sessions EC (new, dashboard)
+  session/[code]/       — Chat étudiant en session
+  api/                  — Routes API (chat, sessions, surveys, quota…)
+components/
+  layout/               — Header, Footer (quota, sondages)
+  chat/                 — Message, SourcesBlock, ProcessingState
+  sidebar/              — Sidebar EC (3 onglets)
+  onboarding/           — Modal onboarding 4 étapes (étudiant)
+  surveys/              — SurveyModal (QCM → tokens)
+lib/
+  dify.ts               — streamDifyChat, AGENT_INPUTS, parseDifySources
+  auth.ts               — NextAuth config + blocage deletedAt
+  prisma.ts             — Singleton PrismaClient (dev hot-reload safe)
+prisma/
+  schema.prisma         — Schéma complet (User, Agent, Source, CourseSession, Survey…)
+  seed.ts               — Données initiales
+scripts/
+  cleanup.ts            — Rétention : supprime convs > 365j, comptes anonymisés > 30j
+  migrate-to-postgres.md — Guide migration SQLite → PostgreSQL (9 étapes)
+```
+
+---
+
+## Version
+
+`v0.1.0` — Sprints 1–5 complets, démonstrateur fonctionnel validé E2E (Playwright, mai 2026).
