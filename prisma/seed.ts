@@ -15,6 +15,16 @@ const AGENTS = [
     description: 'Construire et formater une bibliographie sourcée avec citations académiques',
     difyAppId: '77c02f51',
     difyApiKey: 'app-zcayNaOB7fzPtzZ7JKHvoyge',
+    inputSchema: JSON.stringify({
+      fields: [
+        { key: 'sujet', label: 'Sujet de recherche', type: 'text', required: true, placeholder: 'Ex: LLM et pédagogie universitaire' },
+        { key: 'discipline', label: 'Discipline', type: 'select', required: false, default: 'Sciences Humaines et Sociales',
+          options: ['Sciences Humaines et Sociales', 'Linguistique', 'Littérature', 'Arts', 'Communication', 'Didactique', 'Traductologie'] },
+        { key: 'niveau', label: 'Niveau', type: 'select', required: false, default: 'Master',
+          options: ['Licence', 'Master', 'Doctorat', 'Recherche'] },
+        { key: 'nb_refs', label: 'Nombre de références', type: 'number', required: false, default: '10' },
+      ],
+    }),
   },
   {
     slug: 'fiche-cours',
@@ -23,6 +33,15 @@ const AGENTS = [
     description: 'Générer une fiche de cours structurée selon le format ECTS',
     difyAppId: '57371497',
     difyApiKey: 'app-tcKjyVchUk9pGuX2gD0ahS9N',
+    inputSchema: JSON.stringify({
+      fields: [
+        { key: 'titre_cours', label: 'Titre du cours', type: 'text', required: true, placeholder: 'Ex: Introduction à la traductologie' },
+        { key: 'objectifs', label: 'Objectifs pédagogiques', type: 'textarea', required: true, placeholder: 'Compétences visées à l\'issue du cours...' },
+        { key: 'contenu', label: 'Contenu du cours', type: 'textarea', required: false, placeholder: 'Thèmes, séquences, bibliographie...' },
+        { key: 'credits', label: 'Crédits ECTS', type: 'number', required: false, default: '3' },
+        { key: 'ufr', label: 'UFR', type: 'text', required: false, default: 'LCCE' },
+      ],
+    }),
   },
   {
     slug: 'redaction',
@@ -31,6 +50,7 @@ const AGENTS = [
     description: 'Rédiger des notes, comptes-rendus et rapports institutionnels',
     difyAppId: 'c8efa9a8',
     difyApiKey: 'app-WTpAbWtJjoXmREIyyGD5HsRA',
+    inputSchema: null,
   },
   {
     slug: 'module',
@@ -39,6 +59,14 @@ const AGENTS = [
     description: 'Concevoir un module pédagogique complet avec objectifs et activités',
     difyAppId: '4e61f3d0',
     difyApiKey: 'app-wzAfkcN8jotGMiWvLrArpI6U',
+    inputSchema: JSON.stringify({
+      fields: [
+        { key: 'syllabus', label: 'Syllabus ou plan brut', type: 'textarea', required: true, placeholder: 'Ex: Semaine 1 — Introduction, Semaine 2 — Théories...' },
+        { key: 'niveau', label: 'Niveau', type: 'select', required: false, default: 'Licence',
+          options: ['Licence', 'Master'] },
+        { key: 'nb_seances', label: 'Nombre de séances', type: 'number', required: false, default: '12' },
+      ],
+    }),
   },
   {
     slug: 'examen',
@@ -47,6 +75,16 @@ const AGENTS = [
     description: "Créer un sujet d'examen avec barème et rubriques d'évaluation",
     difyAppId: '491b85d3',
     difyApiKey: 'app-2F6wx8wCLrYJUWPflA9XptAv',
+    inputSchema: JSON.stringify({
+      fields: [
+        { key: 'competences', label: 'Objectifs de compétences', type: 'textarea', required: true, placeholder: 'Ex: Maîtriser les théories de la traduction, analyser un texte...' },
+        { key: 'contenu_cours', label: 'Contenu du cours', type: 'textarea', required: false, placeholder: 'Thèmes abordés, bibliographie du cours...' },
+        { key: 'niveau', label: 'Niveau', type: 'select', required: false, default: 'Licence',
+          options: ['Licence', 'Master'] },
+        { key: 'format_exam', label: 'Format souhaité', type: 'select', required: false, default: 'questions ouvertes',
+          options: ['dissertation', 'commentaire de texte', 'questions courtes', 'cas pratique', 'questions ouvertes'] },
+      ],
+    }),
   },
   {
     slug: 'traduction',
@@ -55,6 +93,13 @@ const AGENTS = [
     description: 'Traduire des textes en sciences humaines et sociales',
     difyAppId: '28f57c10',
     difyApiKey: 'app-MmlIJNfrOmubTvVDjp02xmIM',
+    inputSchema: JSON.stringify({
+      fields: [
+        { key: 'texte', label: 'Texte à traduire', type: 'textarea', required: true, placeholder: 'Collez votre texte ici...' },
+        { key: 'langue_cible', label: 'Langue cible', type: 'select', required: false, default: 'anglais',
+          options: ['anglais', 'espagnol', 'allemand', 'italien', 'portugais'] },
+      ],
+    }),
   },
   {
     slug: 'briefing',
@@ -63,6 +108,7 @@ const AGENTS = [
     description: 'Préparer un briefing structuré pour une réunion ou présentation',
     difyAppId: 'b6d0e043',
     difyApiKey: 'app-NfW6zhWLdmaR28N04DJDKwl6',
+    inputSchema: null,
   },
   {
     slug: 'analyse',
@@ -71,6 +117,7 @@ const AGENTS = [
     description: 'Analyser et synthétiser un document ou corpus',
     difyAppId: '42d1e2a6',
     difyApiKey: 'app-aLqrSrbGUAAyff850fc5juas',
+    inputSchema: null,
   },
 ]
 

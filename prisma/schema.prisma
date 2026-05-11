@@ -105,6 +105,7 @@ model Agent {
   description     String
   difyAppId       String
   difyApiKey      String
+  inputSchema     String?
   status          AgentStatus          @default(ACTIVE)
   groups          GroupAgent[]
   sessionAgents   CourseSessionAgent[]

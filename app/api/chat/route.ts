@@ -10,13 +10,14 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { message, agentSlug, sourceSlugs, conversationId, uploadedFileId, courseSessionId } = body as {
+  const { message, agentSlug, sourceSlugs, conversationId, uploadedFileId, courseSessionId, prebuiltInputs } = body as {
     message: string
     agentSlug?: string
     sourceSlugs?: string[]
     conversationId?: string
     uploadedFileId?: string
     courseSessionId?: string
+    prebuiltInputs?: Record<string, string>
   }
 
   // Resolve folder filters from #spaceSlug/folderSlug tokens
@@ -40,8 +41,12 @@ export async function POST(req: NextRequest) {
     if (agent) {
       apiKey = agent.difyApiKey
       agentLabel = agent.label
-      const inputBuilder = AGENT_INPUTS[agentSlug]
-      if (inputBuilder) inputs = inputBuilder(message)
+      if (prebuiltInputs && Object.keys(prebuiltInputs).length > 0) {
+        inputs = prebuiltInputs
+      } else {
+        const inputBuilder = AGENT_INPUTS[agentSlug]
+        if (inputBuilder) inputs = inputBuilder(message)
+      }
     }
   }
 

@@ -3,11 +3,12 @@
 import { useRef, useState, useEffect, KeyboardEvent } from 'react'
 import AgentPalette, { AgentConfig } from './AgentPalette'
 import SourcePalette, { SourceConfig } from './SourcePalette'
+import AgentFormModal from './AgentFormModal'
 
 interface ChatInputProps {
   agents: AgentConfig[]
   sources: SourceConfig[]
-  onSend: (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File) => void
+  onSend: (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File, prebuiltInputs?: Record<string, string>) => void
   disabled?: boolean
   preselectedAgent?: string
 }
@@ -23,14 +24,21 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig | null>(null)
   const [selectedSources, setSelectedSources] = useState<string[]>([])
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [showFormModal, setShowFormModal] = useState(false)
 
   // Pre-select agent from routing
   useEffect(() => {
     if (preselectedAgent === undefined) return
     if (preselectedAgent === null) { setSelectedAgent(null); return } // eslint-disable-line react-hooks/set-state-in-effect
     const agent = agents.find(a => a.slug === preselectedAgent)
-    if (agent) setSelectedAgent(agent) // eslint-disable-line react-hooks/set-state-in-effect
-    setTimeout(() => textareaRef.current?.focus(), 50)
+    if (agent) {
+      setSelectedAgent(agent) // eslint-disable-line react-hooks/set-state-in-effect
+      if (agent.inputSchema) {
+        setShowFormModal(true) // eslint-disable-line react-hooks/set-state-in-effect
+      } else {
+        setTimeout(() => textareaRef.current?.focus(), 50)
+      }
+    }
   }, [preselectedAgent, agents])
 
   // Listen for folder token insertion from sidebar
@@ -86,13 +94,30 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   }
 
   function handleSelectAgent(agent: AgentConfig) {
-    // Replace the @query with the token
     const lastAt = text.lastIndexOf('@')
     const before = text.slice(0, lastAt)
-    setText(before + ' ')
+    setText(before.trim() ? before : '')
     setSelectedAgent(agent)
     setPaletteMode(null)
-    textareaRef.current?.focus()
+    if (agent.inputSchema) {
+      setShowFormModal(true)
+    } else {
+      textareaRef.current?.focus()
+    }
+  }
+
+  function handleFormSubmit(inputs: Record<string, string>, displayMessage: string) {
+    setShowFormModal(false)
+    onSend(displayMessage, selectedAgent!.slug, selectedSources.length > 0 ? selectedSources : undefined, selectedFile ?? undefined, inputs)
+    setText('')
+    setSelectedAgent(null)
+    setSelectedSources([])
+    setSelectedFile(null)
+  }
+
+  function handleFormCancel() {
+    setShowFormModal(false)
+    setSelectedAgent(null)
   }
 
   function handleToggleSource(source: SourceConfig) {
@@ -115,6 +140,11 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   }
 
   function handleSend() {
+    // If agent requires form, open the form instead of sending
+    if (selectedAgent?.inputSchema && !showFormModal) {
+      setShowFormModal(true)
+      return
+    }
     const trimmed = text.trim()
     if (!trimmed || disabled) return
     onSend(trimmed, selectedAgent?.slug, selectedSources.length > 0 ? selectedSources : undefined, selectedFile ?? undefined)
@@ -146,6 +176,15 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
 
   return (
     <div className="relative px-6 pb-4 bg-white border-t border-[#D8D8D8] flex-shrink-0">
+      {/* Agent form modal */}
+      {showFormModal && selectedAgent?.inputSchema && (
+        <AgentFormModal
+          agent={selectedAgent}
+          onSubmit={handleFormSubmit}
+          onCancel={handleFormCancel}
+        />
+      )}
+
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -185,6 +224,16 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
             <div className="flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-lg bg-[#E8E9F8] border border-[#2B2EB8]">
               <span className="text-sm">{selectedAgent.icon}</span>
               <span className="nl-token-agent text-xs">@{selectedAgent.slug}</span>
+              {selectedAgent.inputSchema && (
+                <button
+                  onClick={() => setShowFormModal(true)}
+                  className="px-1.5 py-0.5 rounded text-[10px] bg-[#00068D] text-white hover:bg-[#2B2EB8] transition-all"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                  title="Ouvrir le formulaire"
+                >
+                  Formulaire
+                </button>
+              )}
               <button
                 onClick={handleRemoveAgent}
                 className="w-4 h-4 rounded-full flex items-center justify-center text-[#00068D] hover:bg-[#2B2EB8] hover:text-white transition-all"

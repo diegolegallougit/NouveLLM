@@ -110,7 +110,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   }
 
   const handleSend = useCallback(
-    async (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File) => {
+    async (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File, prebuiltInputs?: Record<string, string>) => {
       if (isStreaming) return
 
       // Upload file first if provided
@@ -159,6 +159,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
             sourceSlugs,
             conversationId,
             uploadedFileId,
+            prebuiltInputs,
           }),
         })
 

@@ -27,7 +27,7 @@ export async function GET() {
 
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  const agentMap = new Map<string, { slug: string; label: string; icon: string; description: string; status: string }>()
+  const agentMap = new Map<string, { slug: string; label: string; icon: string; description: string; status: string; inputSchema: unknown }>()
   for (const ug of user.groups) {
     for (const ga of ug.group.allowedAgents) {
       const a = ga.agent
@@ -38,6 +38,7 @@ export async function GET() {
           icon: a.icon,
           description: a.description,
           status: a.status,
+          inputSchema: a.inputSchema ? JSON.parse(a.inputSchema) : null,
         })
       }
     }

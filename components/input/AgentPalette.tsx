@@ -2,12 +2,27 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+export interface AgentFormField {
+  key: string
+  label: string
+  type: 'text' | 'textarea' | 'select' | 'number'
+  required?: boolean
+  default?: string
+  placeholder?: string
+  options?: string[]
+}
+
+export interface AgentInputSchema {
+  fields: AgentFormField[]
+}
+
 export interface AgentConfig {
   slug: string
   label: string
   icon: string
   description: string
   status: string
+  inputSchema?: AgentInputSchema | null
 }
 
 interface AgentPaletteProps {
