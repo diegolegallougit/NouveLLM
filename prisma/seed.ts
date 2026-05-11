@@ -117,7 +117,7 @@ const SOURCES = [
     icon: '🔬',
     description: 'Documentation du projet INTEGRIA ANR-25-CMAS-0024',
     difyDatasetId: '27b128ca-4493-407d-9848-20096e4d4d2e',
-    docCount: 32,
+    docCount: 20,
     access: 'RESTRICTED' as const,
   },
 ]
