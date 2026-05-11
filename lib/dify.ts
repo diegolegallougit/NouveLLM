@@ -20,8 +20,8 @@ export interface ParsedSource {
 export const AGENT_INPUTS: Record<string, (message: string) => Record<string, string>> = {
   bibliographie: (msg) => ({
     sujet: msg,
-    discipline: 'SHS',
-    niveau: 'Master',
+    discipline: 'Sciences Humaines et Sociales',
+    niveau: 'master',
     nb_refs: '10',
   }),
   redaction: (msg) => ({
@@ -70,6 +70,7 @@ export async function streamDifyChat({
   userId,
   inputs = {},
   uploadedFileId,
+  datasetIds,
 }: {
   apiKey: string
   query: string
@@ -77,9 +78,15 @@ export async function streamDifyChat({
   userId: string
   inputs?: Record<string, string>
   uploadedFileId?: string
+  datasetIds?: string[]
 }): Promise<Response> {
+  const mergedInputs: Record<string, string> = { ...inputs }
+  if (datasetIds && datasetIds.length > 0) {
+    mergedInputs.dataset_ids = datasetIds.join(',')
+  }
+
   const body: Record<string, unknown> = {
-    inputs,
+    inputs: mergedInputs,
     query,
     response_mode: 'streaming',
     conversation_id: conversationId || '',

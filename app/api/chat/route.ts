@@ -45,6 +45,16 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Resolve institutional source slugs → Dify dataset IDs
+  let datasetIds: string[] = []
+  if (institutionalSlugs.length > 0) {
+    const sources = await prisma.source.findMany({
+      where: { slug: { in: institutionalSlugs } },
+      select: { difyDatasetId: true },
+    })
+    datasetIds = sources.map((s) => s.difyDatasetId).filter(Boolean)
+  }
+
   // Pass folder path filter as input variable (for workflows that support it)
   if (folderPaths.length > 0) {
     inputs.folder_filter = folderPaths.join(',')
@@ -95,6 +105,7 @@ export async function POST(req: NextRequest) {
     userId: session.user.id,
     inputs,
     uploadedFileId,
+    datasetIds: datasetIds.length > 0 ? datasetIds : undefined,
   })
 
   if (!difyResponse.ok || !difyResponse.body) {
