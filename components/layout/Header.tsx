@@ -2,6 +2,7 @@
 
 import { signOut } from 'next-auth/react'
 import { useState } from 'react'
+import MetaPromptsPanel from '@/components/meta-prompts/MetaPromptsPanel'
 
 interface HeaderProps {
   userName?: string
@@ -12,6 +13,7 @@ interface HeaderProps {
 export default function Header({ userName = 'Utilisateur', userRole = 'EC', userInitials = 'U' }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<'data' | 'meta-prompts'>('meta-prompts')
   const [deleteConvsConfirm, setDeleteConvsConfirm] = useState(false)
   const [deleteAccountConfirm, setDeleteAccountConfirm] = useState(false)
   const [working, setWorking] = useState(false)
@@ -158,9 +160,9 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
       {/* Settings modal */}
       {settingsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden" style={{ width: 480 }}>
+          <div className="bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden" style={{ width: 560, maxHeight: '88vh' }}>
             {/* Modal header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#D8D8D8]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#D8D8D8] flex-shrink-0">
               <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#0D0D0D' }}>
                 Paramètres
               </h2>
@@ -174,132 +176,171 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
               </button>
             </div>
 
-            <div className="px-6 py-5 space-y-6">
-              {/* Profile section */}
-              <div>
-                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }} className="mb-3">
-                  Profil
-                </p>
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-[#FAFAFA] border border-[#D8D8D8]">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white flex-shrink-0"
-                    style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem' }}
-                  >
-                    {userInitials}
-                  </div>
+            {/* Tab bar */}
+            <div className="flex border-b border-[#D8D8D8] px-6 flex-shrink-0">
+              {(['meta-prompts', 'data'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setSettingsTab(tab)}
+                  className={`px-0 py-3 mr-6 text-[11px] border-b-2 transition-all ${settingsTab === tab ? 'border-[#00068D] text-[#00068D]' : 'border-transparent text-[#8A8A8A] hover:text-[#3A3A3A]'}`}
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.06em' }}
+                >
+                  {tab === 'meta-prompts' ? 'MÉTA-PROMPTS' : 'MES DONNÉES'}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab content — scrollable */}
+            <div className="overflow-y-auto nl-scroll flex-1 px-6 py-5">
+              {settingsTab === 'meta-prompts' && <MetaPromptsPanel />}
+
+              {settingsTab === 'data' && (
+                <div className="space-y-6">
+                  {/* Profile section */}
                   <div>
-                    <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 600, fontSize: '0.9rem', color: '#0D0D0D' }}>
-                      {userName}
+                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }} className="mb-3">
+                      Profil
                     </p>
-                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#8A8A8A' }}>
-                      {roleLabel}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Data section */}
-              <div>
-                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }} className="mb-3">
-                  Mes données
-                </p>
-                <div className="space-y-2">
-                  {/* Retention note */}
-                  <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-lg bg-[#FFF8E1] border border-[#FFD54F]">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F57F17" strokeWidth="2" strokeLinecap="round" className="flex-shrink-0 mt-0.5">
-                      <circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" />
-                    </svg>
-                    <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#5D4037', lineHeight: '1.5' }}>
-                      Vos conversations sont conservées <strong>1 an</strong> puis supprimées automatiquement.
-                    </p>
-                  </div>
-
-                  {/* Delete conversations */}
-                  {done ? (
-                    <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-[#E8F5E9] border border-[#4CAF50]">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
-                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.8rem', color: '#2E7D32' }}>{done}</p>
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-[#FAFAFA] border border-[#D8D8D8]">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white flex-shrink-0"
+                        style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem' }}
+                      >
+                        {userInitials}
+                      </div>
+                      <div>
+                        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 600, fontSize: '0.9rem', color: '#0D0D0D' }}>
+                          {userName}
+                        </p>
+                        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#8A8A8A' }}>
+                          {roleLabel}
+                        </p>
+                      </div>
                     </div>
-                  ) : !deleteConvsConfirm ? (
+                  </div>
+
+                  {/* Export section */}
+                  <div>
+                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }} className="mb-3">
+                      Export portabilité
+                    </p>
                     <button
-                      onClick={() => setDeleteConvsConfirm(true)}
-                      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-[#D8D8D8] bg-white hover:bg-[#F2F2F2] transition-all text-left"
+                      onClick={() => { window.location.href = '/api/user/export' }}
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-[#D8D8D8] bg-white hover:bg-[#F0F1FB] hover:border-[#2B2EB8] transition-all text-left"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" strokeWidth="2" strokeLinecap="round">
-                        <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6M9 6V4h6v2" />
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5A5A5A" strokeWidth="2" strokeLinecap="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
                       </svg>
                       <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#3A3A3A' }}>
-                        Supprimer toutes mes conversations
+                        Exporter toutes mes données <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.75rem', color: '#8A8A8A' }}>(conversations, méta-prompts, espaces — .zip)</span>
                       </span>
                     </button>
-                  ) : (
-                    <div className="px-3.5 py-3 rounded-lg border border-orange-300 bg-orange-50">
-                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#92400e' }} className="mb-2">
-                        Supprimer <strong>toutes</strong> vos conversations ? Cette action est irréversible.
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={handleDeleteConversations}
-                          disabled={working}
-                          className="px-3 py-1.5 rounded-lg bg-orange-600 text-white text-xs disabled:opacity-50"
-                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
-                        >
-                          {working ? 'Suppression…' : 'CONFIRMER'}
-                        </button>
-                        <button
-                          onClick={() => setDeleteConvsConfirm(false)}
-                          className="px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-xs text-[#8A8A8A] hover:bg-white"
-                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
-                        >
-                          ANNULER
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  </div>
 
-                  {/* Delete account */}
-                  {!deleteAccountConfirm ? (
-                    <button
-                      onClick={() => setDeleteAccountConfirm(true)}
-                      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-[#D8D8D8] bg-white hover:bg-red-50 hover:border-red-300 transition-all text-left group"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" strokeWidth="2" strokeLinecap="round" className="group-hover:stroke-red-500">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-                      </svg>
-                      <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#3A3A3A' }} className="group-hover:text-red-600">
-                        Supprimer mon compte
-                      </span>
-                    </button>
-                  ) : (
-                    <div className="px-3.5 py-3 rounded-lg border border-red-300 bg-red-50">
-                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#dc2626' }} className="mb-2">
-                        Votre compte et toutes vos données seront supprimés. Cette action est <strong>irréversible</strong>.
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={handleDeleteAccount}
-                          disabled={working}
-                          className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs disabled:opacity-50"
-                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
-                        >
-                          {working ? 'Suppression…' : 'SUPPRIMER MON COMPTE'}
-                        </button>
-                        <button
-                          onClick={() => setDeleteAccountConfirm(false)}
-                          className="px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-xs text-[#8A8A8A] hover:bg-white"
-                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
-                        >
-                          ANNULER
-                        </button>
+                  {/* Data management section */}
+                  <div>
+                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }} className="mb-3">
+                      Gestion des données
+                    </p>
+                    <div className="space-y-2">
+                      {/* Retention note */}
+                      <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-lg bg-[#FFF8E1] border border-[#FFD54F]">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F57F17" strokeWidth="2" strokeLinecap="round" className="flex-shrink-0 mt-0.5">
+                          <circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" />
+                        </svg>
+                        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#5D4037', lineHeight: '1.5' }}>
+                          Vos conversations sont conservées <strong>1 an</strong> puis supprimées automatiquement.
+                        </p>
                       </div>
+
+                      {/* Delete conversations */}
+                      {done ? (
+                        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-[#E8F5E9] border border-[#4CAF50]">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
+                          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.8rem', color: '#2E7D32' }}>{done}</p>
+                        </div>
+                      ) : !deleteConvsConfirm ? (
+                        <button
+                          onClick={() => setDeleteConvsConfirm(true)}
+                          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-[#D8D8D8] bg-white hover:bg-[#F2F2F2] transition-all text-left"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" strokeWidth="2" strokeLinecap="round">
+                            <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6M9 6V4h6v2" />
+                          </svg>
+                          <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#3A3A3A' }}>
+                            Supprimer toutes mes conversations
+                          </span>
+                        </button>
+                      ) : (
+                        <div className="px-3.5 py-3 rounded-lg border border-orange-300 bg-orange-50">
+                          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#92400e' }} className="mb-2">
+                            Supprimer <strong>toutes</strong> vos conversations ? Cette action est irréversible.
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleDeleteConversations}
+                              disabled={working}
+                              className="px-3 py-1.5 rounded-lg bg-orange-600 text-white text-xs disabled:opacity-50"
+                              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                            >
+                              {working ? 'Suppression…' : 'CONFIRMER'}
+                            </button>
+                            <button
+                              onClick={() => setDeleteConvsConfirm(false)}
+                              className="px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-xs text-[#8A8A8A] hover:bg-white"
+                              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                            >
+                              ANNULER
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Delete account */}
+                      {!deleteAccountConfirm ? (
+                        <button
+                          onClick={() => setDeleteAccountConfirm(true)}
+                          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-[#D8D8D8] bg-white hover:bg-red-50 hover:border-red-300 transition-all text-left group"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" strokeWidth="2" strokeLinecap="round" className="group-hover:stroke-red-500">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                          </svg>
+                          <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#3A3A3A' }} className="group-hover:text-red-600">
+                            Supprimer mon compte
+                          </span>
+                        </button>
+                      ) : (
+                        <div className="px-3.5 py-3 rounded-lg border border-red-300 bg-red-50">
+                          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#dc2626' }} className="mb-2">
+                            Votre compte et toutes vos données seront supprimés. Cette action est <strong>irréversible</strong>.
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleDeleteAccount}
+                              disabled={working}
+                              className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs disabled:opacity-50"
+                              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                            >
+                              {working ? 'Suppression…' : 'SUPPRIMER MON COMPTE'}
+                            </button>
+                            <button
+                              onClick={() => setDeleteAccountConfirm(false)}
+                              className="px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-xs text-[#8A8A8A] hover:bg-white"
+                              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                            >
+                              ANNULER
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Footer */}
-            <div className="px-6 pb-5">
+            <div className="px-6 py-3 border-t border-[#D8D8D8] flex-shrink-0">
               <a
                 href="/legal"
                 target="_blank"

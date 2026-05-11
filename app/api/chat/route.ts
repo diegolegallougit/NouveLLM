@@ -48,8 +48,16 @@ export async function POST(req: NextRequest) {
   // Pass folder path filter as input variable (for workflows that support it)
   if (folderPaths.length > 0) {
     inputs.folder_filter = folderPaths.join(',')
-    // TODO: when personal Dify datasets are connected, add dataset_ids and metadata filter
     console.log('[RAG] Folder filter requested:', folderPaths)
+  }
+
+  // Inject active meta-prompt as system context
+  const activeMetaPrompt = await prisma.userActiveMetaPrompt.findFirst({
+    where: { userId: session.user.id },
+    include: { metaPrompt: true },
+  })
+  if (activeMetaPrompt?.metaPrompt?.content) {
+    inputs.system_context = activeMetaPrompt.metaPrompt.content
   }
 
   // Get or create conversation in DB

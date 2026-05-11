@@ -62,8 +62,10 @@ model User {
   sessionParticipants CourseSessionParticipant[]
   surveyResponses     SurveyResponse[]
   hilRequests         HILRequest[]
-  ownedSpaces         DocumentSpace[] @relation("OwnedSpaces")
-  uploadedDocuments   SpaceDocument[] @relation("UploadedDocuments")
+  ownedSpaces         DocumentSpace[]      @relation("OwnedSpaces")
+  uploadedDocuments   SpaceDocument[]      @relation("UploadedDocuments")
+  authoredMetaPrompts MetaPrompt[]         @relation("AuthoredMetaPrompts")
+  activeMetaPrompts   UserActiveMetaPrompt[]
 }
 
 enum Role {
@@ -344,6 +346,51 @@ enum HILStatus {
   PENDING
   SENT
   COMPLETED
+}
+
+// ─── Méta-prompts ────────────────────────────────────────────────────────────
+
+enum MetaPromptLevel {
+  INSTITUTIONAL
+  SHARED
+  PERSONAL
+}
+
+model MetaPrompt {
+  id            String               @id @default(cuid())
+  title         String
+  description   String?
+  content       String
+  level         MetaPromptLevel
+  authorId      String?
+  author        User?                @relation("AuthoredMetaPrompts", fields: [authorId], references: [id])
+  isPublic      Boolean              @default(false)
+  allowedGroups String               @default("[]")
+  uses          Int                  @default(0)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  activeFor     UserActiveMetaPrompt[]
+}
+
+model UserActiveMetaPrompt {
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metaPromptId String
+  metaPrompt   MetaPrompt @relation(fields: [metaPromptId], references: [id], onDelete: Cascade)
+  activatedAt  DateTime   @default(now())
+
+  @@id([userId, metaPromptId])
+}
+
+// ─── Alertes système ─────────────────────────────────────────────────────────
+
+model SystemAlert {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  metadata  String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 // ─── Espaces documentaires ────────────────────────────────────────────────────

@@ -1,10 +1,13 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { prisma } from '@/lib/prisma'
 
 const NAV = [
   { href: '/admin', label: 'TABLEAU DE BORD', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
   { href: '/admin/agents', label: 'AGENTS', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H4a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-1' },
+  { href: '/admin/workflows', label: 'WORKFLOWS', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+  { href: '/admin/knowledge-bases', label: 'BASES KB', icon: 'M4 6h16M4 10h16M4 14h16M4 18h16' },
   { href: '/admin/sources', label: 'SOURCES', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
   { href: '/admin/users', label: 'UTILISATEURS', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
   { href: '/admin/routing', label: 'ROUTING', icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6-3V7m6 13l4.553 2.276A1 1 0 0021 21.382V10.618a1 1 0 00-.553-.894L15 7m0 13V7m0 0L9 4' },
@@ -14,6 +17,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await auth()
   const user = session?.user as { role?: string } | undefined
   if (user?.role !== 'ADMIN') redirect('/')
+
+  const unreadAlerts = await prisma.systemAlert.count({ where: { read: false } })
 
   return (
     <div className="flex flex-col h-screen bg-[#F8F8FF] overflow-hidden">
@@ -37,13 +42,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             Administration
           </span>
         </div>
-        <Link
-          href="/"
-          className="text-[10px] text-[#8A8A8A] hover:text-[#00068D] transition-colors"
-          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, letterSpacing: '0.04em' }}
-        >
-          ← Retour à l'interface
-        </Link>
+        <div className="flex items-center gap-3">
+          {unreadAlerts > 0 && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', color: '#dc2626' }}>
+                {unreadAlerts} alerte{unreadAlerts > 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
+          <Link
+            href="/"
+            className="text-[10px] text-[#8A8A8A] hover:text-[#00068D] transition-colors"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, letterSpacing: '0.04em' }}
+          >
+            ← Retour à l&apos;interface
+          </Link>
+        </div>
       </header>
 
       <div className="flex flex-1 min-h-0">

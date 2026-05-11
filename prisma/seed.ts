@@ -453,6 +453,38 @@ async function main() {
     })
   }
 
+  // ── MetaPrompts institutionnels ───────────────────────────────────────────
+  const INSTITUTIONAL_META_PROMPTS = [
+    {
+      title: 'Assistant Traductologie USN',
+      description: 'Contexte spécialisé en traductologie universitaire',
+      content: 'Tu es un assistant spécialisé en traductologie. Tu maîtrises les théories de Ladmiral, Meschonnic et Berman. Tu cites toujours en français. Tu t\'adresses à des universitaires.',
+      level: 'INSTITUTIONAL' as const,
+      isPublic: true,
+    },
+    {
+      title: 'Rédaction administrative USN',
+      description: 'Style administratif Sorbonne Nouvelle',
+      content: 'Tu rédiges des documents administratifs pour l\'Université Sorbonne Nouvelle (Paris 3). Tu respectes les conventions de l\'administration française. Tu es formel, précis, concis.',
+      level: 'INSTITUTIONAL' as const,
+      isPublic: true,
+    },
+    {
+      title: 'Recherche SHS avancée',
+      description: 'Mode recherche en sciences humaines et sociales',
+      content: 'Tu aides un chercheur en sciences humaines et sociales. Tu cites les sources systématiquement avec DOI ou lien HAL. Tu mentionnes les débats académiques actuels.',
+      level: 'INSTITUTIONAL' as const,
+      isPublic: true,
+    },
+  ]
+
+  for (const mp of INSTITUTIONAL_META_PROMPTS) {
+    const existing = await prisma.metaPrompt.findFirst({ where: { title: mp.title, level: 'INSTITUTIONAL' } })
+    if (!existing) {
+      await prisma.metaPrompt.create({ data: mp })
+    }
+  }
+
   console.log('Seed complete.')
   console.log('Demo EC:    camille.daniaux@sorbonne-nouvelle.fr / demo1234')
   console.log('Admin:      transvers.art@gmail.com / demo1234')

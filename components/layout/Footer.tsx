@@ -54,6 +54,9 @@ export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2
       .catch(() => null)
   }
 
+  const usedPct = quota ? Math.round(100 - quota.available) : null
+  const showQuotaBandeau = isStudent && usedPct !== null && usedPct >= 80
+
   return (
     <>
       {activeSurvey && (
@@ -62,6 +65,25 @@ export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2
           onClose={() => setActiveSurvey(null)}
           onComplete={handleSurveyComplete}
         />
+      )}
+      {showQuotaBandeau && (
+        <div className="flex items-center justify-between px-6 py-1.5 bg-orange-50 border-t border-orange-200 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.5" strokeLinecap="round" className="flex-shrink-0">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#9a3412' }}>
+              Vous avez utilisé <strong>{usedPct}%</strong> de votre crédit ce mois.
+            </span>
+          </div>
+          <Link
+            href="/legal#quota"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', color: '#ea580c', letterSpacing: '0.04em' }}
+            className="hover:underline"
+          >
+            En savoir plus →
+          </Link>
+        </div>
       )}
       <footer
         className="flex items-center justify-between px-6 bg-white border-t border-[#D8D8D8] flex-shrink-0"
