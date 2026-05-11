@@ -10,12 +10,13 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { message, agentSlug, conversationId, uploadedFileId } = body as {
+  const { message, agentSlug, conversationId, uploadedFileId, courseSessionId } = body as {
     message: string
     agentSlug?: string
     sourceSlugs?: string[]
     conversationId?: string
     uploadedFileId?: string
+    courseSessionId?: string
   }
 
   // Resolve agent API key and inputs
@@ -46,6 +47,7 @@ export async function POST(req: NextRequest) {
         userId: session.user.id,
         agentSlug: agentSlug ?? null,
         title: message.slice(0, 60),
+        courseSessionId: courseSessionId ?? null,
       },
     })
     dbConvId = newConv.id

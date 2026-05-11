@@ -21,10 +21,10 @@ export async function GET() {
     100000
   )
 
-  // Sum tokens used this month
+  // Sum tokens used this month (exclude session conversations — tokens charged to EC)
   const messages = await prisma.message.findMany({
     where: {
-      conversation: { userId: session.user.id },
+      conversation: { userId: session.user.id, courseSessionId: null },
       role: 'ASSISTANT',
       createdAt: { gte: monthStart },
     },

@@ -3,6 +3,8 @@ generator client {
   previewFeatures = ["driverAdapters"]
 }
 
+// TODO: changer provider "sqlite" → "postgresql" et ajouter url = env("DATABASE_URL") pour la prod
+// Voir scripts/migrate-to-postgres.md
 datasource db {
   provider = "sqlite"
 }
@@ -42,20 +44,23 @@ model VerificationToken {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  emailVerified DateTime?
-  name          String?
-  password      String?
-  role          Role           @default(EC)
-  onboarded     Boolean        @default(false)
-  externalId    String?
-  deletedAt     DateTime?
-  createdAt     DateTime       @default(now())
-  accounts      Account[]
-  sessions      Session[]
-  conversations Conversation[]
-  groups        UserGroup[]
+  id                  String                     @id @default(cuid())
+  email               String                     @unique
+  emailVerified       DateTime?
+  name                String?
+  password            String?
+  role                Role                       @default(EC)
+  onboarded           Boolean                    @default(false)
+  externalId          String?
+  deletedAt           DateTime?
+  createdAt           DateTime                   @default(now())
+  accounts            Account[]
+  sessions            Session[]
+  conversations       Conversation[]
+  groups              UserGroup[]
+  courseSessions      CourseSession[]
+  sessionParticipants CourseSessionParticipant[]
+  surveyResponses     SurveyResponse[]
 }
 
 enum Role {
@@ -75,6 +80,7 @@ model Group {
   users                UserGroup[]
   allowedAgents        GroupAgent[]
   allowedSources       GroupSource[]
+  surveys              Survey[]
 }
 
 model UserGroup {
@@ -87,15 +93,16 @@ model UserGroup {
 }
 
 model Agent {
-  id          String       @id @default(cuid())
-  slug        String       @unique
-  label       String
-  icon        String
-  description String
-  difyAppId   String
-  difyApiKey  String
-  status      AgentStatus  @default(ACTIVE)
-  groups      GroupAgent[]
+  id              String               @id @default(cuid())
+  slug            String               @unique
+  label           String
+  icon            String
+  description     String
+  difyAppId       String
+  difyApiKey      String
+  status          AgentStatus          @default(ACTIVE)
+  groups          GroupAgent[]
+  sessionAgents   CourseSessionAgent[]
 }
 
 enum AgentStatus {
@@ -114,15 +121,16 @@ model GroupAgent {
 }
 
 model Source {
-  id            String        @id @default(cuid())
-  slug          String        @unique
-  label         String
-  icon          String
-  description   String
-  difyDatasetId String
-  docCount      Int?
-  access        SourceAccess  @default(PUBLIC)
-  groups        GroupSource[]
+  id              String                @id @default(cuid())
+  slug            String                @unique
+  label           String
+  icon            String
+  description     String
+  difyDatasetId   String
+  docCount        Int?
+  access          SourceAccess          @default(PUBLIC)
+  groups          GroupSource[]
+  sessionSources  CourseSessionSource[]
 }
 
 enum SourceAccess {
@@ -140,15 +148,17 @@ model GroupSource {
 }
 
 model Conversation {
-  id         String    @id @default(cuid())
-  userId     String
-  title      String?
-  agentSlug  String?
-  difyConvId String?
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages   Message[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id             String         @id @default(cuid())
+  userId         String
+  title          String?
+  agentSlug      String?
+  difyConvId     String?
+  courseSessionId String?
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseSession  CourseSession? @relation(fields: [courseSessionId], references: [id])
+  messages       Message[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 }
 
 model Message {
@@ -167,4 +177,98 @@ model Message {
 enum MessageRole {
   USER
   ASSISTANT
+}
+
+model CourseSession {
+  id              String                     @id @default(cuid())
+  code            String                     @unique
+  name            String
+  description     String?
+  systemPrompt    String?
+  validUntil      DateTime
+  maxParticipants Int?
+  access          SessionAccess              @default(OPEN)
+  status          SessionStatus              @default(ACTIVE)
+  ecUserId        String
+  ec              User                       @relation(fields: [ecUserId], references: [id], onDelete: Cascade)
+  agents          CourseSessionAgent[]
+  sources         CourseSessionSource[]
+  participants    CourseSessionParticipant[]
+  conversations   Conversation[]
+  createdAt       DateTime                   @default(now())
+}
+
+enum SessionAccess {
+  OPEN
+  CLOSED
+}
+
+enum SessionStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+model CourseSessionAgent {
+  sessionId String
+  agentId   String
+  session   CourseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  agent     Agent         @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, agentId])
+}
+
+model CourseSessionSource {
+  sessionId String
+  sourceId  String
+  session   CourseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  source    Source        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, sourceId])
+}
+
+model CourseSessionParticipant {
+  sessionId String
+  userId    String
+  joinedAt  DateTime      @default(now())
+  session   CourseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, userId])
+}
+
+model Survey {
+  id          String           @id @default(cuid())
+  title       String
+  groupId     String?
+  group       Group?           @relation(fields: [groupId], references: [id])
+  tokenReward Int              @default(500)
+  active      Boolean          @default(true)
+  questions   SurveyQuestion[]
+  responses   SurveyResponse[]
+  createdAt   DateTime         @default(now())
+}
+
+model SurveyQuestion {
+  id       String @id @default(cuid())
+  surveyId String
+  survey   Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  order    Int
+  text     String
+  options  String
+  correct  Int?
+}
+
+model SurveyResponse {
+  id          String   @id @default(cuid())
+  surveyId    String
+  userId      String
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers     String
+  score       Int?
+  tokenEarned Int?
+  createdAt   DateTime @default(now())
+
+  @@unique([surveyId, userId])
 }

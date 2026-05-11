@@ -65,6 +65,18 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Sessions link for EC */}
+          {(userRole === 'EC' || userRole === 'ADMIN') && (
+            <a
+              href="/sessions"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] text-[#5A5A5A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em' }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+              SESSIONS
+            </a>
+          )}
+
           {/* Settings */}
           <button
             onClick={() => { setSettingsOpen(true); setMenuOpen(false) }}
