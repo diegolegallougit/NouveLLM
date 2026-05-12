@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface CourseSession {
   id: string
@@ -91,14 +92,20 @@ export default function SessionsPage() {
               {active.length} session{active.length !== 1 ? 's' : ''} active{active.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <button
-            onClick={() => router.push('/sessions/new')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition-all hover:opacity-90"
-            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-            NOUVELLE SESSION
-          </button>
+          <div className="flex items-center gap-4">
+            <Link href="/" className="text-[10px] text-[#8A8A8A] hover:text-[#00068D] transition-colors"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, letterSpacing: '0.04em' }}>
+              ← Retour à la conversation
+            </Link>
+            <button
+              onClick={() => router.push('/sessions/new')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition-all hover:opacity-90"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+              NOUVELLE SESSION
+            </button>
+          </div>
         </div>
 
         {sessions.length === 0 && (

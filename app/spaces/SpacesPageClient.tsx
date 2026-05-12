@@ -98,9 +98,18 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
               <div>
                 <label className="block mb-1 text-[10px] text-[#5A5A5A] uppercase tracking-wider"
                   style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Icône</label>
-                <input value={newIcon} onChange={e => setNewIcon(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-[#D8D8D8] text-sm focus:outline-none focus:ring-2 focus:ring-[#2B2EB8]"
-                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
+                <div className="flex flex-wrap gap-1 p-2 rounded-lg border border-[#D8D8D8] bg-white">
+                  {['📁','📂','📚','📖','📝','📄','🗂️','🔬','🎓','🏛️','🌍','🎭','🔍','✍️','📊','🎨','💡','🗞️','📰','🧪'].map(emoji => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setNewIcon(emoji)}
+                      className={`w-7 h-7 flex items-center justify-center rounded text-base transition-colors ${newIcon === emoji ? 'bg-[#E8E9F8] ring-1 ring-[#2B2EB8]' : 'hover:bg-[#F2F2F2]'}`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div>
                 <label className="block mb-1 text-[10px] text-[#5A5A5A] uppercase tracking-wider"
