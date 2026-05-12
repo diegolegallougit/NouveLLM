@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 interface Group { id: string; slug: string; label: string }
 interface Source {
@@ -88,8 +88,8 @@ export default function AdminSourcesPage() {
           </thead>
           <tbody>
             {sources.map(source => (
-              <>
-                <tr key={source.slug} className="border-b border-[#F2F2F2] hover:bg-[#FAFAFA]">
+              <React.Fragment key={source.slug}>
+                <tr className="border-b border-[#F2F2F2] hover:bg-[#FAFAFA]">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span>{source.icon}</span>
@@ -210,7 +210,7 @@ export default function AdminSourcesPage() {
                     </td>
                   </tr>
                 )}
-              </>
+              </React.Fragment>
             ))}
           </tbody>
         </table>
