@@ -328,7 +328,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                 <div className="flex items-center justify-between mb-1.5">
                   <p className="text-[#8A8A8A] uppercase tracking-widest"
                     style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
-                    Espaces documentaires
+                    Mes fichiers
                   </p>
                   <button
                     onClick={() => setCreatingSpace(v => !v)}
@@ -476,7 +476,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
               className="text-[#8A8A8A] uppercase tracking-widest"
               style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
             >
-              Espaces partagés USN
+              Espaces partagés
             </p>
             <div className="space-y-1.5">
               {INST_SPACES.map((s) => (
