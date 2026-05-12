@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Message, { MessageData } from '@/components/chat/Message'
 
@@ -110,6 +110,43 @@ export default function SessionPage() {
     setGuestId(id)
     setJoined(true)
   }
+
+  // Warn guest before closing tab if conversation has messages
+  useEffect(() => {
+    if (!isGuest || messages.length === 0) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isGuest, messages.length])
+
+  const exportMarkdown = useCallback(() => {
+    if (!sessionInfo || messages.length === 0) return
+    const guestName = guestFirstName ? `${guestFirstName} ${guestLastName}` : 'Invité'
+    const date = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+    const lines = [
+      `# ${sessionInfo.name}`,
+      ``,
+      `**Activité IA** · ${date} · ${guestName}`,
+      sessionInfo.ecName ? `Proposée par ${sessionInfo.ecName}` : '',
+      ``,
+      `---`,
+      ``,
+    ]
+    for (const msg of messages) {
+      if (msg.isStreaming) continue
+      const role = msg.role === 'user' ? `**${guestName}**` : `**Assistant**`
+      lines.push(`${role}`, ``, msg.content, ``, `---`, ``)
+    }
+    const blob = new Blob([lines.filter((_, i, a) => !(a[i - 1] === '' && _ === '' && a[i - 2] === '---')).join('\n')], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `activite-ia-${sessionInfo.code}-${date.replace(/ /g, '-')}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [sessionInfo, messages, guestFirstName, guestLastName])
 
   async function send() {
     if (!input.trim() || sending || !sessionInfo) return
@@ -417,6 +454,17 @@ export default function SessionPage() {
             </span>
           )}
           <span className="font-mono text-[10px] bg-[#F2F2F2] px-2 py-0.5 rounded text-[#5A5A5A]">{sessionInfo.code}</span>
+          {isGuest && messages.length > 0 && (
+            <button
+              onClick={exportMarkdown}
+              title="Exporter la conversation"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#D8D8D8] hover:border-[#00068D] hover:text-[#00068D] transition-all"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              Exporter
+            </button>
+          )}
         </div>
         {/* Visibility notice */}
         {(() => {
