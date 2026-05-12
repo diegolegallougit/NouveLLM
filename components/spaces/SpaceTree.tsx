@@ -181,12 +181,12 @@ function FolderSection({ folder, spaceId, spaceSlug, onFolderToken, onRefresh, d
           <path d="M9 18l6-6-6-6" />
         </svg>
         <span className="text-sm flex-shrink-0">📂</span>
-        <span className="flex-1 min-w-0 text-[11px] text-[#3A3A3A] truncate"
-          style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>
+        <span className="flex-1 min-w-0 text-[#3A3A3A] truncate"
+          style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}>
           {folder.name}
         </span>
-        <span className="text-[9px] text-[#8A8A8A] flex-shrink-0"
-          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+        <span className="text-[#8A8A8A] flex-shrink-0"
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>
           {totalDocs} doc{totalDocs !== 1 ? 's' : ''}
         </span>
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
@@ -197,7 +197,7 @@ function FolderSection({ folder, spaceId, spaceSlug, onFolderToken, onRefresh, d
               className="w-5 h-5 flex items-center justify-center rounded text-[#8A8A8A] hover:text-[#2e7d32] hover:bg-[#e8f5e9] transition-all"
               title="Insérer token #espace/dossier"
             >
-              <span className="text-[9px] font-bold">#</span>
+              <span style={{ fontSize: 'var(--text-2xs)', fontWeight: 800 }}>#</span>
             </button>
           )}
           <button
@@ -235,19 +235,19 @@ function FolderSection({ folder, spaceId, spaceSlug, onFolderToken, onRefresh, d
                   onChange={e => setEditDisplayName(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') handleSaveDisplayName(doc.id); if (e.key === 'Escape') setEditingDoc(null) }}
                   onBlur={() => handleSaveDisplayName(doc.id)}
-                  className="flex-1 min-w-0 text-[11px] px-1 py-0.5 rounded border border-[#2B2EB8] focus:outline-none"
-                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                  className="flex-1 min-w-0 px-1 py-0.5 rounded border border-[#2B2EB8] focus:outline-none"
+                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
                 />
               ) : (
                 <span
-                  className="flex-1 min-w-0 text-[11px] text-[#3A3A3A] truncate"
-                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                  className="flex-1 min-w-0 text-[#3A3A3A] truncate"
+                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
                   title={doc.description ?? undefined}
                   onDoubleClick={() => { setEditingDoc(doc.id); setEditDisplayName(doc.displayName ?? doc.name) }}>
                   {doc.displayName ?? doc.name}
                 </span>
               )}
-              <span className="text-[9px] text-[#C8C8C8] flex-shrink-0">{formatSize(doc.size)}</span>
+              <span className="text-[#C8C8C8] flex-shrink-0" style={{ fontSize: 'var(--text-2xs)' }}>{formatSize(doc.size)}</span>
               <div className="flex items-center gap-0.5 opacity-0 group-hover/doc:opacity-100 transition-opacity flex-shrink-0">
                 <button
                   onClick={() => { setEditingDoc(doc.id); setEditDisplayName(doc.displayName ?? doc.name) }}
@@ -287,15 +287,15 @@ function FolderSection({ folder, spaceId, spaceSlug, onFolderToken, onRefresh, d
                   onChange={e => setNewFolderName(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') handleCreateSubFolder(); if (e.key === 'Escape') setCreating(false) }}
                   placeholder="Nom du sous-dossier"
-                  className="flex-1 min-w-0 text-[11px] px-2 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]"
-                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                  className="flex-1 min-w-0 px-2 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]"
+                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
                 />
                 <button onClick={handleCreateSubFolder}
-                  className="text-[9px] px-2 py-0.5 rounded bg-[#00068D] text-white"
-                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>OK</button>
+                  className="px-2 py-0.5 rounded bg-[#00068D] text-white"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>OK</button>
                 <button onClick={() => setCreating(false)}
-                  className="text-[9px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A]"
-                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>✕</button>
+                  className="px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A]"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>✕</button>
               </div>
             ) : null
           )}
@@ -344,12 +344,12 @@ export default function SpaceTree({ space, onFolderToken, onRefresh }: SpaceTree
           <path d="M9 18l6-6-6-6" />
         </svg>
         <span className="text-sm flex-shrink-0">{space.icon}</span>
-        <span className="flex-1 min-w-0 text-[11px] font-medium text-[#0D0D0D] truncate"
-          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+        <span className="flex-1 min-w-0 text-[#0D0D0D] truncate"
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)' }}>
           {space.name}
         </span>
-        <span className="text-[9px] text-[#8A8A8A] flex-shrink-0"
-          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+        <span className="text-[#8A8A8A] flex-shrink-0"
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>
           {space._count.documents} doc{space._count.documents !== 1 ? 's' : ''}
         </span>
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
@@ -397,20 +397,20 @@ export default function SpaceTree({ space, onFolderToken, onRefresh }: SpaceTree
                 onChange={e => setNewFolderName(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleCreateFolder(); if (e.key === 'Escape') setShowNewFolder(false) }}
                 placeholder="Nom du dossier"
-                className="flex-1 min-w-0 text-[11px] px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]"
-                style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                className="flex-1 min-w-0 px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]"
+                style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
               />
               <button onClick={handleCreateFolder}
-                className="text-[9px] px-2 py-0.5 rounded bg-[#00068D] text-white"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>OK</button>
+                className="px-2 py-0.5 rounded bg-[#00068D] text-white"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>OK</button>
               <button onClick={() => setShowNewFolder(false)}
-                className="text-[9px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A]">✕</button>
+                className="px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A]" style={{ fontSize: 'var(--text-2xs)' }}>✕</button>
             </div>
           )}
 
           {space.folders.length === 0 && !showNewFolder ? (
-            <p className="px-2 py-1 text-[10px] text-[#C8C8C8] italic"
-              style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>
+            <p className="px-2 py-1 text-[#C8C8C8] italic"
+              style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)' }}>
               Aucun dossier — cliquez + pour en créer un
             </p>
           ) : (

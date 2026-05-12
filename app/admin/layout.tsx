@@ -35,11 +35,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
             </svg>
           </div>
-          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#00068D' }}>
+          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', color: '#00068D' }}>
             NouveLLM
           </span>
           <span className="w-px h-4 bg-[#D8D8D8]" />
-          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.1em', color: '#8A8A8A', textTransform: 'uppercase' }}>
+          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.1em', color: '#8A8A8A', textTransform: 'uppercase' }}>
             Administration
           </span>
         </div>
@@ -47,15 +47,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           {unreadAlerts > 0 && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', color: '#dc2626' }}>
+              <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#dc2626' }}>
                 {unreadAlerts} alerte{unreadAlerts > 1 ? 's' : ''}
               </span>
             </div>
           )}
           <Link
             href="/"
-            className="text-[10px] text-[#8A8A8A] hover:text-[#00068D] transition-colors"
-            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, letterSpacing: '0.04em' }}
+            className="text-[#8A8A8A] hover:text-[#00068D] transition-colors"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.04em' }}
           >
             ← Retour à l&apos;interface
           </Link>
@@ -72,8 +72,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-[11px] text-[#5A5A5A] hover:bg-[#F0F1FB] hover:text-[#00068D] transition-all"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em' }}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-[#5A5A5A] hover:bg-[#F0F1FB] hover:text-[#00068D] transition-all"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em' }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d={item.icon} />

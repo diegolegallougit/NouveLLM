@@ -76,7 +76,7 @@ export default function AgentPalette({ agents, query, onSelect, onClose }: Agent
     >
       {/* Header */}
       <div className="px-4 py-2.5 bg-[#F0F1FB] border-b border-[#D8D8D8]">
-        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.12em', color: '#00068D', textTransform: 'uppercase' }}>
+        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.12em', color: '#00068D', textTransform: 'uppercase' }}>
           Agents · Sélectionnez un workflow pour structurer votre demande
         </p>
       </div>
@@ -93,19 +93,19 @@ export default function AgentPalette({ agents, query, onSelect, onClose }: Agent
             <span className="text-lg flex-shrink-0 mt-0.5">{agent.icon}</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#00068D' }}>
+                <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#00068D' }}>
                   @{agent.slug}
                 </span>
-                <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 400, fontSize: '0.85rem', color: '#3A3A3A' }}>
+                <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 400, fontSize: 'var(--text-sm)', color: '#3A3A3A' }}>
                   {agent.label}
                 </span>
                 {agent.status === 'BETA' && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-orange-100 text-orange-700 border border-orange-200" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                  <span className="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 border border-orange-200" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                     BÊTA
                   </span>
                 )}
               </div>
-              <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A', marginTop: '2px' }}>
+              <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', marginTop: '2px' }}>
                 {agent.description}
               </p>
             </div>
@@ -115,18 +115,18 @@ export default function AgentPalette({ agents, query, onSelect, onClose }: Agent
 
       {/* Footer */}
       <div className="px-4 py-2 border-t border-[#D8D8D8] flex items-center justify-between bg-[#F2F2F2]">
-        <div className="flex items-center gap-3 text-[10px] text-[#8A8A8A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+        <div className="flex items-center gap-3 text-[#8A8A8A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>
           <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded text-[9px]">↑↓</kbd> naviguer
+            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded" style={{ fontSize: 'var(--text-2xs)' }}>↑↓</kbd> naviguer
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded text-[9px]">↵</kbd> sélectionner
+            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded" style={{ fontSize: 'var(--text-2xs)' }}>↵</kbd> sélectionner
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded text-[9px]">Esc</kbd> fermer
+            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded" style={{ fontSize: 'var(--text-2xs)' }}>Esc</kbd> fermer
           </span>
         </div>
-        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.65rem', color: '#8A8A8A' }}>
+        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
           {filtered.length} agent{filtered.length > 1 ? 's' : ''} disponible{filtered.length > 1 ? 's' : ''}
         </span>
       </div>

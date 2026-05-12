@@ -193,11 +193,11 @@ export default function NewSessionPage() {
             <div className="w-12 h-12 rounded-full bg-[#E8F5E9] flex items-center justify-center mx-auto mb-4">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
             </div>
-            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.2rem', color: '#0D0D0D' }}>Session créée</h2>
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#8A8A8A', marginTop: '0.25rem' }}>Partagez le code ou le QR avec vos étudiants</p>
+            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>Session créée</h2>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', marginTop: '0.25rem' }}>Partagez le code ou le QR avec vos étudiants</p>
           </div>
           <div className="bg-[#E8E9F8] rounded-xl px-6 py-4">
-            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.7rem', letterSpacing: '0.08em', color: '#00068D', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Code de session</p>
+            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.08em', color: '#00068D', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Code de session</p>
             <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.5rem', color: '#00068D', letterSpacing: '0.04em' }}>{result.code}</p>
           </div>
           <div className="mx-auto rounded-xl overflow-hidden border border-[#D8D8D8]" style={{ width: 192, height: 192 }}
@@ -209,7 +209,7 @@ export default function NewSessionPage() {
               {copied ? '✓ Lien copié !' : 'Copier le lien'}
             </button>
             <div className="px-1 py-1.5 rounded-lg bg-[#F2F2F2] text-center">
-              <p className="text-xs break-all" style={{ fontFamily: 'monospace', color: '#5A5A5A', fontSize: '0.7rem' }}>{result.link}</p>
+              <p className="break-all" style={{ fontFamily: 'monospace', color: '#5A5A5A', fontSize: 'var(--text-2xs)' }}>{result.link}</p>
             </div>
             <button onClick={() => router.push('/sessions')}
               className="w-full py-2.5 rounded-xl text-sm transition-all hover:opacity-90"
@@ -235,16 +235,16 @@ export default function NewSessionPage() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5A5A5A" strokeWidth="2" strokeLinecap="round"><path d="M19 12H5M5 12l7-7M5 12l7 7" /></svg>
           </button>
           <div className="flex-1">
-            <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>Nouvelle session de cours</h1>
+            <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>Nouvelle session de cours</h1>
             <div className="flex items-center gap-1 mt-1">
               {STEPS.map((s, i) => (
                 <div key={s} className="flex items-center gap-1">
                   <button onClick={() => goToStep(s)} disabled={!selectedScenario && s !== 'scenario'}
-                    className={`text-[9px] px-2 py-0.5 rounded transition-all ${step === s ? 'bg-[#00068D] text-white' : i < stepIdx ? 'text-[#2B2EB8] hover:underline' : 'text-[#C8C8C8]'}`}
-                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                    className={`px-2 py-0.5 rounded transition-all ${step === s ? 'bg-[#00068D] text-white' : i < stepIdx ? 'text-[#2B2EB8] hover:underline' : 'text-[#C8C8C8]'}`}
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                     {STEP_LABELS[i]}
                   </button>
-                  {i < STEPS.length - 1 && <span className="text-[#D8D8D8] text-[9px]">›</span>}
+                  {i < STEPS.length - 1 && <span className="text-[#D8D8D8]" style={{ fontSize: 'var(--text-2xs)' }}>›</span>}
                 </div>
               ))}
             </div>
@@ -260,7 +260,7 @@ export default function NewSessionPage() {
                 <div key={String(group.level)} className="bg-white rounded-xl border border-[#D8D8D8] overflow-hidden">
                   {group.level !== null && (
                     <div className="px-5 py-3 border-b border-[#F2F2F2] bg-[#FAFAFA]">
-                      <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>
+                      <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>
                         {group.levelLabel}
                       </p>
                     </div>
@@ -274,13 +274,13 @@ export default function NewSessionPage() {
                         className="w-full flex items-start gap-3 px-5 py-3.5 text-left hover:bg-[#F0F1FB] transition-all group">
                         <span className="text-xl flex-shrink-0 mt-0.5">{sc.icon}</span>
                         <div className="flex-1 min-w-0">
-                          <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.88rem', color: '#0D0D0D' }}>{sc.label}</p>
-                          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#8A8A8A', marginTop: '0.15rem', fontStyle: 'italic' }}>
+                          <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>{sc.label}</p>
+                          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', marginTop: '0.15rem', fontStyle: 'italic' }}>
                             {sc.shortDescription}
                           </p>
                         </div>
-                        <span className="text-[11px] px-2.5 py-1 rounded-lg border border-[#2B2EB8] text-[#00068D] opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 mt-0.5"
-                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                        <span className="px-2.5 py-1 rounded-lg border border-[#2B2EB8] text-[#00068D] opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 mt-0.5"
+                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}>
                           Sélectionner
                         </span>
                       </button>
@@ -298,39 +298,39 @@ export default function NewSessionPage() {
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">{hoveredScenario.icon}</span>
                       <div>
-                        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.95rem', color: '#0D0D0D' }}>{hoveredScenario.label}</p>
-                        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.7rem', color: '#2B2EB8' }}>{hoveredScenario.levelLabel}</p>
+                        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', color: '#0D0D0D' }}>{hoveredScenario.label}</p>
+                        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#2B2EB8' }}>{hoveredScenario.levelLabel}</p>
                       </div>
                     </div>
                     {(hoveredScenario.disciplineHint || hoveredScenario.levelHint) && (
                       <div className="flex flex-wrap gap-1.5">
                         {hoveredScenario.disciplineHint && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F2F2F2] text-[#5A5A5A]"
-                            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                          <span className="px-2 py-0.5 rounded-full bg-[#F2F2F2] text-[#5A5A5A]"
+                            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                             {hoveredScenario.disciplineHint}
                           </span>
                         )}
                         {hoveredScenario.levelHint && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E8E9F8] text-[#00068D]"
-                            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                          <span className="px-2 py-0.5 rounded-full bg-[#E8E9F8] text-[#00068D]"
+                            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                             {hoveredScenario.levelHint}
                           </span>
                         )}
                       </div>
                     )}
-                    <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#3A3A3A', lineHeight: 1.6 }}>
+                    <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#3A3A3A', lineHeight: 1.6 }}>
                       {hoveredScenario.fullDescription}
                     </p>
                     <div className="border-t border-[#F2F2F2] pt-3 space-y-1.5">
-                      <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.68rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>Pré-configuré</p>
+                      <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>Pré-configuré</p>
                       {hoveredScenario.defaultAgentSlugs.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {hoveredScenario.defaultAgentSlugs.map(s => (
-                            <span key={s} className="nl-token-agent text-[10px]">@{s}</span>
+                            <span key={s} className="nl-token-agent">@{s}</span>
                           ))}
                         </div>
                       )}
-                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }}>
+                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A' }}>
                         Durée : {hoveredScenario.defaultDuration} · Visibilité : {VISIBILITY_OPTIONS.find(v => v.value === hoveredScenario.defaultVisibility)?.label}
                       </p>
                     </div>
@@ -358,16 +358,16 @@ export default function NewSessionPage() {
             <ScenarioBadge scenario={selectedScenario} />
 
             <div className="bg-white rounded-xl border border-[#D8D8D8] p-5 space-y-4">
-              <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Informations de base</h2>
+              <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Informations de base</h2>
               <div>
-                <label className="block mb-1.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Nom de la session *</label>
+                <label className="block mb-1.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Nom de la session *</label>
                 <input value={name} onChange={e => setName(e.target.value)}
                   placeholder="ex: Traduction M1 — TD du 14 mai 2026"
                   className="w-full px-3 py-2 rounded-lg border border-[#D8D8D8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2B2EB8]"
                   style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
               </div>
               <div>
-                <label className="block mb-1.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Consigne pour les étudiants</label>
+                <label className="block mb-1.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Consigne pour les étudiants</label>
                 <textarea value={studentConsigne} onChange={e => setStudentConsigne(e.target.value)}
                   placeholder="Décrivez l'activité et les objectifs attendus…" rows={3}
                   className="w-full px-3 py-2 rounded-lg border border-[#D8D8D8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2B2EB8] resize-none"
@@ -376,9 +376,9 @@ export default function NewSessionPage() {
             </div>
 
             <div className="bg-white rounded-xl border border-[#D8D8D8] p-5 space-y-4">
-              <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Accès et durée</h2>
+              <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Accès et durée</h2>
               <div>
-                <label className="block mb-2" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Durée de validité</label>
+                <label className="block mb-2" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Durée de validité</label>
                 <div className="flex flex-wrap gap-2">
                   {DURATION_OPTIONS.map(opt => (
                     <button key={opt.hours} type="button" onClick={() => setValidityHours(opt.hours)}
@@ -391,19 +391,19 @@ export default function NewSessionPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-1.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Capacité max</label>
+                  <label className="block mb-1.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Capacité max</label>
                   <input type="number" value={maxParticipants} onChange={e => setMaxParticipants(e.target.value)}
                     placeholder="Illimitée" min="1"
                     className="w-full px-3 py-2 rounded-lg border border-[#D8D8D8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2B2EB8]"
                     style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
                 </div>
                 <div>
-                  <label className="block mb-2" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Accès</label>
+                  <label className="block mb-2" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Accès</label>
                   <div className="flex gap-2">
                     {(['OPEN', 'CLOSED'] as const).map(mode => (
                       <button key={mode} type="button" onClick={() => setAccess(mode)}
-                        className={`flex-1 py-2 rounded-lg border text-[10px] transition-all ${access === mode ? 'border-[#2B2EB8] bg-[#E8E9F8] text-[#00068D]' : 'border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2]'}`}
-                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                        className={`flex-1 py-2 rounded-lg border transition-all ${access === mode ? 'border-[#2B2EB8] bg-[#E8E9F8] text-[#00068D]' : 'border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2]'}`}
+                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                         {mode === 'OPEN' ? 'OUVERT' : 'FERMÉ'}
                       </button>
                     ))}
@@ -422,13 +422,13 @@ export default function NewSessionPage() {
             <ScenarioBadge scenario={selectedScenario} />
             <div className="bg-white rounded-xl border border-[#D8D8D8] p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Prompt pédagogique</h2>
+                <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Prompt pédagogique</h2>
                 {SLUGS_WITH_EXAMPLES.has(selectedScenario.slug) && (
                   <button
                     type="button"
                     onClick={() => setShowExamples(true)}
-                    className="flex items-center gap-1.5 text-[11px] transition-colors hover:text-[#00068D]"
-                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#2B2EB8' }}
+                    className="flex items-center gap-1.5 transition-colors hover:text-[#00068D]"
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#2B2EB8' }}
                   >
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
                     Voir des exemples →
@@ -457,7 +457,7 @@ export default function NewSessionPage() {
           <div className="max-w-2xl space-y-5">
             <ScenarioBadge scenario={selectedScenario} />
             <div className="bg-white rounded-xl border border-[#D8D8D8] p-5 space-y-4">
-              <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Visibilité des échanges étudiants</h2>
+              <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Visibilité des échanges étudiants</h2>
               <div className="space-y-2">
                 {VISIBILITY_OPTIONS.map(opt => (
                   <button key={opt.value} type="button" onClick={() => setVisibility(opt.value)}
@@ -468,18 +468,18 @@ export default function NewSessionPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span>{opt.icon}</span>
-                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: visibility === opt.value ? '#00068D' : '#0D0D0D' }}>
+                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: visibility === opt.value ? '#00068D' : '#0D0D0D' }}>
                           {opt.label}
                         </span>
                         {opt.sublabel && (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-300"
-                            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>{opt.sublabel}</span>
+                          <span className="px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-300"
+                            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>{opt.sublabel}</span>
                         )}
                       </div>
-                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#5A5A5A', marginTop: '0.2rem' }}>
+                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#5A5A5A', marginTop: '0.2rem' }}>
                         {opt.description}
                       </p>
-                      <p className="mt-1.5 text-[10px] italic" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', color: '#8A8A8A' }}>
+                      <p className="mt-1.5 italic" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
                         Bandeau affiché : « {opt.banner} »
                       </p>
                     </div>
@@ -503,15 +503,15 @@ export default function NewSessionPage() {
 
             <div className="bg-white rounded-xl border border-[#D8D8D8] p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Agents disponibles</h2>
-                <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#8A8A8A', fontStyle: 'italic' }}>Pré-configuré par le scénario</span>
+                <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Agents disponibles</h2>
+                <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', fontStyle: 'italic' }}>Pré-configuré par le scénario</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {agents.map(agent => (
                   <button key={agent.slug} type="button" onClick={() => toggleAgent(agent.slug)}
                     className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left transition-all ${selectedAgents.includes(agent.slug) ? 'border-[#2B2EB8] bg-[#E8E9F8]' : 'border-[#D8D8D8] hover:bg-[#F2F2F2]'}`}>
                     <span className="text-sm">{agent.icon}</span>
-                    <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: selectedAgents.includes(agent.slug) ? '#00068D' : '#0D0D0D' }}>
+                    <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: selectedAgents.includes(agent.slug) ? '#00068D' : '#0D0D0D' }}>
                       {agent.label}
                     </span>
                     {selectedAgents.includes(agent.slug) && (
@@ -524,7 +524,7 @@ export default function NewSessionPage() {
 
             {sources.length > 0 && (
               <div className="bg-white rounded-xl border border-[#D8D8D8] p-5 space-y-3">
-                <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>
+                <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>
                   Sources activées <span style={{ fontWeight: 300, textTransform: 'none' }}>(optionnel)</span>
                 </h2>
                 <div className="grid grid-cols-2 gap-2">
@@ -532,7 +532,7 @@ export default function NewSessionPage() {
                     <button key={source.slug} type="button" onClick={() => toggleSource(source.slug)}
                       className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left transition-all ${selectedSources.includes(source.slug) ? 'border-[#2B2EB8] bg-[#E8E9F8]' : 'border-[#D8D8D8] hover:bg-[#F2F2F2]'}`}>
                       <span className="text-sm">{source.icon}</span>
-                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: selectedSources.includes(source.slug) ? '#00068D' : '#0D0D0D' }}>
+                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: selectedSources.includes(source.slug) ? '#00068D' : '#0D0D0D' }}>
                         {source.label}
                       </span>
                     </button>
@@ -549,7 +549,7 @@ export default function NewSessionPage() {
         {step === 'recap' && selectedScenario && (
           <div className="max-w-2xl space-y-5">
             <div className="bg-white rounded-xl border border-[#D8D8D8] p-5 space-y-4">
-              <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Récapitulatif</h2>
+              <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Récapitulatif</h2>
 
               <RecapRow label="Scénario" value={`${selectedScenario.icon} ${selectedScenario.label}`} />
               <RecapRow label="Nom" value={name || '—'} error={!name} />
@@ -563,9 +563,9 @@ export default function NewSessionPage() {
               )}
               {getEffectivePrompt() && (
                 <div>
-                  <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.68rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A', marginBottom: '0.4rem' }}>Prompt</p>
-                  <pre className="text-[11px] bg-[#FAFAFA] rounded-lg p-3 max-h-32 overflow-auto whitespace-pre-wrap border border-[#F2F2F2]"
-                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif', color: '#3A3A3A', lineHeight: 1.6 }}>
+                  <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A', marginBottom: '0.4rem' }}>Prompt</p>
+                  <pre className="bg-[#FAFAFA] rounded-lg p-3 max-h-32 overflow-auto whitespace-pre-wrap border border-[#F2F2F2]"
+                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#3A3A3A', lineHeight: 1.6 }}>
                     {getEffectivePrompt().slice(0, 400)}{getEffectivePrompt().length > 400 ? '…' : ''}
                   </pre>
                 </div>
@@ -597,8 +597,8 @@ function ScenarioBadge({ scenario }: { scenario: Scenario }) {
     <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#E8E9F8] border border-[#C5C7F0]">
       <span className="text-xl">{scenario.icon}</span>
       <div>
-        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.82rem', color: '#00068D' }}>{scenario.label}</p>
-        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#5A5A5A', fontStyle: 'italic' }}>{scenario.levelLabel}</p>
+        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#00068D' }}>{scenario.label}</p>
+        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#5A5A5A', fontStyle: 'italic' }}>{scenario.levelLabel}</p>
       </div>
     </div>
   )
@@ -607,8 +607,8 @@ function ScenarioBadge({ scenario }: { scenario: Scenario }) {
 function RecapRow({ label, value, error }: { label: string; value: string; error?: boolean }) {
   return (
     <div className="flex items-start gap-4 border-b border-[#F2F2F2] pb-3 last:border-0 last:pb-0">
-      <span className="w-24 flex-shrink-0" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>{label}</span>
-      <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: error ? '#dc2626' : '#0D0D0D' }}>{value}</span>
+      <span className="w-24 flex-shrink-0" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>{label}</span>
+      <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: error ? '#dc2626' : '#0D0D0D' }}>{value}</span>
     </div>
   )
 }

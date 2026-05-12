@@ -67,10 +67,10 @@ export default function AdminSourcesPage() {
   return (
     <div className="space-y-5 max-w-5xl">
       <div>
-        <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>
+        <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>
           Gestion des sources
         </h1>
-        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#8A8A8A' }}>
+        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A' }}>
           Modifier le Dify Dataset ID sans redéploiement · {sources.length} sources
         </p>
       </div>
@@ -80,7 +80,7 @@ export default function AdminSourcesPage() {
           <thead>
             <tr className="border-b border-[#D8D8D8] bg-[#FAFAFA]">
               {['Source', 'Dataset ID', 'Docs', 'Accès', 'Groupes', 'Actions'].map(h => (
-                <th key={h} className="px-4 py-3 text-left" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.62rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>
+                <th key={h} className="px-4 py-3 text-left" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>
                   {h}
                 </th>
               ))}
@@ -94,28 +94,28 @@ export default function AdminSourcesPage() {
                     <div className="flex items-center gap-2">
                       <span>{source.icon}</span>
                       <div>
-                        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.82rem', color: '#0D0D0D' }}>{source.label}</p>
-                        <span className="nl-token-source text-[10px]">#{source.slug}</span>
+                        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>{source.label}</p>
+                        <span className="nl-token-source">#{source.slug}</span>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <code style={{ fontFamily: 'monospace', fontSize: '0.72rem', color: '#5A5A5A', background: '#F2F2F2', padding: '2px 6px', borderRadius: 4 }}>
+                    <code style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)', color: '#5A5A5A', background: '#F2F2F2', padding: '2px 6px', borderRadius: 4 }}>
                       {source.difyDatasetId.slice(0, 8)}…
                     </code>
                   </td>
-                  <td className="px-4 py-3" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#5A5A5A' }}>
+                  <td className="px-4 py-3" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#5A5A5A' }}>
                     {source.docCount ?? '—'}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full border ${source.access === 'PUBLIC' ? 'bg-[#E8F5E9] text-[#2E7D32] border-[#A5D6A7]' : 'bg-[#FFF8E1] text-[#F57F17] border-[#FFD54F]'}`} style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                    <span className={`px-2 py-0.5 rounded-full border ${source.access === 'PUBLIC' ? 'bg-[#E8F5E9] text-[#2E7D32] border-[#A5D6A7]' : 'bg-[#FFF8E1] text-[#F57F17] border-[#FFD54F]'}`} style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                       {source.access}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       {source.groups.map(g => (
-                        <span key={g.group.id} className="text-[10px] px-1.5 py-0.5 rounded bg-[#e8f5e9] text-[#2e7d32] border border-[#a5d6a7]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+                        <span key={g.group.id} className="px-1.5 py-0.5 rounded bg-[#e8f5e9] text-[#2e7d32] border border-[#a5d6a7]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>
                           {g.group.label}
                         </span>
                       ))}
@@ -125,12 +125,12 @@ export default function AdminSourcesPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => editing === source.slug ? setEditing(null) : startEdit(source)}
-                        className="px-2.5 py-1.5 rounded-lg border border-[#D8D8D8] text-[10px] hover:bg-[#F0F1FB] hover:border-[#2B2EB8] transition-all"
-                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em', color: '#0D0D0D' }}
+                        className="px-2.5 py-1.5 rounded-lg border border-[#D8D8D8] hover:bg-[#F0F1FB] hover:border-[#2B2EB8] transition-all"
+                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em', color: '#0D0D0D' }}
                       >
                         {editing === source.slug ? 'ANNULER' : 'MODIFIER'}
                       </button>
-                      {saved === source.slug && <span className="text-[10px] text-[#2E7D32]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>✓</span>}
+                      {saved === source.slug && <span className="text-[#2E7D32]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>✓</span>}
                     </div>
                   </td>
                 </tr>
@@ -139,7 +139,7 @@ export default function AdminSourcesPage() {
                     <td colSpan={6} className="px-4 py-4">
                       <div className="grid grid-cols-4 gap-4 mb-4">
                         <div className="col-span-2">
-                          <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }} className="block mb-1">
+                          <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }} className="block mb-1">
                             Dify Dataset ID
                           </label>
                           <input
@@ -149,7 +149,7 @@ export default function AdminSourcesPage() {
                           />
                         </div>
                         <div>
-                          <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }} className="block mb-1">
+                          <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }} className="block mb-1">
                             Accès
                           </label>
                           <select
@@ -163,7 +163,7 @@ export default function AdminSourcesPage() {
                           </select>
                         </div>
                         <div>
-                          <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }} className="block mb-1">
+                          <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }} className="block mb-1">
                             Nb documents
                           </label>
                           <input
@@ -175,7 +175,7 @@ export default function AdminSourcesPage() {
                         </div>
                       </div>
                       <div className="mb-4">
-                        <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }} className="block mb-2">
+                        <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }} className="block mb-2">
                           Groupes actifs
                         </label>
                         <div className="flex flex-wrap gap-2">
@@ -190,8 +190,8 @@ export default function AdminSourcesPage() {
                                     ? (f.groupIds ?? []).filter(id => id !== g.id)
                                     : [...(f.groupIds ?? []), g.id]
                                 }))}
-                                className={`px-2.5 py-1 rounded-lg border text-[10px] transition-all ${enabled ? 'bg-[#e8f5e9] border-[#a5d6a7] text-[#2e7d32]' : 'bg-white border-[#D8D8D8] text-[#8A8A8A]'}`}
-                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                                className={`px-2.5 py-1 rounded-lg border transition-all ${enabled ? 'bg-[#e8f5e9] border-[#a5d6a7] text-[#2e7d32]' : 'bg-white border-[#D8D8D8] text-[#8A8A8A]'}`}
+                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
                               >
                                 {enabled ? '✓ ' : ''}{g.label}
                               </button>
@@ -202,8 +202,8 @@ export default function AdminSourcesPage() {
                       <button
                         onClick={() => handleSave(source.slug)}
                         disabled={saving}
-                        className="px-4 py-2 rounded-lg bg-[#00068D] text-white text-[11px] disabled:opacity-50 hover:bg-[#2B2EB8] transition-all"
-                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em' }}
+                        className="px-4 py-2 rounded-lg bg-[#00068D] text-white disabled:opacity-50 hover:bg-[#2B2EB8] transition-all"
+                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em' }}
                       >
                         {saving ? 'SAUVEGARDE…' : 'SAUVEGARDER'}
                       </button>

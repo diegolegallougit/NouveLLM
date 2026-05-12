@@ -67,7 +67,7 @@ export default function SourcePalette({ sources, query, selected, onToggle, onCl
     >
       {/* Header */}
       <div className="px-4 py-2.5 bg-[#e8f5e9] border-b border-[#a5d6a7]">
-        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.12em', color: '#2e7d32', textTransform: 'uppercase' }}>
+        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.12em', color: '#2e7d32', textTransform: 'uppercase' }}>
           Sources documentaires · Choisissez les bases à interroger
         </p>
       </div>
@@ -78,8 +78,8 @@ export default function SourcePalette({ sources, query, selected, onToggle, onCl
           <>
             {folderSources.length > 0 && (
               <div className="px-3 py-1.5 bg-[#F2F2F2] border-b border-[#D8D8D8]">
-                <span className="text-[9px] text-[#8A8A8A] uppercase tracking-widest"
-                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Bases institutionnelles</span>
+                <span className="text-[#8A8A8A] uppercase tracking-widest"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Bases institutionnelles</span>
               </div>
             )}
             {institutionalSources.map((source) => {
@@ -92,20 +92,20 @@ export default function SourcePalette({ sources, query, selected, onToggle, onCl
                   <span className="text-lg flex-shrink-0 mt-0.5">{source.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#2e7d32' }}>
+                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#2e7d32' }}>
                         #{source.slug}
                       </span>
-                      <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 400, fontSize: '0.85rem', color: '#3A3A3A' }}>
+                      <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 400, fontSize: 'var(--text-sm)', color: '#3A3A3A' }}>
                         {source.label}
                       </span>
                       {source.docCount != null && (
-                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.7rem', color: '#8A8A8A' }}>
+                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
                           {source.docCount} docs
                         </span>
                       )}
-                      <span className="px-1.5 py-0.5 rounded text-[10px] border"
+                      <span className="px-1.5 py-0.5 rounded border"
                         style={{
-                          fontFamily: 'Gilroy, sans-serif', fontWeight: 800,
+                          fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)',
                           background: source.access === 'PUBLIC' ? '#e8f5e9' : '#fff3e0',
                           color: source.access === 'PUBLIC' ? '#2e7d32' : '#e65100',
                           borderColor: source.access === 'PUBLIC' ? '#a5d6a7' : '#ffcc02',
@@ -113,7 +113,7 @@ export default function SourcePalette({ sources, query, selected, onToggle, onCl
                         {source.access === 'PUBLIC' ? 'Public' : 'Restreint'}
                       </span>
                     </div>
-                    <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A', marginTop: '2px' }}>
+                    <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', marginTop: '2px' }}>
                       {source.description}
                     </p>
                   </div>
@@ -131,8 +131,8 @@ export default function SourcePalette({ sources, query, selected, onToggle, onCl
         {folderSources.length > 0 && (
           <>
             <div className="px-3 py-1.5 bg-[#F2F2F2] border-b border-[#D8D8D8]">
-              <span className="text-[9px] text-[#8A8A8A] uppercase tracking-widest"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Mes espaces documentaires</span>
+              <span className="text-[#8A8A8A] uppercase tracking-widest"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Mes espaces documentaires</span>
             </div>
             {folderSources.map((source) => {
               const isSelected = selected.includes(source.slug)
@@ -144,21 +144,21 @@ export default function SourcePalette({ sources, query, selected, onToggle, onCl
                   <span className="text-base flex-shrink-0 mt-0.5">{source.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.82rem', color: '#2e7d32' }}>
+                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#2e7d32' }}>
                         #{source.slug}
                       </span>
                       {source.docCount != null && (
-                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.7rem', color: '#8A8A8A' }}>
+                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
                           {source.docCount} docs
                         </span>
                       )}
-                      <span className="px-1.5 py-0.5 rounded text-[10px] border bg-[#E8E9F8] text-[#00068D] border-[#C5C7F0]"
-                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                      <span className="px-1.5 py-0.5 rounded border bg-[#E8E9F8] text-[#00068D] border-[#C5C7F0]"
+                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                         Personnel
                       </span>
                     </div>
                     {source.spaceName && (
-                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#8A8A8A', marginTop: '1px' }}>
+                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A', marginTop: '1px' }}>
                         {source.spaceName}
                       </p>
                     )}
@@ -177,19 +177,19 @@ export default function SourcePalette({ sources, query, selected, onToggle, onCl
 
       {/* Footer */}
       <div className="px-4 py-2 border-t border-[#D8D8D8] flex items-center justify-between bg-[#F2F2F2]">
-        <div className="flex items-center gap-3 text-[10px] text-[#8A8A8A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+        <div className="flex items-center gap-3 text-[#8A8A8A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>
           <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded text-[9px]">↑↓</kbd> naviguer
+            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded" style={{ fontSize: 'var(--text-2xs)' }}>↑↓</kbd> naviguer
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded text-[9px]">↵</kbd> sélectionner
+            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded" style={{ fontSize: 'var(--text-2xs)' }}>↵</kbd> sélectionner
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded text-[9px]">Esc</kbd> fermer
+            <kbd className="px-1 py-0.5 bg-white border border-[#D8D8D8] rounded" style={{ fontSize: 'var(--text-2xs)' }}>Esc</kbd> fermer
           </span>
         </div>
         {selected.length > 0 && (
-          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', color: '#2e7d32' }}>
+          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#2e7d32' }}>
             {selected.length} source{selected.length > 1 ? 's' : ''} sélectionnée{selected.length > 1 ? 's' : ''}
           </span>
         )}

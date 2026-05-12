@@ -180,14 +180,14 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
   return (
     <div
       className="flex flex-col border-r border-[#D8D8D8] bg-[#FAFAFA] flex-shrink-0"
-      style={{ width: 236 }}
+      style={{ width: 'var(--sidebar-w)' }}
     >
       {/* New conversation */}
       <div className="p-2.5 border-b border-[#D8D8D8]">
         <button
           onClick={onNewConversation}
           className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border border-[#D8D8D8] bg-white hover:bg-[#F0F1FB] hover:border-[#2B2EB8] transition-all"
-          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.6rem', letterSpacing: '0.05em', color: '#0D0D0D' }}
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.05em', color: '#0D0D0D' }}
         >
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
             <path d="M12 5v14M5 12h14" />
@@ -207,7 +207,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                 ? 'border-[#00068D] text-[#00068D]'
                 : 'border-transparent text-[#8A8A8A] hover:text-[#0D0D0D]'
             }`}
-            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.55rem', letterSpacing: '0.04em' }}
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em' }}
           >
             {tab.label}
           </button>
@@ -227,8 +227,8 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                   onClick={() => setConnectorDrawerOpen(o => !o)}
                   className="flex items-center justify-between w-full px-2 py-1.5 rounded-lg hover:bg-[#F2F2F2] transition-all"
                 >
-                  <span className="text-[9px] text-[#8A8A8A] uppercase tracking-widest"
-                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                  <span className="text-[#8A8A8A] uppercase tracking-widest"
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                     Sources externes ⚙
                   </span>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" strokeWidth="2.5"
@@ -242,15 +242,15 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                       <div key={c.id} className="flex items-center justify-between px-2.5 py-2 rounded-lg bg-white border border-[#D8D8D8]">
                         <div className="flex items-center gap-2">
                           <span className="text-xs">{c.icon}</span>
-                          <span className="text-[11px] text-[#3A3A3A]"
-                            style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>{c.name}</span>
+                          <span className="text-[#3A3A3A]"
+                            style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}>{c.name}</span>
                         </div>
-                        <span className="text-[9px] text-[#2E7D32]"
-                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Lié</span>
+                        <span className="text-[#2E7D32]"
+                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Lié</span>
                       </div>
                     ))}
-                    <button className="text-[9px] text-[#8A8A8A] hover:text-[#00068D] px-2 py-1 transition-all"
-                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+                    <button className="text-[#8A8A8A] hover:text-[#00068D] px-2 py-1 transition-all"
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>
                       + Ajouter un connecteur
                     </button>
                   </div>
@@ -259,8 +259,8 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
             ) : (
               /* No connectors yet → show LIER buttons */
               <div>
-                <p className="text-[9px] text-[#8A8A8A] uppercase tracking-widest mb-2"
-                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                <p className="text-[#8A8A8A] uppercase tracking-widest mb-2"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                   Connecteurs
                 </p>
                 <div className="space-y-1.5">
@@ -280,29 +280,29 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                         className="flex items-center justify-between px-2.5 py-2 rounded-lg bg-white border border-[#D8D8D8]">
                         <div className="flex items-center gap-2">
                           <span className="text-xs">{c.icon}</span>
-                          <span className="text-[11px] text-[#3A3A3A]"
-                            style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>{c.name}</span>
+                          <span className="text-[#3A3A3A]"
+                            style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}>{c.name}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           {connected ? (
                             <>
-                              <span className="text-[9px] text-[#2E7D32]"
-                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Lié</span>
+                              <span className="text-[#2E7D32]"
+                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Lié</span>
                               <button onClick={handleDisconnect}
-                                className="text-[9px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A] hover:border-red-400 hover:text-red-600 transition-all"
-                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                                className="px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A] hover:border-red-400 hover:text-red-600 transition-all"
+                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                                 ✕
                               </button>
                             </>
                           ) : (
                             <>
-                              <span className="text-[9px] text-[#8A8A8A] italic"
-                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>non connecté</span>
+                              <span className="text-[#8A8A8A] italic"
+                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>non connecté</span>
                               <button
                                 onClick={handleConnect}
                                 disabled={!canConnect}
-                                className="text-[9px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A] hover:border-[#2B2EB8] hover:text-[#00068D] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.03em' }}>
+                                className="px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A] hover:border-[#2B2EB8] hover:text-[#00068D] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.03em' }}>
                                 LIER
                               </button>
                             </>
@@ -317,8 +317,8 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
             {userRole !== 'STUDENT' && (
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-[9px] text-[#8A8A8A] uppercase tracking-widest"
-                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                  <p className="text-[#8A8A8A] uppercase tracking-widest"
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                     Espaces documentaires
                   </p>
                   <button
@@ -337,20 +337,21 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                       onChange={e => setNewSpaceName(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') handleCreateSpace(); if (e.key === 'Escape') setCreatingSpace(false) }}
                       placeholder="Nom de l'espace"
-                      className="flex-1 min-w-0 text-[11px] px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]"
-                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                      className="flex-1 min-w-0 px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]"
+                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
                     />
                     <button onClick={handleCreateSpace}
-                      className="text-[9px] px-2 py-0.5 rounded bg-[#00068D] text-white flex-shrink-0"
-                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>OK</button>
+                      className="px-2 py-0.5 rounded bg-[#00068D] text-white flex-shrink-0"
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>OK</button>
                     <button onClick={() => setCreatingSpace(false)}
-                      className="text-[9px] px-1 text-[#8A8A8A]">✕</button>
+                      className="px-1 text-[#8A8A8A]"
+                      style={{ fontSize: 'var(--text-2xs)' }}>✕</button>
                   </div>
                 )}
 
                 {spaces.length === 0 && !creatingSpace ? (
-                  <p className="text-[10px] text-[#C8C8C8] italic"
-                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>
+                  <p className="text-[#C8C8C8] italic"
+                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)' }}>
                     Aucun espace — cliquez + pour en créer un.
                   </p>
                 ) : (
@@ -379,8 +380,8 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
               </div>
             ) : conversations.length === 0 ? (
               <p
-                className="text-[11px] text-[#8A8A8A] italic text-center py-10 px-4 leading-relaxed"
-                style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                className="text-[#8A8A8A] italic text-center py-10 px-4 leading-relaxed"
+                style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)' }}
               >
                 Vos conversations apparaîtront ici.
               </p>
@@ -396,20 +397,20 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                   }`}
                 >
                   <span
-                    className="text-[11px] text-[#0D0D0D] line-clamp-2 leading-relaxed w-full"
-                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                    className="text-[#0D0D0D] line-clamp-2 leading-relaxed w-full"
+                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
                   >
                     {conv.title || 'Conversation sans titre'}
                   </span>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {conv.agentSlug && (
-                      <span className="nl-token-agent" style={{ fontSize: '0.6rem' }}>
+                      <span className="nl-token-agent">
                         @{conv.agentSlug}
                       </span>
                     )}
                     <span
-                      className="text-[10px] text-[#8A8A8A]"
-                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}
+                      className="text-[#8A8A8A]"
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}
                     >
                       {formatRelativeDate(conv.updatedAt)}
                     </span>
@@ -424,8 +425,8 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
         {activeTab === 'inst' && (
           <div className="p-3 space-y-3">
             <p
-              className="text-[9px] text-[#8A8A8A] uppercase tracking-widest"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+              className="text-[#8A8A8A] uppercase tracking-widest"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
             >
               Espaces partagés USN
             </p>
@@ -438,14 +439,14 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                   <span className="text-sm">{s.icon}</span>
                   <div>
                     <p
-                      className="text-[11px] text-[#3A3A3A]"
-                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                      className="text-[#3A3A3A]"
+                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
                     >
                       {s.label}
                     </p>
                     <p
-                      className="text-[10px] text-[#8A8A8A]"
-                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}
+                      className="text-[#8A8A8A]"
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}
                     >
                       Lecture seule
                     </p>
@@ -454,8 +455,8 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
               ))}
             </div>
             <p
-              className="text-[11px] text-[#8A8A8A] italic leading-relaxed px-0.5"
-              style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+              className="text-[#8A8A8A] italic leading-relaxed px-0.5"
+              style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)' }}
             >
               Ces espaces sont gérés par l&apos;administration Sorbonne Nouvelle.
             </p>
@@ -470,16 +471,16 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
           onClick={e => { if (e.target === e.currentTarget) setNotionModal(false) }}>
           <div className="bg-white rounded-2xl shadow-xl p-6 w-80 space-y-4 mx-4">
             <div>
-              <h3 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#0D0D0D' }}>
+              <h3 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', color: '#0D0D0D' }}>
                 Lier Notion
               </h3>
-              <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#8A8A8A', marginTop: '0.25rem', lineHeight: 1.5 }}>
+              <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', marginTop: '0.25rem', lineHeight: 1.5 }}>
                 Créez une intégration sur <strong>notion.so/my-integrations</strong>, partagez vos pages avec elle, puis collez le token ci-dessous.
               </p>
             </div>
             <div>
-              <label className="block text-[10px] text-[#8A8A8A] mb-1.5 uppercase tracking-widest"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+              <label className="block text-[#8A8A8A] mb-1.5 uppercase tracking-widest"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                 Token d&apos;intégration
               </label>
               <input
@@ -489,25 +490,26 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                 onChange={e => { setNotionTokenInput(e.target.value); setNotionError('') }}
                 onKeyDown={e => { if (e.key === 'Enter') connectNotion(); if (e.key === 'Escape') setNotionModal(false) }}
                 placeholder="secret_xxxxxxxxxxxxxxxx"
-                className="w-full px-3 py-2 text-[12px] rounded-lg border border-[#D8D8D8] focus:outline-none focus:ring-2 focus:ring-[#2B2EB8] font-mono"
+                className="w-full px-3 py-2 rounded-lg border border-[#D8D8D8] focus:outline-none focus:ring-2 focus:ring-[#2B2EB8] font-mono"
+                style={{ fontSize: 'var(--text-sm)' }}
               />
               {notionError && (
-                <p className="text-[11px] text-red-600 mt-1"
-                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>{notionError}</p>
+                <p className="text-red-600 mt-1"
+                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)' }}>{notionError}</p>
               )}
             </div>
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => setNotionModal(false)}
-                className="flex-1 py-2 rounded-xl border border-[#D8D8D8] text-[11px] text-[#8A8A8A] hover:bg-[#F2F2F2] transition-all"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                className="flex-1 py-2 rounded-xl border border-[#D8D8D8] text-[#8A8A8A] hover:bg-[#F2F2F2] transition-all"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}>
                 Annuler
               </button>
               <button
                 onClick={connectNotion}
                 disabled={notionConnecting || !notionTokenInput.trim()}
-                className="flex-1 py-2 rounded-xl bg-[#00068D] text-white text-[11px] hover:bg-[#2B2EB8] transition-all disabled:opacity-50"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                className="flex-1 py-2 rounded-xl bg-[#00068D] text-white hover:bg-[#2B2EB8] transition-all disabled:opacity-50"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}>
                 {notionConnecting ? 'Connexion…' : 'Lier'}
               </button>
             </div>

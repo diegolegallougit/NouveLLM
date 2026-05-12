@@ -58,6 +58,21 @@
   --font-display: 'Gilroy', sans-serif;
   --font-body: 'Source Serif Pro', Georgia, serif;
 
+  /* Échelle typographique — 6 niveaux */
+  --text-2xs: 11px;   /* timestamps, badges, raccourcis clavier */
+  --text-xs:  13px;   /* labels sidebar, métadonnées secondaires */
+  --text-sm:  14px;   /* corps secondaire, descriptions, labels formulaires */
+  --text-base: 16px;  /* corps principal, messages, placeholders */
+  --text-md:  18px;   /* titres de section, noms */
+  --text-lg:  22px;   /* titres de page, headers */
+  --text-xl:  28px;   /* titres principaux */
+
+  /* Espacements layout */
+  --header-h: 60px;
+  --sidebar-w: 288px;
+  --footer-h: 40px;
+  --input-min-h: 80px;
+
   /* Shadcn overrides */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -149,10 +164,10 @@
 .nl-token-agent {
   display: inline-flex;
   align-items: center;
-  padding: 1px 7px;
+  padding: 2px 8px;
   border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--text-2xs);
+  font-weight: 800;
   font-family: 'Gilroy', sans-serif;
   background: #E8E9F8;
   color: #00068D;
@@ -162,10 +177,10 @@
 .nl-token-source {
   display: inline-flex;
   align-items: center;
-  padding: 1px 7px;
+  padding: 2px 8px;
   border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--text-2xs);
+  font-weight: 800;
   font-family: 'Gilroy', sans-serif;
   background: #e8f5e9;
   color: #2e7d32;
@@ -174,17 +189,17 @@
 }
 
 /* ── Prose message content ── */
-.nl-prose { font-family: 'Source Serif Pro', Georgia, serif; font-size: 1rem; line-height: 1.65; }
-.nl-prose p { margin: 0 0 0.75rem; }
+.nl-prose { font-family: 'Source Serif Pro', Georgia, serif; font-size: var(--text-base); line-height: 1.7; color: #1a1a2e; }
+.nl-prose p { margin: 0 0 0.9rem; }
 .nl-prose p:last-child { margin-bottom: 0; }
 .nl-prose strong { font-weight: 700; }
 .nl-prose em { font-style: italic; color: #3A3A3A; }
-.nl-prose ul, .nl-prose ol { margin: 0 0 0.75rem; padding-left: 1.4rem; }
+.nl-prose ul, .nl-prose ol { margin: 0 0 0.9rem; padding-left: 1.4rem; }
 .nl-prose li { margin-bottom: 0.25rem; }
 .nl-prose h1, .nl-prose h2, .nl-prose h3 { font-family: 'Gilroy', sans-serif; font-weight: 800; margin: 1.2rem 0 0.5rem; color: #00068D; }
-.nl-prose h1 { font-size: 1.4rem; }
-.nl-prose h2 { font-size: 1.2rem; }
-.nl-prose h3 { font-size: 1.05rem; }
+.nl-prose h1 { font-size: var(--text-lg); }
+.nl-prose h2 { font-size: var(--text-md); }
+.nl-prose h3 { font-size: var(--text-base); font-weight: 600; }
 .nl-prose code { font-family: monospace; font-size: 0.85em; background: #F2F2F2; padding: 1px 5px; border-radius: 3px; }
 .nl-prose pre { background: #F2F2F2; padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 0.75rem 0; }
 .nl-prose pre code { background: none; padding: 0; }

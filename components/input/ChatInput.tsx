@@ -227,8 +227,8 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
               {selectedAgent.inputSchema && (
                 <button
                   onClick={() => setShowFormModal(true)}
-                  className="px-1.5 py-0.5 rounded text-[10px] bg-[#00068D] text-white hover:bg-[#2B2EB8] transition-all"
-                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                  className="px-1.5 py-0.5 rounded bg-[#00068D] text-white hover:bg-[#2B2EB8] transition-all"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
                   title="Ouvrir le formulaire"
                 >
                   Formulaire
@@ -251,7 +251,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
               </svg>
-              <span className="text-xs text-[#F57F17]" style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>
+              <span className="text-[#F57F17]" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)' }}>
                 {selectedFile.name.length > 24 ? selectedFile.name.slice(0, 22) + '…' : selectedFile.name}
               </span>
               <button
@@ -295,8 +295,8 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
           onKeyDown={handleKeyDown}
           disabled={disabled}
           placeholder="Posez une question ou tapez @ pour un agent, # pour une source · Cmd+Entrée"
-          className="w-full px-4 pt-3 pb-2 bg-transparent resize-none text-[#0D0D0D] text-sm placeholder:text-[#8A8A8A] focus:outline-none disabled:opacity-50 leading-relaxed"
-          style={{ fontFamily: 'Source Serif Pro, Georgia, serif', minHeight: '56px', maxHeight: '200px' }}
+          className="w-full px-4 pt-3 pb-2 bg-transparent resize-none text-[#0D0D0D] placeholder:text-[#8A8A8A] focus:outline-none disabled:opacity-50 leading-relaxed"
+          style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-base)', minHeight: 'var(--input-min-h)', maxHeight: '200px' }}
           rows={1}
         />
 
@@ -371,11 +371,12 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
           <button
             onClick={handleSend}
             disabled={!hasContent || disabled}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
               background: hasContent && !disabled ? '#00068D' : '#D8D8D8',
               fontFamily: 'Gilroy, sans-serif',
               fontWeight: 800,
+              fontSize: 'var(--text-xs)',
               letterSpacing: '0.04em',
             }}
           >

@@ -32,7 +32,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#D8D8D8]">
-          <h3 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#0D0D0D' }}>{title}</h3>
+          <h3 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', color: '#0D0D0D' }}>{title}</h3>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#F2F2F2]">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
           </button>
@@ -128,10 +128,10 @@ export default function AdminUsersPage() {
     <div className="space-y-5 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>
+          <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>
             Gestion des utilisateurs
           </h1>
-          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#8A8A8A' }}>
+          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A' }}>
             {users.length} utilisateurs · aucun contenu de message exposé
           </p>
         </div>
@@ -159,7 +159,7 @@ export default function AdminUsersPage() {
           <thead>
             <tr className="border-b border-[#D8D8D8] bg-[#FAFAFA]">
               {['Utilisateur', 'Rôle', 'Groupes', 'Onboarding', 'Dernière activité', 'Actions'].map(h => (
-                <th key={h} className="px-4 py-3 text-left" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.62rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>
+                <th key={h} className="px-4 py-3 text-left" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>
                   {h}
                 </th>
               ))}
@@ -172,15 +172,15 @@ export default function AdminUsersPage() {
             {filtered.map(u => (
               <tr key={u.id} className={`border-b border-[#F2F2F2] ${u.disabled ? 'opacity-50 bg-[#FAFAFA]' : 'hover:bg-[#FAFAFA]'}`}>
                 <td className="px-4 py-3">
-                  <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D' }}>
+                  <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 600, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
                     {u.name || '—'}
                   </p>
-                  <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.72rem', color: '#8A8A8A' }}>
+                  <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>
                     {u.email}
                   </p>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full border ${ROLE_COLORS[u.role] ?? 'bg-[#F2F2F2] text-[#8A8A8A] border-[#D8D8D8]'}`} style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                  <span className={`px-2 py-0.5 rounded-full border ${ROLE_COLORS[u.role] ?? 'bg-[#F2F2F2] text-[#8A8A8A] border-[#D8D8D8]'}`} style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                     {ROLE_LABELS[u.role] ?? u.role}
                   </span>
                 </td>
@@ -189,13 +189,13 @@ export default function AdminUsersPage() {
                     {u.groups.length === 0
                       ? <span style={{ fontSize: '0.75rem', color: '#C8C8C8' }}>—</span>
                       : u.groups.map(g => (
-                        <span key={g.id} className="text-[10px] px-1.5 py-0.5 rounded bg-[#F2F2F2] text-[#5A5A5A] border border-[#D8D8D8]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>{g.label}</span>
+                        <span key={g.id} className="px-1.5 py-0.5 rounded bg-[#F2F2F2] text-[#5A5A5A] border border-[#D8D8D8]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>{g.label}</span>
                       ))
                     }
                     <button
                       onClick={() => openGroupsModal(u)}
-                      className="text-[10px] px-1.5 py-0.5 rounded border border-dashed border-[#2B2EB8] text-[#2B2EB8] hover:bg-[#E8E9F8] transition-all ml-0.5"
-                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                      className="px-1.5 py-0.5 rounded border border-dashed border-[#2B2EB8] text-[#2B2EB8] hover:bg-[#E8E9F8] transition-all ml-0.5"
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
                       title="Modifier les groupes"
                     >
                       ✎
@@ -204,20 +204,20 @@ export default function AdminUsersPage() {
                 </td>
                 <td className="px-4 py-3">
                   {u.onboarded ? (
-                    <span className="text-[10px] text-[#2E7D32]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>✓ Complété</span>
+                    <span className="text-[#2E7D32]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>✓ Complété</span>
                   ) : (
-                    <span className="text-[10px] text-[#F57F17]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>En attente</span>
+                    <span className="text-[#F57F17]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>En attente</span>
                   )}
                 </td>
-                <td className="px-4 py-3" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#8A8A8A' }}>
+                <td className="px-4 py-3" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A' }}>
                   {formatDate(u.lastActivity)}
                 </td>
                 <td className="px-4 py-3">
                   <button
                     onClick={() => toggleUser(u.id, u.disabled)}
                     disabled={working === u.id}
-                    className={`px-2.5 py-1.5 rounded-lg border text-[10px] disabled:opacity-50 transition-all ${u.disabled ? 'border-[#A5D6A7] text-[#2E7D32] hover:bg-[#E8F5E9]' : 'border-red-300 text-red-600 hover:bg-red-50'}`}
-                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em' }}
+                    className={`px-2.5 py-1.5 rounded-lg border disabled:opacity-50 transition-all ${u.disabled ? 'border-[#A5D6A7] text-[#2E7D32] hover:bg-[#E8F5E9]' : 'border-red-300 text-red-600 hover:bg-red-50'}`}
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em' }}
                   >
                     {working === u.id ? '…' : u.disabled ? 'RÉACTIVER' : 'DÉSACTIVER'}
                   </button>
@@ -235,18 +235,18 @@ export default function AdminUsersPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 p-3 rounded-lg bg-[#E8F5E9] border border-[#A5D6A7]">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
-                <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.82rem', color: '#2E7D32' }}>
+                <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#2E7D32' }}>
                   Compte créé pour {inviteResult.email}
                 </span>
               </div>
               <div className="p-4 rounded-xl border-2 border-dashed border-[#FFD54F] bg-[#FFF8E1]">
-                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.06em', color: '#F57F17', textTransform: 'uppercase' }} className="mb-1">
+                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#F57F17', textTransform: 'uppercase' }} className="mb-1">
                   Mot de passe temporaire — affiché une seule fois
                 </p>
                 <p style={{ fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 700, color: '#0D0D0D', letterSpacing: '0.1em' }}>
                   {inviteResult.tempPassword}
                 </p>
-                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }} className="mt-2">
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A' }} className="mt-2">
                   Communiquez ce mot de passe à l&apos;utilisateur. Il devra le changer à sa première connexion.
                 </p>
               </div>
@@ -266,7 +266,7 @@ export default function AdminUsersPage() {
                   { label: 'Nom complet', key: 'name', type: 'text', placeholder: 'Prénom Nom' },
                 ].map(({ label, key, type, placeholder }) => (
                   <div key={key}>
-                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#8A8A8A] mb-1" style={{ fontFamily: 'Gilroy, sans-serif' }}>
+                    <label className="block font-semibold uppercase tracking-wider text-[#8A8A8A] mb-1" style={{ fontFamily: 'Gilroy, sans-serif', fontSize: 'var(--text-2xs)' }}>
                       {label}
                     </label>
                     <input
@@ -280,7 +280,7 @@ export default function AdminUsersPage() {
                   </div>
                 ))}
                 <div>
-                  <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#8A8A8A] mb-1" style={{ fontFamily: 'Gilroy, sans-serif' }}>Rôle</label>
+                  <label className="block font-semibold uppercase tracking-wider text-[#8A8A8A] mb-1" style={{ fontFamily: 'Gilroy, sans-serif', fontSize: 'var(--text-2xs)' }}>Rôle</label>
                   <select
                     value={inviteForm.role}
                     onChange={e => setInviteForm(f => ({ ...f, role: e.target.value }))}
@@ -293,7 +293,7 @@ export default function AdminUsersPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#8A8A8A] mb-1" style={{ fontFamily: 'Gilroy, sans-serif' }}>Groupes</label>
+                  <label className="block font-semibold uppercase tracking-wider text-[#8A8A8A] mb-1" style={{ fontFamily: 'Gilroy, sans-serif', fontSize: 'var(--text-2xs)' }}>Groupes</label>
                   <div className="max-h-36 overflow-y-auto nl-scroll border border-[#D8D8D8] rounded-lg divide-y divide-[#F2F2F2]">
                     {allGroups.length === 0 && (
                       <p className="px-3 py-2 text-xs text-[#8A8A8A]" style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>Aucun groupe</p>
@@ -309,8 +309,8 @@ export default function AdminUsersPage() {
                           }))}
                           className="accent-[#00068D]"
                         />
-                        <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#0D0D0D' }}>{g.label}</span>
-                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.7rem', color: '#8A8A8A' }}>{g.slug}</span>
+                        <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>{g.label}</span>
+                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>{g.slug}</span>
                       </label>
                     ))}
                   </div>
@@ -361,8 +361,8 @@ export default function AdminUsersPage() {
                     )}
                     className="accent-[#00068D]"
                   />
-                  <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#0D0D0D' }}>{g.label}</span>
-                  <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.7rem', color: '#8A8A8A' }}>{g.slug}</span>
+                  <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>{g.label}</span>
+                  <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>{g.slug}</span>
                 </label>
               ))}
             </div>
