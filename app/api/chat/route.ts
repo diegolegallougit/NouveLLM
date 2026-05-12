@@ -1,11 +1,8 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { streamDifyChat, parseDifySources, DifySource, AGENT_INPUTS } from '@/lib/dify'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit } from '@/lib/ratelimit'
 import { NextRequest, NextResponse } from 'next/server'
-
-// 20 requests per user per minute
-const CHAT_RATE_LIMIT = { limit: 20, windowMs: 60_000 }
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -13,17 +10,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const rl = checkRateLimit(`chat:${session.user.id}`, CHAT_RATE_LIMIT)
-  if (!rl.allowed) {
+  if (!checkRateLimit(session.user.id)) {
     return NextResponse.json(
       { error: 'Trop de requêtes — réessayez dans une minute.' },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)),
-          'X-RateLimit-Remaining': '0',
-        },
-      }
+      { status: 429, headers: { 'Retry-After': '60', 'X-RateLimit-Remaining': '0' } }
     )
   }
 
