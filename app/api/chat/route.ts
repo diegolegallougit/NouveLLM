@@ -1,12 +1,30 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { streamDifyChat, parseDifySources, DifySource, AGENT_INPUTS } from '@/lib/dify'
+import { checkRateLimit } from '@/lib/rate-limit'
 import { NextRequest, NextResponse } from 'next/server'
+
+// 20 requests per user per minute
+const CHAT_RATE_LIMIT = { limit: 20, windowMs: 60_000 }
 
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const rl = checkRateLimit(`chat:${session.user.id}`, CHAT_RATE_LIMIT)
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Trop de requêtes — réessayez dans une minute.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)),
+          'X-RateLimit-Remaining': '0',
+        },
+      }
+    )
   }
 
   const body = await req.json()
@@ -79,8 +97,11 @@ export async function POST(req: NextRequest) {
   let difyConvId: string | undefined
 
   if (dbConvId) {
-    const existing = await prisma.conversation.findUnique({ where: { id: dbConvId } })
-    difyConvId = existing?.difyConvId ?? undefined
+    const existing = await prisma.conversation.findFirst({
+      where: { id: dbConvId, userId: session.user.id },
+    })
+    if (!existing) return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
+    difyConvId = existing.difyConvId ?? undefined
   } else {
     const newConv = await prisma.conversation.create({
       data: {
