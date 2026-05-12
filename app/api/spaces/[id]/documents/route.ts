@@ -2,9 +2,14 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logAction } from '@/lib/audit'
 import { NextRequest, NextResponse } from 'next/server'
+import fs from 'fs'
+import path from 'path'
 
 const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.5:5001'
 const DIFY_IIIAAS_KEY = process.env.DIFY_IIIAAS_API_KEY || ''
+const DOCS_STORAGE = path.join(process.cwd(), '.data', 'space-docs')
+
+const ALLOWED_EXTENSIONS = new Set(['.pdf', '.doc', '.docx', '.txt', '.md', '.csv', '.ppt', '.pptx', '.xls', '.xlsx'])
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -82,9 +87,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   if (file.size > 20 * 1024 * 1024) return NextResponse.json({ error: 'File too large (max 20 MB)' }, { status: 413 })
 
+  const ext = '.' + (file.name.split('.').pop()?.toLowerCase() ?? '')
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    return NextResponse.json({ error: `Format non supporté (${ext}). Formats acceptés : pdf, docx, pptx, xlsx, txt, md, csv` }, { status: 400 })
+  }
+
+  // Read buffer before sending to Dify (Blob supports multiple reads)
+  const fileBuffer = Buffer.from(await file.arrayBuffer())
+
   // Upload to Dify files API
   const difyForm = new FormData()
-  difyForm.append('file', file)
+  difyForm.append('file', new File([fileBuffer], file.name, { type: file.type }))
   difyForm.append('user', session.user.id)
 
   const difyResp = await fetch(`${DIFY_BASE_URL}/v1/files/upload`, {
@@ -102,7 +115,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // Auto-generate displayName + description
   let textContent: string | undefined
   if (file.type.startsWith('text/') || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
-    try { textContent = await file.text() } catch { /* skip */ }
+    try { textContent = fileBuffer.toString('utf-8') } catch { /* skip */ }
   }
 
   const { displayName, description } = await autoGenerateMeta(file.name, textContent)
@@ -128,6 +141,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     },
     include: { folder: true },
   })
+
+  // Save file locally for future downloads
+  await fs.promises.mkdir(DOCS_STORAGE, { recursive: true })
+  await fs.promises.writeFile(path.join(DOCS_STORAGE, doc.id), fileBuffer)
 
   await logAction({
     userId: session.user.id,

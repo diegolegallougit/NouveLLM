@@ -202,6 +202,17 @@ function FolderSection({ folder, spaceId, spaceSlug, onFolderToken, onRefresh, d
               <span style={{ fontSize: 'var(--text-2xs)', fontWeight: 800 }}>#</span>
             </button>
           )}
+          {depth === 0 && (
+            <button
+              onClick={() => setCreating(v => !v)}
+              className="w-5 h-5 flex items-center justify-center rounded text-[#8A8A8A] hover:text-[#00068D] hover:bg-[#E8E9F8] transition-all"
+              title="Nouveau sous-dossier"
+            >
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /><path d="M12 11v6M9 14h6" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={() => fileInputRef.current?.click()}
             className="w-5 h-5 flex items-center justify-center rounded text-[#8A8A8A] hover:text-[#00068D] hover:bg-[#E8E9F8] transition-all"
@@ -251,6 +262,17 @@ function FolderSection({ folder, spaceId, spaceSlug, onFolderToken, onRefresh, d
               )}
               <span className="text-[#C8C8C8] flex-shrink-0" style={{ fontSize: 'var(--text-2xs)' }}>{formatSize(doc.size)}</span>
               <div className="flex items-center gap-0.5 opacity-0 group-hover/doc:opacity-100 transition-opacity flex-shrink-0">
+                <a
+                  href={`/api/spaces/${spaceId}/documents/${doc.id}`}
+                  download={doc.name}
+                  onClick={e => e.stopPropagation()}
+                  className="w-4 h-4 flex items-center justify-center rounded text-[#8A8A8A] hover:text-[#2E7D32] hover:bg-[#e8f5e9]"
+                  title="Télécharger"
+                >
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7,10 12,15 17,10" /><line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </a>
                 <button
                   onClick={() => { setEditingDoc(doc.id); setEditDisplayName(doc.displayName ?? doc.name) }}
                   className="w-4 h-4 flex items-center justify-center rounded text-[#8A8A8A] hover:text-[#00068D] hover:bg-[#E8E9F8]"
