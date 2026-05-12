@@ -29,5 +29,19 @@ export async function POST(req: NextRequest) {
     },
   })
 
+  // Alerte système visible dans le panel admin (/admin)
+  await prisma.systemAlert.create({
+    data: {
+      type: 'REPORT',
+      message: `Signalement : "${subject.trim()}" — ${name.trim()}`,
+      metadata: JSON.stringify({ reportId: report.id, email: email?.trim() ?? null }),
+    },
+  }).catch(() => { /* ne doit jamais bloquer le signalement */ })
+
+  // Log email admin (intégration SMTP à brancher via ADMIN_EMAIL)
+  if (process.env.ADMIN_EMAIL) {
+    console.info(`[REPORT] id=${report.id} sujet="${subject.trim()}" de ${name.trim()} <${email ?? 'anonyme'}> → ${process.env.ADMIN_EMAIL}`)
+  }
+
   return NextResponse.json({ ok: true, id: report.id })
 }

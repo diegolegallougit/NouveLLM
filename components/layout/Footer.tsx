@@ -105,6 +105,14 @@ export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2
           >
             Mentions légales
           </Link>
+          <span className="w-px h-3 bg-[#D8D8D8]" />
+          <Link
+            href="/apropos"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }}
+            className="hover:text-[#00068D] transition-colors"
+          >
+            À propos
+          </Link>
         </div>
 
         <div className="flex items-center gap-3">

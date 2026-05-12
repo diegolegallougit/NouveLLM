@@ -61,6 +61,15 @@ export default function SourcesBlock({ sources }: SourcesBlockProps) {
           </a>
         ))}
       </div>
+      <p className="mt-2" style={{
+        fontFamily: 'Source Serif Pro, Georgia, serif',
+        fontSize: 'var(--text-2xs)',
+        color: '#8A8A8A',
+        fontStyle: 'italic',
+      }}>
+        NouveLLM peut se tromper — vérifiez les informations importantes.{' '}
+        <a href="/apropos" className="underline hover:text-[#00068D] transition-colors">En savoir plus</a>
+      </p>
     </div>
   )
 }
