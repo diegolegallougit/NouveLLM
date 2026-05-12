@@ -38,6 +38,13 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Responsable panel requires RESPONSABLE or ADMIN role
+  if (pathname.startsWith('/responsable')) {
+    if (token.role !== 'RESPONSABLE' && token.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/', req.url))
+    }
+  }
+
   return NextResponse.next()
 }
 
