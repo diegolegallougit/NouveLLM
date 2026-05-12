@@ -58,6 +58,25 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // If the session's scenario has a difyWorkflowOverride, resolve its API key
+  if (courseSessionId) {
+    const courseSession = await prisma.courseSession.findUnique({
+      where: { id: courseSessionId },
+      select: { scenarioSlug: true },
+    })
+    if (courseSession?.scenarioSlug) {
+      const scenario = await prisma.sessionScenario.findUnique({
+        where: { slug: courseSession.scenarioSlug },
+        select: { difyWorkflowOverride: true, slug: true },
+      })
+      if (scenario?.difyWorkflowOverride) {
+        const envKey = `DIFY_${scenario.slug.replace(/-/g, '_').toUpperCase()}_API_KEY`
+        const overrideKey = process.env[envKey]
+        if (overrideKey) apiKey = overrideKey
+      }
+    }
+  }
+
   // Resolve institutional source slugs → Dify dataset IDs
   let datasetIds: string[] = []
   if (institutionalSlugs.length > 0) {
