@@ -93,7 +93,7 @@ export default function NewSessionPage() {
   const [selectedSources, setSelectedSources] = useState<string[]>([])
 
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<{ code: string; link: string; qrSvg: string } | null>(null)
+  const [result, setResult] = useState<{ code: string; link: string; qrDataUrl: string } | null>(null)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
   const [showExamples, setShowExamples] = useState(false)
@@ -167,7 +167,7 @@ export default function NewSessionPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Erreur'); return }
-      setResult({ code: data.session.code, link: data.link, qrSvg: data.qrSvg })
+      setResult({ code: data.session.code, link: data.link, qrDataUrl: data.qrDataUrl })
     } finally {
       setLoading(false)
     }
@@ -200,8 +200,12 @@ export default function NewSessionPage() {
             <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.08em', color: '#00068D', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Code d'activité</p>
             <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.5rem', color: '#00068D', letterSpacing: '0.04em' }}>{result.code}</p>
           </div>
-          <div className="mx-auto rounded-xl overflow-hidden border border-[#D8D8D8]" style={{ width: 192, height: 192 }}
-            dangerouslySetInnerHTML={{ __html: result.qrSvg }} />
+          <img
+            src={result.qrDataUrl}
+            alt="QR Code Activité IA"
+            className="mx-auto rounded-xl border border-[#D8D8D8]"
+            style={{ width: 192, height: 192 }}
+          />
           <div className="flex flex-col gap-2">
             <button onClick={() => copyLink(result.link)}
               className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-[#D8D8D8] text-sm hover:bg-[#F2F2F2] transition-colors"
