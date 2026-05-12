@@ -474,6 +474,29 @@ async function main() {
     }
   }
 
+  // ── BIATSS routing options in "Produire un document" ─────────────────────
+  const produireFamily = await prisma.routingFamily.findUnique({ where: { slug: 'produire-document' } })
+  if (produireFamily) {
+    const produireQuestion = await prisma.routingQuestion.findFirst({ where: { familyId: produireFamily.id, order: 1 } })
+    if (produireQuestion) {
+      const biatssOptions = [
+        { label: 'Compte-rendu de réunion', agentSlug: 'redaction', order: 10 },
+        { label: 'Note administrative', agentSlug: 'redaction', order: 11 },
+        { label: 'Courrier officiel', agentSlug: 'redaction', order: 12 },
+      ]
+      for (const opt of biatssOptions) {
+        const existing = await prisma.routingOption.findFirst({
+          where: { questionId: produireQuestion.id, label: opt.label },
+        })
+        if (!existing) {
+          await prisma.routingOption.create({
+            data: { ...opt, questionId: produireQuestion.id, comingSoon: false },
+          })
+        }
+      }
+    }
+  }
+
   // ── Expert contacts ────────────────────────────────────────────────────────
   const EXPERT_CONTACTS = [
     {
