@@ -12,11 +12,20 @@ interface SessionAgent {
   description: string
 }
 
+const VISIBILITY_BANNERS = [
+  { icon: '🔒', text: 'Vos échanges sont confidentiels.', color: '#2E7D32', bg: '#E8F5E9', border: '#A5D6A7' },
+  { icon: '📊', text: 'Des statistiques anonymes sont collectées.', color: '#5A5A5A', bg: '#F2F2F2', border: '#D8D8D8' },
+  { icon: '📁', text: 'Vos échanges sont sauvegardés pour analyse pédagogique.', color: '#7A3200', bg: '#FFF3E0', border: '#FFD54F' },
+  { icon: '👁', text: 'Votre enseignant peut lire vos échanges en direct.', color: '#7A0000', bg: '#FFEBEE', border: '#FFCDD2' },
+]
+
 interface SessionInfo {
   id: string
   code: string
   name: string
   description: string | null
+  studentConsigne: string | null
+  visibility: number
   systemPrompt: string | null
   validUntil: string
   access: string
@@ -200,6 +209,21 @@ export default function SessionPage() {
             ))}
           </div>
 
+          {/* Visibility banner on join gate */}
+          {(() => {
+            const vb = VISIBILITY_BANNERS[sessionInfo.visibility ?? 0]
+            return (
+              <div className="rounded-lg px-4 py-2.5 border" style={{ background: vb.bg, borderColor: vb.border }}>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: vb.color }}>
+                  {vb.icon} {vb.text}
+                </p>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A', marginTop: '0.25rem', fontStyle: 'italic' }}>
+                  Cette session ne donne pas lieu à une notation.
+                </p>
+              </div>
+            )
+          })()}
+
           <div className="flex items-center justify-between text-xs border-t border-[#F2F2F2] pt-4">
             <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', color: '#8A8A8A' }}>
               {sessionInfo.participantCount} participant{sessionInfo.participantCount !== 1 ? 's' : ''}
@@ -226,21 +250,34 @@ export default function SessionPage() {
   return (
     <div className="flex flex-col h-screen bg-[#FAFAFA]">
       {/* Session banner */}
-      <div className="flex items-center gap-3 px-5 py-2.5 border-b border-[#D8D8D8] bg-white">
-        <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#E8E9F8' }}>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00068D" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-        </div>
-        <div className="flex-1 min-w-0">
-          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#00068D', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-            Session : {sessionInfo.name}
-          </span>
-          {sessionInfo.ecName && (
-            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A', marginLeft: '0.75rem' }}>
-              {sessionInfo.ecName}
+      <div className="border-b border-[#D8D8D8] bg-white">
+        <div className="flex items-center gap-3 px-5 py-2.5">
+          <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#E8E9F8' }}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00068D" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#00068D', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Session : {sessionInfo.name}
             </span>
-          )}
+            {sessionInfo.ecName && (
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A', marginLeft: '0.75rem' }}>
+                {sessionInfo.ecName}
+              </span>
+            )}
+          </div>
+          <span className="font-mono text-[10px] bg-[#F2F2F2] px-2 py-0.5 rounded text-[#5A5A5A]">{sessionInfo.code}</span>
         </div>
-        <span className="font-mono text-[10px] bg-[#F2F2F2] px-2 py-0.5 rounded text-[#5A5A5A]">{sessionInfo.code}</span>
+        {/* Visibility notice */}
+        {(() => {
+          const vb = VISIBILITY_BANNERS[sessionInfo.visibility ?? 0]
+          return (
+            <div className="px-5 py-1.5 flex items-center gap-2" style={{ background: vb.bg, borderTop: `1px solid ${vb.border}` }}>
+              <span style={{ fontSize: '0.7rem' }}>{vb.icon}</span>
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: vb.color }}>{vb.text}</span>
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A', marginLeft: '0.5rem' }}>· Cette session ne donne pas lieu à une notation.</span>
+            </div>
+          )
+        })()}
       </div>
 
       {/* Agent selector */}

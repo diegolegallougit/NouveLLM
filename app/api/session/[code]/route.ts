@@ -43,6 +43,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ code
       code: courseSession.code,
       name: courseSession.name,
       description: courseSession.description,
+      studentConsigne: courseSession.studentConsigne,
+      visibility: courseSession.visibility ?? 0,
       systemPrompt: isOwner ? courseSession.systemPrompt : undefined,
       validUntil: courseSession.validUntil,
       access: courseSession.access,

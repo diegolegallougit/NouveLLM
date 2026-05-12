@@ -68,6 +68,9 @@ export async function POST(req: NextRequest) {
     name: string
     description?: string
     systemPrompt?: string
+    studentConsigne?: string
+    scenarioSlug?: string
+    visibility?: number
     validUntil: string
     maxParticipants?: number
     access?: 'OPEN' | 'CLOSED'
@@ -95,6 +98,9 @@ export async function POST(req: NextRequest) {
       name: body.name,
       description: body.description,
       systemPrompt: body.systemPrompt,
+      studentConsigne: body.studentConsigne,
+      scenarioSlug: body.scenarioSlug,
+      visibility: body.visibility ?? 0,
       validUntil: new Date(body.validUntil),
       maxParticipants: body.maxParticipants,
       access: body.access ?? 'OPEN',

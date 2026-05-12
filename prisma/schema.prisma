@@ -200,6 +200,9 @@ model CourseSession {
   maxParticipants Int?
   access          SessionAccess              @default(OPEN)
   status          SessionStatus              @default(ACTIVE)
+  scenarioSlug    String?
+  visibility      Int                        @default(0)
+  studentConsigne String?
   ecUserId        String
   ec              User                       @relation(fields: [ecUserId], references: [id], onDelete: Cascade)
   agents          CourseSessionAgent[]
@@ -207,6 +210,30 @@ model CourseSession {
   participants    CourseSessionParticipant[]
   conversations   Conversation[]
   createdAt       DateTime                   @default(now())
+}
+
+model SessionScenario {
+  id                   String  @id @default(cuid())
+  slug                 String  @unique
+  label                String
+  level                Int?
+  levelLabel           String
+  icon                 String
+  shortDescription     String
+  fullDescription      String
+  disciplineHint       String?
+  levelHint            String?
+  defaultAgentSlugs    String  @default("[]")
+  defaultDuration      String
+  defaultSaveHistory   Boolean @default(false)
+  defaultVisibility    Int     @default(0)
+  systemPromptTemplate String
+  studentConsigne      String
+  hasBroadcast         Boolean @default(false)
+  hasStructuredForm    Boolean @default(false)
+  difyWorkflowOverride String?
+  active               Boolean @default(true)
+  order                Int
 }
 
 enum SessionAccess {

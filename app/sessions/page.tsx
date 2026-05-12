@@ -71,6 +71,10 @@ export default function SessionsPage() {
     setTimeout(() => setCopied(null), 2000)
   }
 
+  function goToDashboard(id: string) {
+    router.push(`/sessions/${id}`)
+  }
+
   const active = sessions.filter(s => s.status === 'ACTIVE' || s.status === 'SUSPENDED')
   const closed = sessions.filter(s => s.status === 'CLOSED')
 
@@ -122,6 +126,7 @@ export default function SessionsPage() {
                 copied={copied}
                 onAction={doAction}
                 onCopy={copyLink}
+                onDashboard={goToDashboard}
               />
             ))}
           </div>
@@ -141,6 +146,7 @@ export default function SessionsPage() {
                 copied={copied}
                 onAction={doAction}
                 onCopy={copyLink}
+                onDashboard={goToDashboard}
               />
             ))}
           </div>
@@ -156,12 +162,14 @@ function SessionCard({
   copied,
   onAction,
   onCopy,
+  onDashboard,
 }: {
   session: CourseSession
   working: string | null
   copied: string | null
   onAction: (id: string, action: 'suspend' | 'close' | 'duplicate') => void
   onCopy: (code: string) => void
+  onDashboard: (id: string) => void
 }) {
   const isExpired = new Date(s.validUntil) < new Date()
 
@@ -214,6 +222,12 @@ function SessionCard({
         <div className="flex items-center gap-2 flex-shrink-0">
           {s.status !== 'CLOSED' && (
             <>
+              <button
+                onClick={() => onDashboard(s.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#2B2EB8] bg-[#E8E9F8] text-[11px] hover:bg-[#D4D5F5] transition-colors"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#00068D' }}>
+                Dashboard
+              </button>
               <button
                 onClick={() => onCopy(s.code)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-[11px] hover:bg-[#F2F2F2] transition-colors"

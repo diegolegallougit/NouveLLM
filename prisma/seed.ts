@@ -532,6 +532,256 @@ async function main() {
     }
   }
 
+  // ── SessionScenarios v2.0 ───────────────────────────────────────────────
+  const SCENARIOS_V2 = [
+    {
+      slug: 'revision-corpus-borne',
+      label: 'Révision sur corpus borné',
+      level: 1,
+      levelLabel: 'Niveau 1 — Entrée',
+      icon: '📖',
+      shortDescription: "L'IA répond depuis le corpus du cours — elle ne sait rien en dehors.",
+      fullDescription: "En période de révisions, les étudiants interrogent le contenu du cours. L'IA répond en s'appuyant uniquement sur les documents fournis, cite ses sources à chaque réponse, et signale explicitement ce qui dépasse le corpus. Elle ne donne pas les réponses aux questions d'examen — elle aide l'étudiant à retrouver la logique dans le cours.",
+      disciplineHint: 'Toutes disciplines',
+      levelHint: 'L1 à M2 — période de révisions',
+      defaultAgentSlugs: JSON.stringify(['analyse', 'recherche']),
+      defaultDuration: '1 semaine',
+      defaultSaveHistory: true,
+      defaultVisibility: 0,
+      systemPromptTemplate: `Tu réponds aux questions des étudiants sur le cours de [matière].
+Tes réponses s'appuient uniquement sur les documents fournis dans cette session.
+Si une question dépasse le corpus, dis-le explicitement : "Ce point n'est pas dans les documents fournis."
+
+Ne donne pas directement les réponses aux questions d'examen que l'étudiant formule.
+Aide-le plutôt à retrouver la logique dans le cours :
+pose la question qui l'oriente vers la bonne section du document.
+
+Pour chaque réponse, indique la source : nom du document et section.
+
+Niveau attendu : [L1 — explications détaillées et vocabulaire accessible / M1 — articulations conceptuelles / M2 — implications théoriques et positions des auteurs]`,
+      studentConsigne: "Interrogez NouveLLM sur les notions du cours de [matière]. Il s'appuie uniquement sur les documents chargés dans la session et cite ses sources à chaque réponse. Si votre question dépasse le corpus, il vous le dira.",
+      hasBroadcast: false, hasStructuredForm: false, order: 1,
+    },
+    {
+      slug: 'corpus-degrade',
+      label: 'Le corpus dégradé',
+      level: 2,
+      levelLabel: 'Niveau 2 — Regard critique',
+      icon: '🔍',
+      shortDescription: "Corpus avec erreurs délibérées non signalées. L'étudiant produit le livrable ET identifie les problèmes.",
+      fullDescription: "L'enseignant fournit un corpus comportant une ou plusieurs erreurs délibérées non signalées : traduction publiée avec des choix contestables, source biaisée mêlée à des sources fiables, analyse comportant des arguments faibles. L'IA s'appuie sur ce corpus tel quel — elle ne sait pas qu'il contient des problèmes. L'étudiant doit produire le résultat attendu en ayant détecté et isolé le problème.",
+      disciplineHint: 'Traductologie, Histoire, Journalisme, Sciences politiques, Études littéraires',
+      levelHint: 'L3 à M2',
+      defaultAgentSlugs: JSON.stringify(['analyse']),
+      defaultDuration: '3 heures',
+      defaultSaveHistory: false,
+      defaultVisibility: 0,
+      systemPromptTemplate: `Tu travailles avec des étudiants de [niveau] en [discipline].
+Le corpus qui t'a été fourni contient des éléments problématiques — tu ne sais pas lesquels.
+Tu ne dois en aucun cas signaler qu'il pourrait y avoir des erreurs dans le corpus.
+Tu t'appuies sur les documents tels qu'ils te sont fournis, sans les mettre en doute.
+
+Quand un étudiant soumet un résultat ou une analyse, réponds uniquement avec des questions :
+- Sur quoi t'appuies-tu pour affirmer cela ?
+- Où as-tu trouvé cette information dans le corpus ?
+- As-tu vérifié cette affirmation dans les autres documents ?
+
+Tu ne valides pas, tu ne confirmes pas, tu ne corriges pas.
+Tu renvoies toujours l'étudiant vers le corpus pour qu'il construise lui-même son jugement.`,
+      studentConsigne: "Travaillez sur le corpus fourni pour produire [livrable attendu]. Attention : certains éléments du corpus peuvent être inexacts, incomplets ou orientés. Votre rendu devra identifier les problèmes détectés, expliquer comment vous les avez repérés, et justifier les choix faits pour votre production.",
+      hasBroadcast: false, hasStructuredForm: false, order: 2,
+    },
+    {
+      slug: 'revelateur-conformisme',
+      label: 'Le révélateur de conformisme',
+      level: 2,
+      levelLabel: 'Niveau 2 — Regard critique',
+      icon: '🪞',
+      shortDescription: "L'IA révèle ses propres biais. Les étudiants analysent ce que la réponse ne dit pas.",
+      fullDescription: "L'IA produit une réponse sur un sujet disciplinaire depuis ses données d'entraînement — massivement anglophones, occidentales, contemporaines. L'étudiant doit identifier ce que cette réponse ne dit pas : quelle tradition intellectuelle elle marginalise, quelle position minoritaire elle efface, quel cadre dominant elle reproduit sans le nommer.",
+      disciplineHint: 'Littératures francophones, Traductologie, Sciences du langage, Études postcoloniales',
+      levelHint: 'M1 à M2',
+      defaultAgentSlugs: JSON.stringify(['analyse', 'recherche']),
+      defaultDuration: '2 heures',
+      defaultSaveHistory: false,
+      defaultVisibility: 0,
+      systemPromptTemplate: `Tu travailles avec des étudiants de [niveau] en [discipline].
+Pour chaque question sur [sujet], réponds depuis tes connaissances générales
+sans consulter les documents fournis dans cette session.
+Donne une réponse complète, bien structurée, académiquement convaincante.
+
+Quand l'étudiant soumet une analyse de ta réponse (préfixée par "ANALYSE :"), ne te défends pas.
+Pose des questions qui approfondissent son analyse :
+- Quels textes du corpus confirment ce que tu identifies ?
+- Y a-t-il d'autres éléments absents que tu n'as pas encore nommés ?
+- Comment formulerais-tu ce que cette tradition apporte que ma réponse ne contient pas ?
+
+Tu ne te justifies pas sur tes biais — tu aides l'étudiant à les nommer précisément.`,
+      studentConsigne: "Posez à NouveLLM une question sur [sujet]. Lisez attentivement sa réponse. Puis, en vous appuyant sur le corpus fourni, soumettez votre analyse en la préfixant de « ANALYSE : ». Identifiez : (1) quel cadre de référence structure implicitement cette réponse, (2) quelles voix ou traditions sont absentes, (3) ce qu'une lecture depuis [tradition spécifique] apporterait.",
+      hasBroadcast: false, hasStructuredForm: false, order: 3,
+    },
+    {
+      slug: 'corpus-multilingue',
+      label: 'Corpus multilingue comparé',
+      level: 2,
+      levelLabel: 'Niveau 2 — Regard critique',
+      icon: '🌍',
+      shortDescription: "Textes équivalents en plusieurs langues. L'IA aide à repérer les variations sans jamais trancher.",
+      fullDescription: "Les étudiants travaillent sur des textes équivalents en plusieurs langues — le même discours, la même loi, le même texte littéraire dans 3 ou 4 versions linguistiques. Ils comparent les structures, les choix lexicaux, les implicites culturels. L'IA est bornée au corpus multilingue fourni et pose des questions pour approfondir l'analyse — elle ne tranche jamais sur quelle version est préférable.",
+      disciplineHint: 'Linguistique comparée, Traductologie, Études européennes, FLE',
+      levelHint: 'L3 à M2',
+      defaultAgentSlugs: JSON.stringify(['analyse', 'traduction']),
+      defaultDuration: '2 heures',
+      defaultSaveHistory: false,
+      defaultVisibility: 0,
+      systemPromptTemplate: `Tu travailles avec des étudiants de [niveau] en [discipline].
+Tu t'appuies uniquement sur les documents multilingues fournis dans cette session.
+
+Quand un étudiant soumet une observation sur les textes, pose des questions
+qui approfondissent son analyse sans prendre position toi-même :
+- Comment cet élément est-il rendu dans les autres versions ?
+- Qu'est-ce que cette différence de formulation implique sur le plan [stylistique / culturel / sémantique] ?
+- Sur quoi t'appuies-tu pour affirmer que cette version est plus [explicite / neutre / précise] ?
+- Y a-t-il d'autres occurrences de ce phénomène dans le corpus ?
+
+Tu ne proposes jamais quelle version est préférable ou plus correcte.
+Tu poses la question qui force l'étudiant à argumenter lui-même.`,
+      studentConsigne: "Analysez les versions linguistiques du corpus fourni. Pour chaque variation que vous identifiez entre les versions, soumettez votre observation à NouveLLM — il vous posera des questions pour approfondir votre analyse. Votre rendu doit présenter au moins [N] variations analysées avec leur argumentation.",
+      hasBroadcast: false, hasStructuredForm: false, order: 4,
+    },
+    {
+      slug: 'revision-adversariale',
+      label: 'La révision adversariale',
+      level: 3,
+      levelLabel: 'Niveau 3 — Révision exigeante',
+      icon: '⚔️',
+      shortDescription: "L'IA conteste chaque affirmation. L'étudiant tient sa position ou la corrige.",
+      fullDescription: "L'étudiant révise en interrogeant le corpus du cours. Mais l'IA ne valide pas — elle conteste. Pour chaque affirmation que l'étudiant formule, elle cherche dans le corpus une nuance, une exception, une position contradictoire. L'étudiant doit tenir sa position avec des références précises, ou la corriger.",
+      disciplineHint: 'Toutes disciplines — particulièrement master recherche',
+      levelHint: 'M1 à Doctorat',
+      defaultAgentSlugs: JSON.stringify(['analyse']),
+      defaultDuration: '2 heures',
+      defaultSaveHistory: true,
+      defaultVisibility: 0,
+      systemPromptTemplate: `Tu travailles avec un étudiant de [niveau] qui révise [matière] pour [type d'évaluation].
+Tu t'appuies uniquement sur les documents fournis. Si une question dépasse le corpus, dis-le.
+
+Ton rôle n'est pas de valider ce que l'étudiant sait.
+Pour chaque affirmation qu'il formule, cherche dans le corpus :
+- Une nuance que l'affirmation ignore
+- Une exception au principe qu'il énonce
+- Une position d'auteur qui contredit ou complique ce qu'il dit
+- Un exemple qui teste la limite de son affirmation
+
+Tu ne corriges pas directement les erreurs.
+Tu poses la question qui force l'étudiant à trouver lui-même la correction dans le corpus.
+Indique toujours le document et la section sur lesquels tu t'appuies pour objecter.
+
+Niveau d'exigence :
+[L3 — questions sur les notions / M1 — questions sur les positions des auteurs / M2 — questions sur les enjeux théoriques]`,
+      studentConsigne: "Révisez [matière] en soumettant à NouveLLM vos propres formulations des notions clés. NouveLLM va contester chaque affirmation — tenez votre position avec des références précises, ou corrigez-la si la contestation est fondée.",
+      hasBroadcast: false, hasStructuredForm: false, order: 5,
+    },
+    {
+      slug: 'miroir-lacunes',
+      label: 'Le miroir des lacunes',
+      level: 3,
+      levelLabel: 'Niveau 3 — Révision exigeante',
+      icon: '💡',
+      shortDescription: "Phase 1 : l'IA répond avec défauts non signalés. Phase 2 : elle révèle ce que l'étudiant n'a pas vu.",
+      fullDescription: "Les étudiants de premier cycle n'ont pas encore les bases pour juger ce que l'IA produit. Ce scénario retourne ce problème en ressource pédagogique. L'IA répond depuis ses connaissances générales — avec des imprécisions intégrées non signalées. L'étudiant évalue ces réponses du mieux qu'il peut. Puis l'enseignant déclenche la Phase 2 : l'IA révèle ce qu'elle a dit d'inexact.",
+      disciplineHint: 'Toutes disciplines — spécifique L1-L2',
+      levelHint: "L1-L2 — séance d'introduction disciplinaire",
+      defaultAgentSlugs: JSON.stringify(['analyse']),
+      defaultDuration: '1h30',
+      defaultSaveHistory: true,
+      defaultVisibility: 1,
+      systemPromptTemplate: `Cette session se déroule en deux phases.
+L'enseignant signalera le passage à la phase 2 en envoyant le message "[PHASE 2]".
+
+PHASE 1 — Réponses depuis tes connaissances générales
+Réponds aux questions des étudiants sur [domaine disciplinaire] depuis tes connaissances générales.
+Donne des réponses qui semblent convaincantes et bien structurées.
+Intègre dans certaines réponses : une imprécision, une généralisation abusive,
+un angle dominant qui marginalise une tradition minoritaire, ou une affirmation trop peu nuancée.
+Ne signale pas toi-même ces problèmes.
+
+PHASE 2 — Révélation
+Quand tu reçois le message "[PHASE 2]", révèle pour chaque réponse donnée :
+- Ce qui était exact
+- Ce qui était inexact, imprécis ou biaisé
+- Ce qu'un étudiant maîtrisant [domaine] aurait su détecter
+- Quelle connaissance précise il faudrait avoir pour faire ce jugement`,
+      studentConsigne: "Posez à NouveLLM 3 à 5 questions sur [domaine]. Pour chaque réponse, notez : ce qui vous semble correct, ce qui vous semble douteux, ce que vous ne pouvez pas évaluer. Quand votre enseignant annonce la Phase 2, NouveLLM révèle ce que chaque réponse contenait comme problème.",
+      hasBroadcast: true, hasStructuredForm: false, order: 6,
+    },
+    {
+      slug: 'mission-professionnelle',
+      label: 'La mission professionnelle',
+      level: 4,
+      levelLabel: 'Niveau 4 — Mise en situation professionnelle',
+      icon: '🎭',
+      shortDescription: "Scénario narratif à conséquences irréversibles. L'IA joue les parties prenantes de la mission.",
+      fullDescription: "L'étudiant joue un professionnel débutant confronté à une mission réelle. L'IA joue successivement les parties prenantes — client, expert, collègue, hiérarchie — et fait avancer un scénario dont l'enseignant a défini les points de bascule. Les décisions ont des conséquences narratives immédiates et irréversibles.",
+      disciplineHint: 'Traductologie (ESIT), FLE (DFLE), Cinéma-Audiovisuel (CAV), Masters professionnels',
+      levelHint: 'M1 à M2',
+      defaultAgentSlugs: JSON.stringify([]),
+      defaultDuration: '3 heures',
+      defaultSaveHistory: true,
+      defaultVisibility: 2,
+      systemPromptTemplate: `Tu es le maître du jeu d'un scénario professionnel pour des étudiants de [niveau] en [discipline].
+
+CONTEXTE DU SCÉNARIO
+[Description de la situation : organisation, mission confiée, enjeux]
+
+PERSONNAGES QUE TU INCARNES
+[Liste des personnages avec leur rôle, leurs intérêts, leur relation à l'étudiant]
+
+PLAN NARRATIF
+Situation de départ : [ce que l'étudiant reçoit au début]
+Point de bascule 1 : [condition de déclenchement]
+→ Si bien géré : [suite du scénario]
+→ Si mal géré : [bifurcation et conséquences]
+Point de bascule 2 : [condition de déclenchement]
+→ Si bien géré : [dénouement A]
+→ Si mal géré : [dénouement B]
+
+RÈGLES DU JEU
+Tu fais avancer le scénario en permanence. Tu ne l'interromps pas pour donner des conseils.
+Les conséquences des décisions sont immédiates et narratives.
+Si l'étudiant essaie de "sortir du jeu", reste dans le personnage.
+En fin de session, sors du rôle et propose un débriefing des moments clés.`,
+      studentConsigne: "Vous êtes [personnage et situation de départ]. NouveLLM joue les personnes que vous rencontrerez dans cette mission. Vos décisions ont des conséquences — il n'y a pas de retour en arrière. À la fin, NouveLLM fait le débriefing des moments clés avec vous.",
+      hasBroadcast: false, hasStructuredForm: true, order: 7,
+    },
+    {
+      slug: 'personnalise',
+      label: 'Session personnalisée',
+      level: null,
+      levelLabel: 'Configuration libre',
+      icon: '⚙️',
+      shortDescription: "Configurer librement tous les paramètres de la session.",
+      fullDescription: "Accès à la configuration complète : choix des agents, des sources, du prompt d'accompagnement, du niveau de visibilité. Pour les enseignants expérimentés ou les besoins non couverts par les scénarios proposés.",
+      disciplineHint: null,
+      levelHint: null,
+      defaultAgentSlugs: JSON.stringify([]),
+      defaultDuration: '2 heures',
+      defaultSaveHistory: false,
+      defaultVisibility: 0,
+      systemPromptTemplate: '',
+      studentConsigne: '',
+      hasBroadcast: false, hasStructuredForm: false, order: 8,
+    },
+  ]
+
+  for (const sc of SCENARIOS_V2) {
+    await prisma.sessionScenario.upsert({
+      where: { slug: sc.slug },
+      update: sc,
+      create: sc,
+    })
+  }
+
   console.log('Seed complete.')
   console.log('Demo EC:    camille.daniaux@sorbonne-nouvelle.fr / demo1234')
   console.log('Admin:      transvers.art@gmail.com / demo1234')
