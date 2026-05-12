@@ -13,7 +13,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!await requireAdmin()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id } = await params
-  const body = await req.json() as { action: 'disable' | 'enable' | 'set_role' | 'set_groups'; role?: string; groupIds?: string[] }
+  const body = await req.json() as {
+    action: 'disable' | 'enable' | 'set_role' | 'set_groups' | 'set_scope'
+    role?: string
+    groupIds?: string[]
+    scopeGroupIds?: string[]
+  }
 
   const target = await prisma.user.findUnique({ where: { id }, select: { id: true } })
   if (!target) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -23,7 +28,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   } else if (body.action === 'enable') {
     await prisma.user.update({ where: { id }, data: { deletedAt: null } })
   } else if (body.action === 'set_role' && body.role) {
-    await prisma.user.update({ where: { id }, data: { role: body.role as 'STUDENT' | 'EC' | 'ADMIN' } })
+    await prisma.user.update({ where: { id }, data: { role: body.role as never } })
   } else if (body.action === 'set_groups' && body.groupIds !== undefined) {
     await prisma.userGroup.deleteMany({ where: { userId: id } })
     if (body.groupIds.length > 0) {
@@ -34,6 +39,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           update: {},
         })
       }
+    }
+  } else if (body.action === 'set_scope' && body.scopeGroupIds !== undefined) {
+    await prisma.scope.deleteMany({ where: { userId: id } })
+    for (const groupId of body.scopeGroupIds) {
+      await prisma.scope.upsert({
+        where: { userId_groupId: { userId: id, groupId } },
+        create: { userId: id, groupId },
+        update: {},
+      })
     }
   }
 

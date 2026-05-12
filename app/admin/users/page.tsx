@@ -12,6 +12,7 @@ interface User {
   disabled: boolean
   createdAt: string
   groups: Group[]
+  scopes: Group[]
   lastActivity: string | null
 }
 
@@ -20,10 +21,18 @@ function formatDate(s: string | null) {
   return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-const ROLE_LABELS: Record<string, string> = { STUDENT: 'Étudiant', EC: 'Enseignant', ADMIN: 'Admin' }
+const ROLE_LABELS: Record<string, string> = {
+  STUDENT: 'Étudiant',
+  BIATSS: 'BIATSS',
+  EC: 'Enseignant',
+  RESPONSABLE: 'Responsable',
+  ADMIN: 'Admin',
+}
 const ROLE_COLORS: Record<string, string> = {
   STUDENT: 'bg-[#E8F5E9] text-[#2E7D32] border-[#A5D6A7]',
+  BIATSS: 'bg-amber-50 text-amber-700 border-amber-300',
   EC: 'bg-[#E8E9F8] text-[#00068D] border-[#2B2EB8]',
+  RESPONSABLE: 'bg-purple-50 text-purple-700 border-purple-300',
   ADMIN: 'bg-red-50 text-red-700 border-red-300',
 }
 
@@ -59,6 +68,11 @@ export default function AdminUsersPage() {
   const [groupsUser, setGroupsUser] = useState<User | null>(null)
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
   const [groupsSaving, setGroupsSaving] = useState(false)
+
+  // Scope modal (for RESPONSABLE)
+  const [scopeUser, setScopeUser] = useState<User | null>(null)
+  const [selectedScopeGroupIds, setSelectedScopeGroupIds] = useState<string[]>([])
+  const [scopeSaving, setScopeSaving] = useState(false)
 
   async function load() {
     const [ud, gd] = await Promise.all([
@@ -118,6 +132,37 @@ export default function AdminUsersPage() {
       await load()
       setGroupsUser(null)
     } finally { setGroupsSaving(false) }
+  }
+
+  function openScopeModal(u: User) {
+    setScopeUser(u)
+    setSelectedScopeGroupIds(u.scopes.map(s => s.id))
+  }
+
+  async function saveScope() {
+    if (!scopeUser) return
+    setScopeSaving(true)
+    try {
+      await fetch(`/api/admin/users/${scopeUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'set_scope', scopeGroupIds: selectedScopeGroupIds }),
+      })
+      await load()
+      setScopeUser(null)
+    } finally { setScopeSaving(false) }
+  }
+
+  async function makeResponsable(u: User) {
+    setWorking(u.id + '-role')
+    try {
+      await fetch(`/api/admin/users/${u.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'set_role', role: 'RESPONSABLE' }),
+      })
+      await load()
+    } finally { setWorking(null) }
   }
 
   const filtered = users.filter(u =>
@@ -213,14 +258,35 @@ export default function AdminUsersPage() {
                   {formatDate(u.lastActivity)}
                 </td>
                 <td className="px-4 py-3">
-                  <button
-                    onClick={() => toggleUser(u.id, u.disabled)}
-                    disabled={working === u.id}
-                    className={`px-2.5 py-1.5 rounded-lg border disabled:opacity-50 transition-all ${u.disabled ? 'border-[#A5D6A7] text-[#2E7D32] hover:bg-[#E8F5E9]' : 'border-red-300 text-red-600 hover:bg-red-50'}`}
-                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em' }}
-                  >
-                    {working === u.id ? '…' : u.disabled ? 'RÉACTIVER' : 'DÉSACTIVER'}
-                  </button>
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => toggleUser(u.id, u.disabled)}
+                      disabled={working === u.id || working === u.id + '-role'}
+                      className={`px-2.5 py-1.5 rounded-lg border disabled:opacity-50 transition-all ${u.disabled ? 'border-[#A5D6A7] text-[#2E7D32] hover:bg-[#E8F5E9]' : 'border-red-300 text-red-600 hover:bg-red-50'}`}
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em' }}
+                    >
+                      {working === u.id ? '…' : u.disabled ? 'RÉACTIVER' : 'DÉSACTIVER'}
+                    </button>
+                    {u.role !== 'RESPONSABLE' && u.role !== 'ADMIN' && (
+                      <button
+                        onClick={() => makeResponsable(u)}
+                        disabled={working === u.id + '-role'}
+                        className="px-2.5 py-1.5 rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 disabled:opacity-50 transition-all"
+                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
+                      >
+                        {working === u.id + '-role' ? '…' : '→ Responsable'}
+                      </button>
+                    )}
+                    {u.role === 'RESPONSABLE' && (
+                      <button
+                        onClick={() => openScopeModal(u)}
+                        className="px-2.5 py-1.5 rounded-lg border border-purple-200 text-purple-600 hover:bg-purple-50 transition-all"
+                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
+                      >
+                        Périmètre ({u.scopes.length})
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -289,6 +355,8 @@ export default function AdminUsersPage() {
                   >
                     <option value="EC">Enseignant (EC)</option>
                     <option value="STUDENT">Étudiant</option>
+                    <option value="BIATSS">Personnel BIATSS</option>
+                    <option value="RESPONSABLE">Responsable</option>
                     <option value="ADMIN">Admin</option>
                   </select>
                 </div>
@@ -377,6 +445,50 @@ export default function AdminUsersPage() {
               </button>
               <button
                 onClick={() => setGroupsUser(null)}
+                className="px-4 py-2.5 rounded-lg border border-[#D8D8D8] text-xs text-[#5A5A5A] hover:bg-[#F2F2F2]"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+              >
+                ANNULER
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Scope modal */}
+      {scopeUser && (
+        <Modal title={`Périmètre de ${scopeUser.name ?? scopeUser.email}`} onClose={() => setScopeUser(null)}>
+          <div className="space-y-4">
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#5A5A5A' }}>
+              Sélectionnez les groupes dont ce responsable peut gérer les membres.
+            </p>
+            <div className="max-h-48 overflow-y-auto nl-scroll border border-[#D8D8D8] rounded-lg divide-y divide-[#F2F2F2]">
+              {allGroups.map(g => (
+                <label key={g.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#FAFAFA] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedScopeGroupIds.includes(g.id)}
+                    onChange={e => setSelectedScopeGroupIds(prev =>
+                      e.target.checked ? [...prev, g.id] : prev.filter(id => id !== g.id)
+                    )}
+                    className="accent-[#00068D]"
+                  />
+                  <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>{g.label}</span>
+                  <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>{g.slug}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={saveScope}
+                disabled={scopeSaving}
+                className="flex-1 py-2.5 rounded-lg text-white text-xs disabled:opacity-60"
+                style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em' }}
+              >
+                {scopeSaving ? 'Enregistrement…' : 'ENREGISTRER'}
+              </button>
+              <button
+                onClick={() => setScopeUser(null)}
                 className="px-4 py-2.5 rounded-lg border border-[#D8D8D8] text-xs text-[#5A5A5A] hover:bg-[#F2F2F2]"
                 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
               >

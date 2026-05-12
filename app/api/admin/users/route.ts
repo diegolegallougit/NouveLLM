@@ -25,6 +25,7 @@ export async function GET() {
       deletedAt: true,
       createdAt: true,
       groups: { select: { group: { select: { id: true, slug: true, label: true } } } },
+      scopes: { select: { group: { select: { id: true, slug: true, label: true } } } },
       conversations: { orderBy: { updatedAt: 'desc' }, take: 1, select: { updatedAt: true } },
     },
   })
@@ -38,6 +39,7 @@ export async function GET() {
     disabled: u.deletedAt !== null,
     createdAt: u.createdAt,
     groups: u.groups.map((g) => ({ id: g.group.id, slug: g.group.slug, label: g.group.label })),
+    scopes: u.scopes.map((s) => ({ id: s.group.id, slug: s.group.slug, label: s.group.label })),
     lastActivity: u.conversations[0]?.updatedAt ?? null,
   }))
 

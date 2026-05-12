@@ -11,6 +11,7 @@ interface Group {
   allowPersonalSources: boolean
   description: string | null
   memberCount: number
+  responsables: { id: string; name: string | null; email: string }[]
 }
 
 interface Member {
@@ -124,10 +125,14 @@ export default function AdminGroupsPage() {
     } finally { setRemovingMember(null) }
   }
 
-  const ROLE_LABELS: Record<string, string> = { STUDENT: 'Étudiant', EC: 'Enseignant', ADMIN: 'Admin' }
+  const ROLE_LABELS: Record<string, string> = {
+    STUDENT: 'Étudiant', BIATSS: 'BIATSS', EC: 'Enseignant', RESPONSABLE: 'Responsable', ADMIN: 'Admin',
+  }
   const ROLE_COLORS: Record<string, string> = {
     STUDENT: 'bg-[#E8F5E9] text-[#2E7D32] border-[#A5D6A7]',
+    BIATSS: 'bg-amber-50 text-amber-700 border-amber-300',
     EC: 'bg-[#E8E9F8] text-[#00068D] border-[#2B2EB8]',
+    RESPONSABLE: 'bg-purple-50 text-purple-700 border-purple-300',
     ADMIN: 'bg-red-50 text-red-700 border-red-300',
   }
 
@@ -156,7 +161,7 @@ export default function AdminGroupsPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#D8D8D8] bg-[#FAFAFA]">
-              {['Groupe', 'Type', 'Membres', 'Quota tokens', 'Sources perso', 'Actions'].map(h => (
+              {['Groupe', 'Type', 'Membres', 'Responsable(s)', 'Quota tokens', 'Actions'].map(h => (
                 <th key={h} className="px-4 py-3 text-left" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.62rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>
                   {h}
                 </th>
@@ -184,15 +189,21 @@ export default function AdminGroupsPage() {
                 <td className="px-4 py-3">
                   <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.9rem', color: '#0D0D0D' }}>{g.memberCount}</span>
                 </td>
+                <td className="px-4 py-3">
+                  {g.responsables.length === 0 ? (
+                    <span style={{ fontSize: '0.7rem', color: '#C8C8C8', fontFamily: 'Source Serif Pro, Georgia, serif' }}>—</span>
+                  ) : (
+                    <div className="flex flex-col gap-0.5">
+                      {g.responsables.map(r => (
+                        <span key={r.id} style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#5A5A5A' }}>
+                          {r.name ?? r.email.split('@')[0]}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </td>
                 <td className="px-4 py-3" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#5A5A5A' }}>
                   {fmtTokens(g.quotaTokens)}
-                </td>
-                <td className="px-4 py-3">
-                  {g.allowPersonalSources ? (
-                    <span className="text-[10px] text-[#2E7D32]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>✓ Oui</span>
-                  ) : (
-                    <span className="text-[10px] text-[#C8C8C8]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Non</span>
-                  )}
                 </td>
                 <td className="px-4 py-3">
                   <button

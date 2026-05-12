@@ -16,6 +16,7 @@ export async function GET() {
     orderBy: { label: 'asc' },
     include: {
       _count: { select: { users: true } },
+      scopes: { include: { user: { select: { id: true, name: true, email: true } } } },
     },
   })
 
@@ -29,6 +30,7 @@ export async function GET() {
       allowPersonalSources: g.allowPersonalSources,
       description: g.systemPromptExtra ?? null,
       memberCount: g._count.users,
+      responsables: g.scopes.map((s) => ({ id: s.user.id, name: s.user.name, email: s.user.email })),
     })),
   })
 }
