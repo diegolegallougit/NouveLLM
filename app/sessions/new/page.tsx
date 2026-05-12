@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PromptBuilder from '@/components/sessions/PromptBuilder'
 import MissionForm, { MissionData, missionToPrompt } from '@/components/sessions/MissionForm'
+import ExamplesModal from '@/components/sessions/ExamplesModal'
+
+const SLUGS_WITH_EXAMPLES = new Set(['corpus-degrade', 'revelateur-conformisme', 'corpus-multilingue', 'miroir-lacunes'])
 
 interface Scenario {
   id: string
@@ -93,6 +96,7 @@ export default function NewSessionPage() {
   const [result, setResult] = useState<{ code: string; link: string; qrSvg: string } | null>(null)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [showExamples, setShowExamples] = useState(false)
 
   useEffect(() => {
     fetch('/api/sessions/scenarios').then(r => r.json()).then(d => setScenarios(d.scenarios ?? []))
@@ -417,7 +421,20 @@ export default function NewSessionPage() {
           <div className="max-w-2xl space-y-5">
             <ScenarioBadge scenario={selectedScenario} />
             <div className="bg-white rounded-xl border border-[#D8D8D8] p-5">
-              <h2 className="mb-4" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Prompt pédagogique</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Prompt pédagogique</h2>
+                {SLUGS_WITH_EXAMPLES.has(selectedScenario.slug) && (
+                  <button
+                    type="button"
+                    onClick={() => setShowExamples(true)}
+                    className="flex items-center gap-1.5 text-[11px] transition-colors hover:text-[#00068D]"
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#2B2EB8' }}
+                  >
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
+                    Voir des exemples →
+                  </button>
+                )}
+              </div>
               {selectedScenario.hasStructuredForm
                 ? <MissionForm value={missionData} onChange={setMissionData} />
                 : <PromptBuilder value={systemPrompt} onChange={setSystemPrompt} />
@@ -425,6 +442,14 @@ export default function NewSessionPage() {
             </div>
             <NavButtons onBack={prevStep} onNext={nextStep} nextLabel="Choisir la visibilité →" />
           </div>
+        )}
+
+        {showExamples && selectedScenario && (
+          <ExamplesModal
+            scenarioSlug={selectedScenario.slug}
+            onSelect={(prompt, consigne) => { setSystemPrompt(prompt); setStudentConsigne(consigne) }}
+            onClose={() => setShowExamples(false)}
+          />
         )}
 
         {/* ── STEP 4: Visibility ───────────────────────────────────────────── */}

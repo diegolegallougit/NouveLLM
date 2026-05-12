@@ -52,6 +52,15 @@ function formatDate(s: string) {
   return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
+interface AnalyticsData {
+  activeStudents: number
+  maxParticipants: number | null
+  totalMessages: number
+  avgDurationMin: number
+  keywords: string[]
+  blockingMoments: number
+}
+
 export default function SessionDashboardPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
@@ -61,6 +70,7 @@ export default function SessionDashboardPage() {
   const [broadcasting, setBroadcasting] = useState(false)
   const [broadcastDone, setBroadcastDone] = useState(false)
   const [promptOpen, setPromptOpen] = useState(false)
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
 
   async function load() {
     const r = await fetch(`/api/sessions/${id}`)
@@ -68,6 +78,12 @@ export default function SessionDashboardPage() {
     const d = await r.json()
     setSession(d.session)
     setLoading(false)
+    if (d.session.visibility >= 1) {
+      fetch(`/api/sessions/${id}/analytics`)
+        .then(r => r.json())
+        .then(a => { if (a.analytics) setAnalytics(a.analytics) })
+        .catch(() => {})
+    }
   }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
@@ -150,6 +166,56 @@ export default function SessionDashboardPage() {
             </div>
           ))}
         </div>
+
+        {/* Analytics — niveau 1+ */}
+        {session.visibility >= 1 && analytics && (
+          <div className="bg-white rounded-xl border border-[#D8D8D8] p-5">
+            <h2 className="mb-4" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>
+              📊 Activité de la session (anonyme)
+            </h2>
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="text-center">
+                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>
+                  {analytics.activeStudents}{analytics.maxParticipants ? `/${analytics.maxParticipants}` : ''}
+                </p>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#8A8A8A' }}>Étudiants actifs</p>
+              </div>
+              <div className="text-center">
+                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>{analytics.totalMessages}</p>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#8A8A8A' }}>Messages envoyés</p>
+              </div>
+              <div className="text-center">
+                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>
+                  {analytics.avgDurationMin > 0 ? `${analytics.avgDurationMin} min` : '—'}
+                </p>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#8A8A8A' }}>Durée moy. / étudiant</p>
+              </div>
+            </div>
+            {analytics.keywords.length > 0 && (
+              <div className="mb-3">
+                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A', marginBottom: '0.5rem' }}>
+                  Thèmes les plus abordés
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {analytics.keywords.map(kw => (
+                    <span key={kw} className="px-2 py-0.5 rounded-full text-[11px] bg-[#E8E9F8] text-[#00068D]"
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                      #{kw}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {analytics.blockingMoments > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FFF8E1] border border-[#FFD54F]">
+                <span style={{ fontSize: '0.75rem' }}>⚠️</span>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#7A5200' }}>
+                  {analytics.blockingMoments} moment{analytics.blockingMoments > 1 ? 's' : ''} de blocage détecté{analytics.blockingMoments > 1 ? 's' : ''}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Phase 2 broadcast button */}
         {hasBroadcast && session.status === 'ACTIVE' && (
