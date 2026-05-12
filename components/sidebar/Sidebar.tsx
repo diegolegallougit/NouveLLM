@@ -64,6 +64,8 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
   const [spacesRefreshKey, setSpacesRefreshKey] = useState(0)
   const [creatingSpace, setCreatingSpace] = useState(false)
   const [newSpaceName, setNewSpaceName] = useState('')
+  const [hoveredConvId, setHoveredConvId] = useState<string | null>(null)
+  const [deletingConvId, setDeletingConvId] = useState<string | null>(null)
   const configuredConnectors = CONNECTORS.filter(c =>
     (c.id === 'notion' && notionConnected) || (c.id === 'gdrive' && gdriveConnected)
   )
@@ -134,6 +136,13 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
     } finally {
       setLoading(false)
     }
+  }
+
+  async function deleteConversation(id: string) {
+    await fetch(`/api/conversations/${id}`, { method: 'DELETE' })
+    setConversations(prev => prev.filter(c => c.id !== id))
+    setDeletingConvId(null)
+    setHoveredConvId(null)
   }
 
   async function handleCreateSpace() {
@@ -387,35 +396,74 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
               </p>
             ) : (
               conversations.map((conv) => (
-                <button
+                <div
                   key={conv.id}
-                  onClick={() => onSelectConversation(conv.id)}
-                  className={`w-full flex flex-col items-start gap-1 px-3 py-2.5 text-left transition-all border-l-2 ${
-                    activeConversationId === conv.id
-                      ? 'bg-[#E8E9F8] border-l-[#00068D]'
-                      : 'border-l-transparent hover:bg-[#F2F2F2] hover:border-l-[#D8D8D8]'
-                  }`}
+                  className="relative"
+                  onMouseEnter={() => setHoveredConvId(conv.id)}
+                  onMouseLeave={() => { if (deletingConvId !== conv.id) setHoveredConvId(null) }}
                 >
-                  <span
-                    className="text-[#0D0D0D] line-clamp-2 leading-relaxed w-full"
-                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
-                  >
-                    {conv.title || 'Conversation sans titre'}
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {conv.agentSlug && (
-                      <span className="nl-token-agent">
-                        @{conv.agentSlug}
+                  {deletingConvId === conv.id ? (
+                    <div className={`flex items-center gap-2 px-3 py-2.5 border-l-2 border-l-[#EF4444] bg-red-50`}>
+                      <span className="flex-1 text-[#EF4444]" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)' }}>
+                        Supprimer ?
                       </span>
-                    )}
-                    <span
-                      className="text-[#8A8A8A]"
-                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}
+                      <button
+                        onClick={() => deleteConversation(conv.id)}
+                        className="px-2 py-0.5 rounded bg-[#EF4444] text-white transition-all hover:bg-red-700"
+                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
+                      >
+                        Oui
+                      </button>
+                      <button
+                        onClick={() => { setDeletingConvId(null); setHoveredConvId(null) }}
+                        className="px-2 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2] transition-all"
+                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
+                      >
+                        Non
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => onSelectConversation(conv.id)}
+                      className={`w-full flex flex-col items-start gap-1 px-3 py-2.5 text-left transition-all border-l-2 ${
+                        activeConversationId === conv.id
+                          ? 'bg-[#E8E9F8] border-l-[#00068D]'
+                          : 'border-l-transparent hover:bg-[#F2F2F2] hover:border-l-[#D8D8D8]'
+                      }`}
                     >
-                      {formatRelativeDate(conv.updatedAt)}
-                    </span>
-                  </div>
-                </button>
+                      <div className="flex items-start justify-between w-full gap-1">
+                        <span
+                          className="text-[#0D0D0D] line-clamp-2 leading-relaxed flex-1"
+                          style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
+                        >
+                          {conv.title || 'Conversation sans titre'}
+                        </span>
+                        {hoveredConvId === conv.id && (
+                          <button
+                            onClick={e => { e.stopPropagation(); setDeletingConvId(conv.id) }}
+                            className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded text-[#C8C8C8] hover:text-[#EF4444] hover:bg-red-50 transition-all"
+                            title="Supprimer"
+                          >
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" /></svg>
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {conv.agentSlug && (
+                          <span className="nl-token-agent">
+                            @{conv.agentSlug}
+                          </span>
+                        )}
+                        <span
+                          className="text-[#8A8A8A]"
+                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}
+                        >
+                          {formatRelativeDate(conv.updatedAt)}
+                        </span>
+                      </div>
+                    </button>
+                  )}
+                </div>
               ))
             )}
           </div>
