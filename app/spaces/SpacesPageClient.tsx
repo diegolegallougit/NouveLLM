@@ -58,6 +58,7 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
   const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null)
   const [renameSpaceVal, setRenameSpaceVal] = useState('')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [deleteDocCount, setDeleteDocCount] = useState<number>(0)
 
   // Right panel — documents
   const [docs, setDocs] = useState<DocWithDate[]>([])
@@ -176,6 +177,14 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
       body: JSON.stringify({ name: renameSpaceVal.trim() }),
     })
     setRenamingSpaceId(null); await loadSpaces()
+  }
+
+  async function initiateDeleteSpace(id: string) {
+    const r = await fetch(`/api/spaces/${id}/members/count`)
+    const d = await r.json()
+    setDeleteDocCount(d.documentCount ?? 0)
+    setDeleteConfirmId(id)
+    setCtxSpaceId(null)
   }
 
   async function deleteSpace(id: string) {
@@ -309,10 +318,17 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
                   <button onClick={() => setRenamingSpaceId(null)} className="text-[#8A8A8A] hover:text-red-500" style={{ fontSize: '0.7rem' }}>✕</button>
                 </div>
               ) : deleteConfirmId === space.id ? (
-                <div className="flex items-center gap-2 px-3 py-2 bg-red-50">
-                  <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#EF4444', flex: 1 }}>Supprimer &quot;{space.name}&quot; ?</span>
-                  <button onClick={() => deleteSpace(space.id)} className="px-2 py-0.5 rounded bg-[#EF4444] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Oui</button>
-                  <button onClick={() => setDeleteConfirmId(null)} className="px-2 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Non</button>
+                <div className="px-3 py-2 bg-red-50">
+                  {deleteDocCount > 0 && (
+                    <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#EF4444', marginBottom: '0.25rem' }}>
+                      ⚠ {deleteDocCount} fichier{deleteDocCount > 1 ? 's' : ''} seront supprimés.
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#EF4444', flex: 1 }}>Supprimer &quot;{space.name}&quot; ?</span>
+                    <button onClick={() => deleteSpace(space.id)} className="px-2 py-0.5 rounded bg-[#EF4444] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Oui</button>
+                    <button onClick={() => setDeleteConfirmId(null)} className="px-2 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Non</button>
+                  </div>
                 </div>
               ) : (
                 <div
@@ -600,6 +616,11 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
                             )}
                           </div>
                           <div className="flex items-center gap-3 flex-shrink-0">
+                            {doc.uploadedBy && (
+                              <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#C8C8C8' }} title={doc.uploadedBy.email}>
+                                {doc.uploadedBy.name ?? doc.uploadedBy.email.split('@')[0]}
+                              </span>
+                            )}
                             <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#C8C8C8' }}>{formatSize(doc.size)}</span>
                             {doc.uploadedAt && (
                               <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#C8C8C8' }}>
@@ -698,7 +719,7 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
               label: 'Supprimer', icon: (
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" /></svg>
               ),
-              action: () => { setDeleteConfirmId(ctxSpaceId); setCtxSpaceId(null) },
+              action: () => { if (ctxSpaceId) initiateDeleteSpace(ctxSpaceId) },
               danger: true,
             },
           ].map(item => (
@@ -778,7 +799,7 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
                 {settingsSaving ? 'Enregistrement…' : 'ENREGISTRER'}
               </button>
               <button
-                onClick={() => { if (selectedSpaceId) { setDeleteConfirmId(selectedSpaceId); setSettingsOpen(false) } }}
+                onClick={() => { if (selectedSpaceId) { setSettingsOpen(false); initiateDeleteSpace(selectedSpaceId) } }}
                 className="w-full py-2 rounded-xl border border-red-200 text-[#EF4444] hover:bg-red-50 transition-all"
                 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
               >

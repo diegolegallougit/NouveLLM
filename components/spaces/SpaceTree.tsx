@@ -10,6 +10,8 @@ export interface SpaceDoc {
   folderId: string | null
   mimeType: string | null
   size: number | null
+  uploadedAt?: string
+  uploadedBy?: { id: string; name: string | null; email: string } | null
 }
 
 export interface SpaceFolder {

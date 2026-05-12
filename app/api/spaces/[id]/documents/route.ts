@@ -17,7 +17,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const documents = await prisma.spaceDocument.findMany({
     where: { spaceId },
     orderBy: { uploadedAt: 'asc' },
-    include: { folder: true },
+    include: {
+      folder: true,
+      uploadedBy: { select: { id: true, name: true, email: true } },
+    },
   })
 
   return NextResponse.json({ documents })
