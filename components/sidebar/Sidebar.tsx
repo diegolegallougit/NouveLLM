@@ -58,12 +58,15 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
   const [notionConnecting, setNotionConnecting] = useState(false)
   const [notionError, setNotionError] = useState('')
   const [notionConnected, setNotionConnected] = useState(false)
+  const [gdriveConnected, setGdriveConnected] = useState(false)
   const notionInputRef = useRef<HTMLInputElement>(null)
   const [spaces, setSpaces] = useState<SpaceData[]>([])
   const [spacesRefreshKey, setSpacesRefreshKey] = useState(0)
   const [creatingSpace, setCreatingSpace] = useState(false)
   const [newSpaceName, setNewSpaceName] = useState('')
-  const configuredConnectors = CONNECTORS.filter(c => c.id === 'notion' && notionConnected)
+  const configuredConnectors = CONNECTORS.filter(c =>
+    (c.id === 'notion' && notionConnected) || (c.id === 'gdrive' && gdriveConnected)
+  )
 
   async function checkNotionStatus() {
     try {
@@ -71,6 +74,19 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
       const data = await r.json()
       setNotionConnected(data.connected ?? false)
     } catch { /* silent */ }
+  }
+
+  async function checkGdriveStatus() {
+    try {
+      const r = await fetch('/api/connectors/gdrive/connect')
+      const data = await r.json()
+      setGdriveConnected(data.connected ?? false)
+    } catch { /* silent */ }
+  }
+
+  async function disconnectGdrive() {
+    await fetch('/api/connectors/gdrive/connect', { method: 'DELETE' })
+    setGdriveConnected(false)
   }
 
   async function connectNotion() {
@@ -133,7 +149,16 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
   }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { checkNotionStatus() }, []) // eslint-disable-line react-hooks/set-state-in-effect
+  useEffect(() => { // eslint-disable-line react-hooks/set-state-in-effect
+    checkNotionStatus()
+    checkGdriveStatus()
+    // Handle OAuth callback redirect with query param
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('gdrive_connected') === '1') {
+      setGdriveConnected(true)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -241,7 +266,15 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                 <div className="space-y-1.5">
                   {CONNECTORS.map((c) => {
                     const isNotion = c.id === 'notion'
-                    const connected = isNotion && notionConnected
+                    const isGdrive = c.id === 'gdrive'
+                    const connected = (isNotion && notionConnected) || (isGdrive && gdriveConnected)
+                    const canConnect = isNotion || isGdrive
+                    const handleConnect = isNotion
+                      ? () => { setNotionError(''); setNotionModal(true); setTimeout(() => notionInputRef.current?.focus(), 50) }
+                      : isGdrive
+                      ? () => { window.location.href = '/api/connectors/gdrive/init' }
+                      : undefined
+                    const handleDisconnect = isNotion ? disconnectNotion : isGdrive ? disconnectGdrive : undefined
                     return (
                       <div key={c.id}
                         className="flex items-center justify-between px-2.5 py-2 rounded-lg bg-white border border-[#D8D8D8]">
@@ -255,7 +288,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                             <>
                               <span className="text-[9px] text-[#2E7D32]"
                                 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Lié</span>
-                              <button onClick={disconnectNotion}
+                              <button onClick={handleDisconnect}
                                 className="text-[9px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A] hover:border-red-400 hover:text-red-600 transition-all"
                                 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
                                 ✕
@@ -266,8 +299,8 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                               <span className="text-[9px] text-[#8A8A8A] italic"
                                 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>non connecté</span>
                               <button
-                                onClick={isNotion ? () => { setNotionError(''); setNotionModal(true); setTimeout(() => notionInputRef.current?.focus(), 50) } : undefined}
-                                disabled={!isNotion}
+                                onClick={handleConnect}
+                                disabled={!canConnect}
                                 className="text-[9px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A] hover:border-[#2B2EB8] hover:text-[#00068D] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                                 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.03em' }}>
                                 LIER
