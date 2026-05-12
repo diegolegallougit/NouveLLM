@@ -66,6 +66,7 @@ model User {
   uploadedDocuments   SpaceDocument[]      @relation("UploadedDocuments")
   authoredMetaPrompts MetaPrompt[]         @relation("AuthoredMetaPrompts")
   activeMetaPrompts   UserActiveMetaPrompt[]
+  reports             Report[]
   // Connectors
   notionToken         String?
   googleAccessToken   String?
@@ -475,4 +476,15 @@ model SpaceDocument {
   uploadedAt   DateTime        @default(now())
   size         Int?
   mimeType     String?
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  name      String
+  email     String?
+  subject   String
+  message   String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
 }

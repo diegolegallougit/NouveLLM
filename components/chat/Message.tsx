@@ -177,6 +177,13 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
         {/* Sources */}
         {!message.isStreaming && <SourcesBlock sources={message.sources || []} />}
 
+        {/* Disclaimer */}
+        {!message.isStreaming && message.content && (
+          <p className="mt-2" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#C8C8C8', fontStyle: 'italic' }}>
+            NouveLLM peut faire des erreurs — vérifiez les informations importantes. <a href="/apropos" className="underline hover:text-[#8A8A8A] transition-colors">En savoir plus</a>
+          </p>
+        )}
+
         {/* Action bar */}
         {!message.isStreaming && (
           <div className="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
