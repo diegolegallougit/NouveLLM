@@ -86,10 +86,10 @@ export default function SessionsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>
-              Mes sessions de cours
+              Mes Activités IA
             </h1>
             <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#8A8A8A' }}>
-              {active.length} session{active.length !== 1 ? 's' : ''} active{active.length !== 1 ? 's' : ''}
+              {active.length} activité{active.length !== 1 ? 's' : ''} active{active.length !== 1 ? 's' : ''}
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -103,7 +103,7 @@ export default function SessionsPage() {
               style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-              NOUVELLE SESSION
+              NOUVELLE ACTIVITÉ IA
             </button>
           </div>
         </div>
@@ -114,10 +114,10 @@ export default function SessionsPage() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C8C8C8" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
             </div>
             <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#5A5A5A' }}>
-              Aucune session créée
+              Aucune activité créée
             </p>
             <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.8rem', color: '#C8C8C8', marginTop: '0.25rem' }}>
-              Créez votre première session pour partager des agents avec vos étudiants
+              Créez votre première Activité IA pour partager des agents avec vos étudiants
             </p>
           </div>
         )}
@@ -143,7 +143,7 @@ export default function SessionsPage() {
         {closed.length > 0 && (
           <div className="space-y-3">
             <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#C8C8C8', paddingLeft: '0.25rem' }}>
-              Sessions fermées
+              Activités fermées
             </p>
             {closed.map(s => (
               <SessionCard

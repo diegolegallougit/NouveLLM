@@ -33,7 +33,7 @@ const SCENARIO_META: Record<string, { label: string; icon: string; hasBroadcast?
   'revision-adversariale': { label: 'La révision adversariale', icon: '⚔️' },
   'miroir-lacunes': { label: 'Le miroir des lacunes', icon: '💡', hasBroadcast: true },
   'mission-professionnelle': { label: 'La mission professionnelle', icon: '🎭' },
-  'personnalise': { label: 'Session personnalisée', icon: '⚙️' },
+  'personnalise': { label: 'Activité IA personnalisée', icon: '⚙️' },
 }
 
 const VISIBILITY_INFO = [
@@ -74,7 +74,7 @@ export default function SessionDashboardPage() {
 
   async function load() {
     const r = await fetch(`/api/sessions/${id}`)
-    if (!r.ok) { setError('Session introuvable'); setLoading(false); return }
+    if (!r.ok) { setError('Activité IA introuvable'); setLoading(false); return }
     const d = await r.json()
     setSession(d.session)
     setLoading(false)
@@ -114,9 +114,9 @@ export default function SessionDashboardPage() {
   if (error || !session) return (
     <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6">
       <div className="bg-white rounded-2xl border border-[#D8D8D8] p-8 max-w-sm w-full text-center space-y-4">
-        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#dc2626' }}>{error || 'Session introuvable'}</p>
+        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#dc2626' }}>{error || 'Activité IA introuvable'}</p>
         <button onClick={() => router.push('/sessions')} className="text-[#00068D] text-sm hover:underline"
-          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>← Mes sessions</button>
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>← Mes Activités IA</button>
       </div>
     </div>
   )
