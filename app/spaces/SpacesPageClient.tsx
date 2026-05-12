@@ -31,6 +31,20 @@ function formatDate(d?: string) {
   return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+function formatAuditAction(action: string): string {
+  const map: Record<string, string> = {
+    DOCUMENT_UPLOAD: 'a déposé',
+    DOCUMENT_DELETE: 'a supprimé',
+    DOCUMENT_RENAME: 'a renommé',
+    DOCUMENT_DOWNLOAD: 'a téléchargé',
+    USER_INVITED: 'a invité',
+    USER_REMOVED: 'a retiré',
+    SPACE_CREATED: 'a créé l\'espace',
+    SPACE_DELETED: 'a supprimé l\'espace',
+  }
+  return map[action] ?? action
+}
+
 interface DocWithDate extends SpaceDoc {
   uploadedAt?: string
 }
@@ -85,6 +99,13 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
   const [renameDocVal, setRenameDocVal] = useState('')
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null)
 
+  // Right panel tab
+  const [activeTab, setActiveTab] = useState<'files' | 'journal'>('files')
+
+  // Journal
+  const [journalEntries, setJournalEntries] = useState<{ id: string; action: string; entityName: string; createdAt: string; user: { name: string | null; email: string } }[]>([])
+  const [journalLoading, setJournalLoading] = useState(false)
+
   // Settings drawer
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsName, setSettingsName] = useState('')
@@ -102,7 +123,19 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
       .then(d => setDocs(d.documents ?? []))
       .catch(() => setDocs([]))
       .finally(() => setDocsLoading(false))
+    setActiveTab('files')
   }, [selectedSpaceId])
+
+  // Load journal when tab switches to journal
+  useEffect(() => {
+    if (activeTab !== 'journal' || !selectedSpaceId) return
+    setJournalLoading(true)
+    fetch(`/api/spaces/${selectedSpaceId}/audit`)
+      .then(r => r.json())
+      .then(d => setJournalEntries(d.entries ?? []))
+      .catch(() => setJournalEntries([]))
+      .finally(() => setJournalLoading(false))
+  }, [activeTab, selectedSpaceId])
 
   // Reload spaces list
   async function loadSpaces() {
@@ -472,8 +505,22 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
                 </button>
               </div>
 
+              {/* Tab bar */}
+              <div className="flex items-center gap-1 border-b border-[#F2F2F2] -mx-6 px-6 mb-2">
+                {(['files', 'journal'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-2 -mb-px transition-all border-b-2 ${activeTab === tab ? 'border-[#00068D] text-[#00068D]' : 'border-transparent text-[#8A8A8A] hover:text-[#0D0D0D]'}`}
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', textTransform: 'uppercase' }}
+                  >
+                    {tab === 'files' ? 'Fichiers' : 'Journal'}
+                  </button>
+                ))}
+              </div>
+
               {/* Action bar */}
-              <div className="flex items-center gap-2">
+              {activeTab === 'files' && (<div className="flex items-center gap-2">
                 <button
                   onClick={() => { setCreatingFolder(true); setTimeout(() => newFolderRef.current?.focus(), 50) }}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#D8D8D8] bg-white hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
@@ -500,10 +547,10 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
                     {uploadMsg || 'Importation en cours…'}
                   </span>
                 )}
-              </div>
+              </div>)}
 
-              {/* Folders section */}
-              <div>
+              {/* ── FILES TAB: Folders ── */}
+              {activeTab === 'files' && (<div>
                 <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
                   Dossiers
                 </p>
@@ -568,10 +615,10 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
                     </div>
                   </div>
                 )}
-              </div>
+              </div>)}
 
               {/* Files section */}
-              {(docsLoading || docs.length > 0) && (
+              {activeTab === 'files' && (docsLoading || docs.length > 0) && (
                 <div>
                   <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
                     Fichiers
@@ -661,13 +708,49 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
               )}
 
               {/* Full empty state */}
-              {!docsLoading && docs.length === 0 && selectedSpace.folders.length === 0 && (
+              {activeTab === 'files' && !docsLoading && docs.length === 0 && selectedSpace.folders.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <span className="text-4xl mb-3">📂</span>
                   <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', color: '#0D0D0D' }}>Espace vide</p>
                   <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', marginTop: '0.5rem', maxWidth: '22rem' }}>
                     Créez un dossier pour organiser vos fichiers, ou importez directement des documents.
                   </p>
+                </div>
+              )}
+
+              {/* ── JOURNAL TAB ── */}
+              {activeTab === 'journal' && (
+                <div>
+                  {journalLoading ? (
+                    <div className="flex items-center gap-2 py-8">
+                      <div className="w-4 h-4 border-2 border-[#00068D] border-t-transparent rounded-full animate-spin" />
+                      <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>Chargement…</span>
+                    </div>
+                  ) : journalEntries.length === 0 ? (
+                    <div className="py-12 text-center">
+                      <span className="text-3xl">📋</span>
+                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', marginTop: '0.75rem' }}>
+                        Aucune activité enregistrée pour cet espace.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-xl border border-[#D8D8D8] overflow-hidden">
+                      {journalEntries.map((entry, i) => (
+                        <div key={entry.id} className={`flex items-start gap-3 px-4 py-3 ${i > 0 ? 'border-t border-[#F2F2F2]' : ''}`}>
+                          <div className="flex-1 min-w-0">
+                            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
+                              <span className="font-medium">{entry.user.name ?? entry.user.email.split('@')[0]}</span>
+                              {' '}{formatAuditAction(entry.action)}{' '}
+                              <span style={{ color: '#5A5A5A' }}>{entry.entityName}</span>
+                            </p>
+                            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#C8C8C8', marginTop: '0.1rem' }}>
+                              {new Date(entry.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
