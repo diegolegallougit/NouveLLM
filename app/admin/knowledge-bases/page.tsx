@@ -14,7 +14,7 @@ interface KBStatus {
   difyOk: boolean
 }
 
-const DIFY_WEB_URL = 'http://100.120.16.114:8090'
+const DIFY_WEB_URL = process.env.NEXT_PUBLIC_DIFY_WEB_URL ?? 'http://localhost:8090'
 
 export default function AdminKnowledgeBasesPage() {
   const [kbs, setKbs] = useState<KBStatus[]>([])

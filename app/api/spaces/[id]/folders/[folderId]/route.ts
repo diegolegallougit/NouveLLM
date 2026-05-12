@@ -14,7 +14,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { name, description } = body as { name?: string; description?: string }
 
   const updated = await prisma.documentFolder.update({
-    where: { id: folderId },
+    where: { id: folderId, spaceId },
     data: {
       ...(name && { name: name.trim() }),
       ...(description !== undefined && { description: description?.trim() ?? null }),
@@ -33,6 +33,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
   if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  await prisma.documentFolder.delete({ where: { id: folderId } })
+  await prisma.documentFolder.delete({ where: { id: folderId, spaceId } })
   return NextResponse.json({ ok: true })
 }
