@@ -42,13 +42,20 @@ interface SpaceTreeProps {
   onRefresh: () => void
 }
 
-function fileIcon(mimeType: string | null) {
+function fileIcon(mimeType: string | null, name?: string | null) {
+  const ext = name?.split('.').pop()?.toLowerCase()
+  if (ext === 'md') return '📝'
+  if (ext === 'json') return '📋'
+  if (ext === 'csv') return '📊'
+  if (ext === 'txt') return '📃'
   if (!mimeType) return '📄'
   if (mimeType.includes('pdf')) return '📕'
-  if (mimeType.includes('word') || mimeType.includes('docx')) return '📘'
-  if (mimeType.includes('presentation') || mimeType.includes('pptx')) return '📙'
-  if (mimeType.startsWith('text/')) return '📄'
-  if (mimeType.includes('spreadsheet') || mimeType.includes('xlsx')) return '📗'
+  if (mimeType.includes('word') || mimeType.includes('docx') || ext === 'doc' || ext === 'docx') return '📘'
+  if (mimeType.includes('presentation') || mimeType.includes('pptx') || ext === 'ppt' || ext === 'pptx') return '📙'
+  if (mimeType.includes('spreadsheet') || mimeType.includes('xlsx') || ext === 'xls' || ext === 'xlsx') return '📗'
+  if (mimeType.includes('json')) return '📋'
+  if (mimeType.includes('csv')) return '📊'
+  if (mimeType.startsWith('text/')) return '📃'
   return '📄'
 }
 
@@ -240,7 +247,7 @@ function FolderSection({ folder, spaceId, spaceSlug, onFolderToken, onRefresh, d
               className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-[#F2F2F2] group/doc cursor-default"
               draggable
               onDragStart={e => { e.dataTransfer.setData('docId', doc.id) }}>
-              <span className="text-xs flex-shrink-0">{fileIcon(doc.mimeType)}</span>
+              <span className="text-xs flex-shrink-0">{fileIcon(doc.mimeType, doc.name)}</span>
               {editingDoc === doc.id ? (
                 <input
                   autoFocus

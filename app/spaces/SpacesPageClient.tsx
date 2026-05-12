@@ -12,13 +12,20 @@ interface SharedSpace {
   audience: string
 }
 
-function fileIcon(mime: string | null) {
+function fileIcon(mime: string | null, name?: string) {
+  const ext = name?.split('.').pop()?.toLowerCase()
+  if (ext === 'md') return '📝'
+  if (ext === 'json') return '📋'
+  if (ext === 'csv') return '📊'
+  if (ext === 'txt') return '📃'
   if (!mime) return '📄'
   if (mime.includes('pdf')) return '📕'
-  if (mime.includes('word') || mime.includes('docx')) return '📘'
-  if (mime.includes('presentation') || mime.includes('pptx')) return '📙'
-  if (mime.startsWith('text/')) return '📄'
-  if (mime.includes('spreadsheet') || mime.includes('xlsx')) return '📗'
+  if (mime.includes('word') || mime.includes('docx') || ext === 'doc' || ext === 'docx') return '📘'
+  if (mime.includes('presentation') || mime.includes('pptx') || ext === 'ppt' || ext === 'pptx') return '📙'
+  if (mime.includes('spreadsheet') || mime.includes('xlsx') || ext === 'xls' || ext === 'xlsx') return '📗'
+  if (mime.includes('json')) return '📋'
+  if (mime.includes('csv') || mime.includes('tab-separated')) return '📊'
+  if (mime.startsWith('text/')) return '📃'
   return '📄'
 }
 
@@ -102,6 +109,12 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
   const [renameDocVal, setRenameDocVal] = useState('')
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null)
 
+  // Folder navigation
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
+
+  // Upload error
+  const [uploadError, setUploadError] = useState('')
+
   // Right panel tab
   const [activeTab, setActiveTab] = useState<'files' | 'journal'>('files')
 
@@ -122,6 +135,8 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
   useEffect(() => {
     if (!selectedSpaceId) { setDocs([]); return }
     setDocsLoading(true)
+    setSelectedFolderId(null)
+    setUploadError('')
     fetch(`/api/spaces/${selectedSpaceId}/documents`)
       .then(r => r.json())
       .then(d => setDocs(d.documents ?? []))
@@ -158,24 +173,42 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
   }, [ctxSpaceId])
 
   // Window drag-and-drop
+  const ALLOWED_EXTS = new Set(['.pdf', '.doc', '.docx', '.txt', '.md', '.csv', '.ppt', '.pptx', '.xls', '.xlsx', '.json'])
+
   const uploadFiles = useCallback(async (files: File[]) => {
     if (!selectedSpaceId || uploading) return
+    setUploadError('')
+
+    const rejected = files.filter(f => {
+      const ext = '.' + (f.name.split('.').pop()?.toLowerCase() ?? '')
+      return !ALLOWED_EXTS.has(ext)
+    })
+    if (rejected.length) {
+      setUploadError(`Format non supporté : ${rejected.map(f => f.name).join(', ')} — Formats acceptés : pdf, docx, pptx, xlsx, txt, md, csv, json`)
+      return
+    }
+
     setUploading(true)
     for (const file of files) {
       setUploadMsg(`Importation de ${file.name}…`)
       const form = new FormData()
       form.append('file', file)
+      if (selectedFolderId) form.append('folderId', selectedFolderId)
       try {
         const r = await fetch(`/api/spaces/${selectedSpaceId}/documents`, { method: 'POST', body: form })
         if (r.ok) {
           const data = await r.json()
           setDocs(prev => [data.document, ...prev])
+        } else {
+          const err = await r.json().catch(() => ({}))
+          setUploadError(err.error ?? `Erreur lors de l'importation de ${file.name}`)
         }
       } catch { /* skip */ }
     }
     setUploadMsg('')
     setUploading(false)
-  }, [selectedSpaceId, uploading])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSpaceId, uploading, selectedFolderId])
 
   useEffect(() => {
     function onDragOver(e: DragEvent) { if (!selectedSpaceId) return; e.preventDefault(); setDragOver(true) }
@@ -529,16 +562,40 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                 ))}
               </div>
 
+              {/* Breadcrumb */}
+              {activeTab === 'files' && selectedFolderId && (() => {
+                const folder = selectedSpace?.folders.find(f => f.id === selectedFolderId)
+                return (
+                  <div className="flex items-center gap-1.5 -mt-2">
+                    <button
+                      onClick={() => setSelectedFolderId(null)}
+                      className="flex items-center gap-1 hover:text-[#00068D] transition-colors"
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#8A8A8A' }}
+                    >
+                      <span className="text-sm">{selectedSpace?.icon}</span>
+                      {selectedSpace?.name}
+                    </button>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C8C8C8" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6" /></svg>
+                    <span className="flex items-center gap-1" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#0D0D0D' }}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="#E8E9F8" stroke="#2B2EB8" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" /></svg>
+                      {folder?.name}
+                    </span>
+                  </div>
+                )
+              })()}
+
               {/* Action bar */}
-              {activeTab === 'files' && (<div className="flex items-center gap-2">
-                <button
-                  onClick={() => { setCreatingFolder(true); setTimeout(() => newFolderRef.current?.focus(), 50) }}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#D8D8D8] bg-white hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
-                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#0D0D0D' }}
-                >
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-                  Nouveau dossier
-                </button>
+              {activeTab === 'files' && (<div className="flex items-center gap-2 flex-wrap">
+                {!selectedFolderId && (
+                  <button
+                    onClick={() => { setCreatingFolder(true); setTimeout(() => newFolderRef.current?.focus(), 50) }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#D8D8D8] bg-white hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#0D0D0D' }}
+                  >
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                    Nouveau dossier
+                  </button>
+                )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
@@ -549,7 +606,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                   Importer
                 </button>
                 <input ref={fileInputRef} type="file" multiple className="hidden"
-                  accept=".pdf,.docx,.doc,.txt,.md,.pptx,.xlsx,.csv"
+                  accept=".pdf,.docx,.doc,.txt,.md,.pptx,.xlsx,.csv,.json"
                   onChange={e => { const files = Array.from(e.target.files ?? []); if (files.length) uploadFiles(files); e.target.value = '' }}
                 />
                 {(uploading || uploadMsg) && (
@@ -557,10 +614,15 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                     {uploadMsg || 'Importation en cours…'}
                   </span>
                 )}
+                {uploadError && (
+                  <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#EF4444' }}>
+                    {uploadError}
+                  </span>
+                )}
               </div>)}
 
-              {/* ── FILES TAB: Folders ── */}
-              {activeTab === 'files' && (<div>
+              {/* ── FILES TAB: Folders (root view only) ── */}
+              {activeTab === 'files' && !selectedFolderId && (<div>
                 <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
                   Dossiers
                 </p>
@@ -568,7 +630,8 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                   {selectedSpace.folders.map(folder => (
                     <div
                       key={folder.id}
-                      className="group flex items-center gap-3 p-4 bg-white rounded-xl border border-[#D8D8D8] hover:border-[#2B2EB8] hover:shadow-sm transition-all cursor-default"
+                      className="group flex items-center gap-3 p-4 bg-white rounded-xl border border-[#D8D8D8] hover:border-[#2B2EB8] hover:shadow-sm transition-all cursor-pointer"
+                      onClick={() => setSelectedFolderId(folder.id)}
                       onMouseEnter={() => setHoveredFolderId(folder.id)}
                       onMouseLeave={() => { setHoveredFolderId(null); if (deletingFolderId === folder.id) setDeletingFolderId(null) }}
                     >
@@ -578,13 +641,13 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                         <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#C8C8C8' }}>{folder._count.documents} fichier{folder._count.documents !== 1 ? 's' : ''}</p>
                       </div>
                       {deletingFolderId === folder.id ? (
-                        <div className="flex flex-col gap-1 flex-shrink-0">
+                        <div className="flex flex-col gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
                           <button onClick={() => deleteFolder(folder.id)} className="text-[8px] px-1.5 py-0.5 rounded bg-[#EF4444] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Oui</button>
                           <button onClick={() => setDeletingFolderId(null)} className="text-[8px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Non</button>
                         </div>
                       ) : hoveredFolderId === folder.id ? (
                         <button
-                          onClick={() => setDeletingFolderId(folder.id)}
+                          onClick={e => { e.stopPropagation(); setDeletingFolderId(folder.id) }}
                           className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-[#C8C8C8] hover:text-[#EF4444] hover:bg-red-50 transition-all"
                           title="Supprimer le dossier"
                         >
@@ -628,7 +691,12 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
               </div>)}
 
               {/* Files section */}
-              {activeTab === 'files' && (docsLoading || docs.length > 0) && (
+              {activeTab === 'files' && (docsLoading || docs.length > 0) && (() => {
+                const displayDocs = selectedFolderId
+                  ? docs.filter(d => d.folderId === selectedFolderId)
+                  : docs.filter(d => d.folderId === null)
+                if (!docsLoading && displayDocs.length === 0) return null
+                return (
                 <div>
                   <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
                     Fichiers
@@ -640,14 +708,14 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                     </div>
                   ) : (
                     <div className="bg-white rounded-xl border border-[#D8D8D8] overflow-hidden">
-                      {docs.map((doc, i) => (
+                      {displayDocs.map((doc, i) => (
                         <div
                           key={doc.id}
                           className={`flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAFA] transition-all group ${i > 0 ? 'border-t border-[#F2F2F2]' : ''}`}
                           onMouseEnter={() => setHoveredDocId(doc.id)}
                           onMouseLeave={() => { setHoveredDocId(null); if (deletingDocId === doc.id) setDeletingDocId(null) }}
                         >
-                          <span className="text-lg flex-shrink-0">{fileIcon(doc.mimeType)}</span>
+                          <span className="text-lg flex-shrink-0">{fileIcon(doc.mimeType, doc.name)}</span>
                           <div className="flex-1 min-w-0">
                             {renamingDocId === doc.id ? (
                               <input
@@ -691,6 +759,14 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                               </div>
                             ) : hoveredDocId === doc.id && renamingDocId !== doc.id ? (
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <a
+                                  href={`/api/spaces/${selectedSpaceId}/documents/${doc.id}`}
+                                  download={doc.name}
+                                  className="flex items-center gap-1 px-2 py-1 rounded text-[#8A8A8A] hover:bg-[#e8f5e9] hover:text-[#2E7D32] transition-all"
+                                  title="Télécharger"
+                                >
+                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7,10 12,15 17,10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                                </a>
                                 <button
                                   onClick={() => { setRenamingDocId(doc.id); setRenameDocVal(doc.displayName || doc.name) }}
                                   className="flex items-center gap-1 px-2 py-1 rounded text-[#8A8A8A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
@@ -715,7 +791,8 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                     </div>
                   )}
                 </div>
-              )}
+                )
+              })()}
 
               {/* Full empty state */}
               {activeTab === 'files' && !docsLoading && docs.length === 0 && selectedSpace.folders.length === 0 && (
