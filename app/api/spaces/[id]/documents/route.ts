@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logAction } from '@/lib/audit'
 import { NextRequest, NextResponse } from 'next/server'
 
 const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.5:5001'
@@ -123,6 +124,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       mimeType: file.type || null,
     },
     include: { folder: true },
+  })
+
+  await logAction({
+    userId: session.user.id,
+    action: 'DOCUMENT_UPLOAD',
+    entityType: 'SpaceDocument',
+    entityId: doc.id,
+    entityName: doc.displayName ?? doc.name,
+    spaceId,
   })
 
   return NextResponse.json({ document: doc }, { status: 201 })

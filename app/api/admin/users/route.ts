@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logAction } from '@/lib/audit'
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 
@@ -75,6 +76,17 @@ export async function POST(req: NextRequest) {
         update: {},
       })
     }
+  }
+
+  const adminUser = await auth().then((s) => s?.user as { id?: string } | undefined)
+  if (adminUser?.id) {
+    await logAction({
+      userId: adminUser.id,
+      action: 'USER_INVITED',
+      entityType: 'User',
+      entityId: user.id,
+      entityName: user.email,
+    })
   }
 
   return NextResponse.json({ user: { id: user.id, email: user.email }, tempPassword }, { status: 201 })

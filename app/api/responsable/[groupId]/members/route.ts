@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logAction } from '@/lib/audit'
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 
@@ -87,6 +88,15 @@ export async function POST(
     where: { userId_groupId: { userId: user.id, groupId } },
     update: {},
     create: { userId: user.id, groupId },
+  })
+
+  await logAction({
+    userId: actor.id!,
+    action: 'USER_INVITED',
+    entityType: 'User',
+    entityId: user.id,
+    entityName: user.email,
+    groupId,
   })
 
   return NextResponse.json({ ok: true, userId: user.id })
