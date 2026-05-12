@@ -66,6 +66,11 @@ model User {
   uploadedDocuments   SpaceDocument[]      @relation("UploadedDocuments")
   authoredMetaPrompts MetaPrompt[]         @relation("AuthoredMetaPrompts")
   activeMetaPrompts   UserActiveMetaPrompt[]
+  // Connectors
+  notionToken         String?
+  googleAccessToken   String?
+  googleRefreshToken  String?
+  googleTokenExpiry   DateTime?
 }
 
 enum Role {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import SpaceTree, { SpaceData } from '@/components/spaces/SpaceTree'
 
 interface Conversation {
@@ -53,11 +53,53 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(false)
   const [connectorDrawerOpen, setConnectorDrawerOpen] = useState(false)
+  const [notionModal, setNotionModal] = useState(false)
+  const [notionTokenInput, setNotionTokenInput] = useState('')
+  const [notionConnecting, setNotionConnecting] = useState(false)
+  const [notionError, setNotionError] = useState('')
+  const [notionConnected, setNotionConnected] = useState(false)
+  const notionInputRef = useRef<HTMLInputElement>(null)
   const [spaces, setSpaces] = useState<SpaceData[]>([])
   const [spacesRefreshKey, setSpacesRefreshKey] = useState(0)
   const [creatingSpace, setCreatingSpace] = useState(false)
   const [newSpaceName, setNewSpaceName] = useState('')
-  const configuredConnectors = CONNECTORS.filter(c => c.id === '__none__')
+  const configuredConnectors = CONNECTORS.filter(c => c.id === 'notion' && notionConnected)
+
+  async function checkNotionStatus() {
+    try {
+      const r = await fetch('/api/connectors/notion/connect')
+      const data = await r.json()
+      setNotionConnected(data.connected ?? false)
+    } catch { /* silent */ }
+  }
+
+  async function connectNotion() {
+    if (!notionTokenInput.trim()) return
+    setNotionConnecting(true)
+    setNotionError('')
+    try {
+      const r = await fetch('/api/connectors/notion/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: notionTokenInput.trim() }),
+      })
+      if (!r.ok) {
+        const d = await r.json()
+        setNotionError(d.error ?? 'Erreur inconnue')
+        return
+      }
+      setNotionConnected(true)
+      setNotionModal(false)
+      setNotionTokenInput('')
+    } finally {
+      setNotionConnecting(false)
+    }
+  }
+
+  async function disconnectNotion() {
+    await fetch('/api/connectors/notion/connect', { method: 'DELETE' })
+    setNotionConnected(false)
+  }
 
   async function loadSpaces() {
     try {
@@ -89,6 +131,9 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
     setCreatingSpace(false)
     setSpacesRefreshKey(k => k + 1)
   }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { checkNotionStatus() }, []) // eslint-disable-line react-hooks/set-state-in-effect
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -194,25 +239,45 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                   Connecteurs
                 </p>
                 <div className="space-y-1.5">
-                  {CONNECTORS.map((c) => (
-                    <div key={c.id}
-                      className="flex items-center justify-between px-2.5 py-2 rounded-lg bg-white border border-[#D8D8D8]">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs">{c.icon}</span>
-                        <span className="text-[11px] text-[#3A3A3A]"
-                          style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>{c.name}</span>
+                  {CONNECTORS.map((c) => {
+                    const isNotion = c.id === 'notion'
+                    const connected = isNotion && notionConnected
+                    return (
+                      <div key={c.id}
+                        className="flex items-center justify-between px-2.5 py-2 rounded-lg bg-white border border-[#D8D8D8]">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs">{c.icon}</span>
+                          <span className="text-[11px] text-[#3A3A3A]"
+                            style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>{c.name}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {connected ? (
+                            <>
+                              <span className="text-[9px] text-[#2E7D32]"
+                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Lié</span>
+                              <button onClick={disconnectNotion}
+                                className="text-[9px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A] hover:border-red-400 hover:text-red-600 transition-all"
+                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                                ✕
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-[9px] text-[#8A8A8A] italic"
+                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>non connecté</span>
+                              <button
+                                onClick={isNotion ? () => { setNotionError(''); setNotionModal(true); setTimeout(() => notionInputRef.current?.focus(), 50) } : undefined}
+                                disabled={!isNotion}
+                                className="text-[9px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A] hover:border-[#2B2EB8] hover:text-[#00068D] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.03em' }}>
+                                LIER
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[9px] text-[#8A8A8A] italic"
-                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>non connecté</span>
-                        <button
-                          className="text-[9px] px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#8A8A8A] hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
-                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.03em' }}>
-                          LIER
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -365,6 +430,57 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
         )}
 
       </div>
+
+      {/* Notion connect modal */}
+      {notionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={e => { if (e.target === e.currentTarget) setNotionModal(false) }}>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-80 space-y-4 mx-4">
+            <div>
+              <h3 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#0D0D0D' }}>
+                Lier Notion
+              </h3>
+              <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#8A8A8A', marginTop: '0.25rem', lineHeight: 1.5 }}>
+                Créez une intégration sur <strong>notion.so/my-integrations</strong>, partagez vos pages avec elle, puis collez le token ci-dessous.
+              </p>
+            </div>
+            <div>
+              <label className="block text-[10px] text-[#8A8A8A] mb-1.5 uppercase tracking-widest"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                Token d&apos;intégration
+              </label>
+              <input
+                ref={notionInputRef}
+                type="password"
+                value={notionTokenInput}
+                onChange={e => { setNotionTokenInput(e.target.value); setNotionError('') }}
+                onKeyDown={e => { if (e.key === 'Enter') connectNotion(); if (e.key === 'Escape') setNotionModal(false) }}
+                placeholder="secret_xxxxxxxxxxxxxxxx"
+                className="w-full px-3 py-2 text-[12px] rounded-lg border border-[#D8D8D8] focus:outline-none focus:ring-2 focus:ring-[#2B2EB8] font-mono"
+              />
+              {notionError && (
+                <p className="text-[11px] text-red-600 mt-1"
+                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>{notionError}</p>
+              )}
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setNotionModal(false)}
+                className="flex-1 py-2 rounded-xl border border-[#D8D8D8] text-[11px] text-[#8A8A8A] hover:bg-[#F2F2F2] transition-all"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                Annuler
+              </button>
+              <button
+                onClick={connectNotion}
+                disabled={notionConnecting || !notionTokenInput.trim()}
+                className="flex-1 py-2 rounded-xl bg-[#00068D] text-white text-[11px] hover:bg-[#2B2EB8] transition-all disabled:opacity-50"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                {notionConnecting ? 'Connexion…' : 'Lier'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
