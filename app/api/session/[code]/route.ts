@@ -19,6 +19,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ code
     },
   })
 
+  const isOwner = courseSession?.ecUserId === user.id
+
   if (!courseSession) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
 
   if (courseSession.status === 'CLOSED') {
@@ -41,7 +43,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ code
       code: courseSession.code,
       name: courseSession.name,
       description: courseSession.description,
-      systemPrompt: courseSession.systemPrompt,
+      systemPrompt: isOwner ? courseSession.systemPrompt : undefined,
       validUntil: courseSession.validUntil,
       access: courseSession.access,
       status: courseSession.status,
