@@ -34,6 +34,7 @@ interface SessionInfo {
   agents: SessionAgent[]
   sources: { slug: string; label: string; icon: string }[]
   isParticipant: boolean
+  isGuest: boolean
   participantCount: number
 }
 
@@ -43,6 +44,10 @@ export default function SessionPage() {
   const [error, setError] = useState('')
   const [joined, setJoined] = useState(false)
   const [joining, setJoining] = useState(false)
+  const [isGuest, setIsGuest] = useState(false)
+  const [guestFirstName, setGuestFirstName] = useState('')
+  const [guestLastName, setGuestLastName] = useState('')
+  const [guestId, setGuestId] = useState('')
   const [selectedAgent, setSelectedAgent] = useState<SessionAgent | null>(null)
   const [messages, setMessages] = useState<MessageData[]>([])
   const [conversationId, setConversationId] = useState<string | undefined>()
@@ -56,10 +61,29 @@ export default function SessionPage() {
       .then(d => {
         if (d.error) { setError(d.error); return }
         setSessionInfo(d.session)
+        setIsGuest(d.session.isGuest ?? false)
         if (d.session.isParticipant) setJoined(true)
         if (d.session.agents.length > 0) setSelectedAgent(d.session.agents[0])
       })
       .catch(() => setError('Impossible de charger la session'))
+  }, [code])
+
+  // Restore guest session from sessionStorage
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('guest_session')
+      if (stored) {
+        const { firstName, lastName, id, sessionCode } = JSON.parse(stored) as {
+          firstName: string; lastName: string; id: string; sessionCode: string
+        }
+        if (sessionCode === code) {
+          setGuestFirstName(firstName)
+          setGuestLastName(lastName)
+          setGuestId(id)
+          setJoined(true)
+        }
+      }
+    } catch { /* ignore */ }
   }, [code])
 
   useEffect(() => {
@@ -76,6 +100,15 @@ export default function SessionPage() {
     } finally {
       setJoining(false)
     }
+  }
+
+  function joinAsGuest() {
+    if (!guestFirstName.trim() || !guestLastName.trim()) return
+    const id = crypto.randomUUID()
+    const payload = { firstName: guestFirstName.trim(), lastName: guestLastName.trim(), id, sessionCode: code }
+    try { sessionStorage.setItem('guest_session', JSON.stringify(payload)) } catch { /* ignore */ }
+    setGuestId(id)
+    setJoined(true)
   }
 
   async function send() {
@@ -101,16 +134,30 @@ export default function SessionPage() {
     setMessages(prev => [...prev, userMsg, placeholder])
 
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          agentSlug: selectedAgent?.slug,
-          conversationId,
-          courseSessionId: sessionInfo.id,
-        }),
-      })
+      let res: Response
+      if (isGuest) {
+        res = await fetch(`/api/session/${code}/guest-chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            agentSlug: selectedAgent?.slug,
+            conversationId,
+            guestId: guestId || `guest-${code}`,
+          }),
+        })
+      } else {
+        res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            agentSlug: selectedAgent?.slug,
+            conversationId,
+            courseSessionId: sessionInfo.id,
+          }),
+        })
+      }
 
       if (!res.ok || !res.body) {
         setMessages(prev => prev.map(m => m.id === placeholderId ? { ...m, content: 'Erreur de connexion', isStreaming: false } : m))
@@ -132,12 +179,15 @@ export default function SessionPage() {
           if (!line.startsWith('data: ')) continue
           try {
             const event = JSON.parse(line.slice(6))
-            if (event.type === 'conv_id') setConversationId(event.conversationId)
-            else if (event.type === 'chunk') {
+            if (event.type === 'conv_id') {
+              setConversationId(event.conversationId)
+            } else if (event.type === 'chunk') {
               setMessages(prev => prev.map(m =>
                 m.id === placeholderId ? { ...m, content: m.content + event.text } : m
               ))
             } else if (event.type === 'done') {
+              // For guests, conversationId comes from done event (Dify conv ID)
+              if (isGuest && event.conversationId) setConversationId(event.conversationId)
               setMessages(prev => prev.map(m =>
                 m.id === placeholderId
                   ? { ...m, id: event.messageId ?? m.id, isStreaming: false, sources: event.sources }
@@ -174,7 +224,103 @@ export default function SessionPage() {
     )
   }
 
-  // Join gate
+  // Guest landing screen
+  if (isGuest && !joined) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl border border-[#D8D8D8] p-8 max-w-md w-full space-y-6">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#00068D' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg>
+            </div>
+            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.9rem', color: '#00068D', letterSpacing: '0.04em' }}>NouveLLM</span>
+          </div>
+
+          {/* Activity info */}
+          <div className="space-y-1">
+            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Activité IA</p>
+            <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.1rem', color: '#0D0D0D' }}>{sessionInfo.name}</h1>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#8A8A8A' }}>
+              {sessionInfo.ecName && `Proposée par ${sessionInfo.ecName} · `}
+              Expire le {new Date(sessionInfo.validUntil).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </p>
+          </div>
+
+          {sessionInfo.description && (
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#5A5A5A', lineHeight: 1.6 }}>
+              {sessionInfo.description}
+            </p>
+          )}
+
+          {/* Guest form */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-[#E8E8E8]" />
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }}>Participer sans compte</span>
+              <div className="flex-1 h-px bg-[#E8E8E8]" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Prénom *</label>
+                <input
+                  type="text"
+                  value={guestFirstName}
+                  onChange={e => setGuestFirstName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') joinAsGuest() }}
+                  placeholder="Marie"
+                  className="w-full px-3 py-2.5 rounded-lg border border-[#D8D8D8] bg-[#FAFAFA] text-sm focus:outline-none focus:ring-2 focus:ring-[#2B2EB8]"
+                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                />
+              </div>
+              <div className="space-y-1">
+                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Nom *</label>
+                <input
+                  type="text"
+                  value={guestLastName}
+                  onChange={e => setGuestLastName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') joinAsGuest() }}
+                  placeholder="Dupont"
+                  className="w-full px-3 py-2.5 rounded-lg border border-[#D8D8D8] bg-[#FAFAFA] text-sm focus:outline-none focus:ring-2 focus:ring-[#2B2EB8]"
+                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={joinAsGuest}
+              disabled={!guestFirstName.trim() || !guestLastName.trim()}
+              className="w-full py-3 rounded-xl text-sm disabled:opacity-40 transition-all hover:opacity-90 flex items-center justify-center gap-2"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}
+            >
+              REJOINDRE L&apos;ACTIVITÉ
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </button>
+          </div>
+
+          {/* Login link */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-[#E8E8E8]" />
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }}>Vous avez un compte NouveLLM ?</span>
+              <div className="flex-1 h-px bg-[#E8E8E8]" />
+            </div>
+            <a
+              href={`/login?redirect=/session/${code}`}
+              className="w-full py-2.5 rounded-xl text-sm border border-[#D8D8D8] hover:border-[#00068D] hover:text-[#00068D] transition-all flex items-center justify-center gap-2"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#5A5A5A', letterSpacing: '0.04em' }}
+            >
+              SE CONNECTER
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Join gate (authenticated users who haven't joined yet)
   if (!joined) {
     return (
       <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6">
@@ -265,6 +411,11 @@ export default function SessionPage() {
               </span>
             )}
           </div>
+          {isGuest && guestFirstName && (
+            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A' }}>
+              {guestFirstName} {guestLastName}
+            </span>
+          )}
           <span className="font-mono text-[10px] bg-[#F2F2F2] px-2 py-0.5 rounded text-[#5A5A5A]">{sessionInfo.code}</span>
         </div>
         {/* Visibility notice */}

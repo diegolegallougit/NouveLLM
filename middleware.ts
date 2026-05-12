@@ -8,6 +8,14 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
+  if (pathname.startsWith('/session/')) {
+    return NextResponse.next()
+  }
+
+  if (pathname.startsWith('/apropos')) {
+    return NextResponse.next()
+  }
+
   if (pathname.startsWith('/login')) {
     const token = await getToken({ req, secret: process.env.AUTH_SECRET })
     if (token) return NextResponse.redirect(new URL('/', req.url))

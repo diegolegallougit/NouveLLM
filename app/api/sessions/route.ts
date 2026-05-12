@@ -114,12 +114,14 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  const host = req.headers.get('host') ?? 'localhost:3001'
-  const proto = req.headers.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'http')
-  const baseUrl = `${proto}://${host}`
+  const baseUrl = (process.env.NEXTAUTH_URL ?? `${req.headers.get('x-forwarded-proto') ?? 'http'}://${req.headers.get('host') ?? 'localhost:3001'}`).replace(/\/$/, '')
   const link = `${baseUrl}/session/${code}`
 
-  const qrSvg = await QRCode.toString(link, { type: 'svg', width: 256, margin: 2 })
+  const qrDataUrl = await QRCode.toDataURL(link, {
+    width: 256,
+    margin: 2,
+    color: { dark: '#00068D', light: '#ffffff' },
+  })
 
-  return NextResponse.json({ session: courseSession, link, qrSvg })
+  return NextResponse.json({ session: courseSession, link, qrDataUrl })
 }
