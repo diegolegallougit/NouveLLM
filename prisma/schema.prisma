@@ -67,6 +67,8 @@ model User {
   authoredMetaPrompts MetaPrompt[]         @relation("AuthoredMetaPrompts")
   activeMetaPrompts   UserActiveMetaPrompt[]
   reports             Report[]
+  scopes              Scope[]
+  auditLogs           AuditLog[]
   // Connectors
   notionToken         String?
   googleAccessToken   String?
@@ -76,7 +78,9 @@ model User {
 
 enum Role {
   STUDENT
+  BIATSS
   EC
+  RESPONSABLE
   ADMIN
 }
 
@@ -92,6 +96,7 @@ model Group {
   allowedAgents        GroupAgent[]
   allowedSources       GroupSource[]
   surveys              Survey[]
+  scopes               Scope[]
 }
 
 model UserGroup {
@@ -439,6 +444,7 @@ model DocumentSpace {
   owner            User             @relation("OwnedSpaces", fields: [ownerId], references: [id], onDelete: Cascade)
   difyDatasetId    String?
   enrichmentGroups String           @default("[]")
+  audience         SpaceAudience    @default(ALL)
   folders          DocumentFolder[]
   documents        SpaceDocument[]
   createdAt        DateTime         @default(now())
@@ -487,4 +493,51 @@ model Report {
   message   String
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
+}
+
+// ─── Gouvernance ──────────────────────────────────────────────────────────────
+
+model Scope {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+}
+
+enum AuditAction {
+  DOCUMENT_UPLOAD
+  DOCUMENT_DOWNLOAD
+  DOCUMENT_DELETE
+  DOCUMENT_RENAME
+  USER_INVITED
+  USER_REMOVED
+  USER_GROUP_ADDED
+  USER_GROUP_REMOVED
+  GROUP_CREATED
+  SPACE_CREATED
+  SPACE_DELETED
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action     AuditAction
+  entityType String
+  entityId   String
+  entityName String
+  spaceId    String?
+  groupId    String?
+  metadata   String?
+  createdAt  DateTime    @default(now())
+}
+
+enum SpaceAudience {
+  ALL
+  EC_ONLY
+  STUDENT_ONLY
+  BIATSS_ONLY
 }

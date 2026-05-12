@@ -286,6 +286,76 @@ async function main() {
     create: { userId: adminUser.id, groupId: adminGroup.id },
   })
 
+  // ── BIATSS group ──────────────────────────────────────────────────────────
+  const biatssGroup = await prisma.group.upsert({
+    where: { slug: 'biatss_base' },
+    update: {},
+    create: {
+      slug: 'biatss_base',
+      label: 'Personnel administratif et technique',
+      type: 'SYSTEME',
+      quotaTokens: 100000,
+      allowPersonalSources: false,
+    },
+  })
+
+  // Link BIATSS-appropriate agents to biatss_base
+  for (const slug of ['redaction', 'analyse', 'briefing']) {
+    const agent = await prisma.agent.findUnique({ where: { slug } })
+    if (agent) {
+      await prisma.groupAgent.upsert({
+        where: { groupId_agentId: { groupId: biatssGroup.id, agentId: agent.id } },
+        update: {},
+        create: { groupId: biatssGroup.id, agentId: agent.id },
+      })
+    }
+  }
+
+  // ── RESPONSABLE demo user ─────────────────────────────────────────────────
+  const responsableUser = await prisma.user.upsert({
+    where: { email: 'responsable.traductologie@sorbonne-nouvelle.fr' },
+    update: {},
+    create: {
+      email: 'responsable.traductologie@sorbonne-nouvelle.fr',
+      name: 'Marie Dupont',
+      password: hashedPassword,
+      role: 'RESPONSABLE',
+      onboarded: true,
+    },
+  })
+
+  await prisma.userGroup.upsert({
+    where: { userId_groupId: { userId: responsableUser.id, groupId: ecBase.id } },
+    update: {},
+    create: { userId: responsableUser.id, groupId: ecBase.id },
+  })
+
+  // Assign ec_base as Marie Dupont's scope
+  await prisma.scope.upsert({
+    where: { userId_groupId: { userId: responsableUser.id, groupId: ecBase.id } },
+    update: {},
+    create: { userId: responsableUser.id, groupId: ecBase.id },
+  })
+
+  // ── BIATSS demo user ───────────────────────────────────────────────────────
+  const biatssUser = await prisma.user.upsert({
+    where: { email: 'scolarite@sorbonne-nouvelle.fr' },
+    update: {},
+    create: {
+      email: 'scolarite@sorbonne-nouvelle.fr',
+      name: 'Service Scolarité',
+      password: hashedPassword,
+      role: 'BIATSS',
+      onboarded: true,
+    },
+  })
+
+  await prisma.userGroup.upsert({
+    where: { userId_groupId: { userId: biatssUser.id, groupId: biatssGroup.id } },
+    update: {},
+    create: { userId: biatssUser.id, groupId: biatssGroup.id },
+  })
+
   // ── Routing families ──────────────────────────────────────────────────────
   const ROUTING_FAMILIES = [
     {
