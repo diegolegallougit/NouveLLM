@@ -15,11 +15,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const body = await req.json()
-  const { name, description, icon, enrichmentGroups } = body as {
+  const { name, description, icon, enrichmentGroups, audience } = body as {
     name?: string
     description?: string
     icon?: string
     enrichmentGroups?: string[]
+    audience?: string
   }
 
   const updated = await prisma.documentSpace.update({
@@ -29,6 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(description !== undefined && { description: description?.trim() ?? null }),
       ...(icon && { icon }),
       ...(enrichmentGroups !== undefined && { enrichmentGroups: JSON.stringify(enrichmentGroups) }),
+      ...(audience && { audience: audience as never }),
     },
   })
 

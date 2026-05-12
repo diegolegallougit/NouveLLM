@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { name, description, icon } = body as { name: string; description?: string; icon?: string }
+  const { name, description, icon, audience } = body as { name: string; description?: string; icon?: string; audience?: string }
   if (!name?.trim()) return NextResponse.json({ error: 'name requis' }, { status: 400 })
 
   const baseSlug = slugify(name)
@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
       description: description?.trim() ?? null,
       icon: icon ?? '📁',
       ownerId: session.user.id,
+      ...(audience && { audience: audience as never }),
     },
   })
 

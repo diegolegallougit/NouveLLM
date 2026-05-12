@@ -4,10 +4,13 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { SpaceData, SpaceDoc } from '@/components/spaces/SpaceTree'
 
-const INST_SPACES = [
-  { id: 'formations', name: 'USN — Formations', icon: '🎓' },
-  { id: 'services', name: 'USN — Services', icon: '🏛️' },
-]
+interface SharedSpace {
+  id: string
+  name: string
+  icon: string
+  description: string | null
+  audience: string
+}
 
 function fileIcon(mime: string | null) {
   if (!mime) return '📄'
@@ -49,7 +52,7 @@ interface DocWithDate extends SpaceDoc {
   uploadedAt?: string
 }
 
-export default function SpacesPageClient({ initialSpaces }: { initialSpaces: SpaceData[] }) {
+export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], userRole = 'EC' }: { initialSpaces: SpaceData[]; sharedSpaces?: SharedSpace[]; userRole?: string }) {
   const [spaces, setSpaces] = useState<SpaceData[]>(initialSpaces)
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(
     initialSpaces.length > 0 ? initialSpaces[0].id : null
@@ -110,6 +113,7 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsName, setSettingsName] = useState('')
   const [settingsDesc, setSettingsDesc] = useState('')
+  const [settingsAudience, setSettingsAudience] = useState('ALL')
   const [settingsSaving, setSettingsSaving] = useState(false)
 
   const selectedSpace = spaces.find(s => s.id === selectedSpaceId) ?? null
@@ -293,13 +297,15 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
     setSettingsOpen(true)
   }
 
+  const canSetAudience = userRole === 'ADMIN' || userRole === 'RESPONSABLE' || userRole === 'EC'
+
   async function saveSettings() {
     if (!selectedSpaceId) return
     setSettingsSaving(true)
     try {
       await fetch(`/api/spaces/${selectedSpaceId}`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: settingsName.trim(), description: settingsDesc.trim() || null }),
+        body: JSON.stringify({ name: settingsName.trim(), description: settingsDesc.trim() || null, ...(canSetAudience && { audience: settingsAudience }) }),
       })
       setSettingsOpen(false); await loadSpaces()
     } finally { setSettingsSaving(false) }
@@ -455,7 +461,11 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
           <div className="px-3 pt-2 pb-1">
             <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#C8C8C8', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Espaces partagés</p>
           </div>
-          {INST_SPACES.map(s => (
+          {sharedSpaces.length === 0 ? (
+            <div className="px-3 py-2">
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#D8D8D8', fontStyle: 'italic' }}>Aucun espace partagé</span>
+            </div>
+          ) : sharedSpaces.map(s => (
             <div key={s.id} className="flex items-center gap-2 px-3 py-2 opacity-50 cursor-not-allowed">
               <span className="text-sm">{s.icon}</span>
               <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#5A5A5A' }}>{s.name}</span>
@@ -855,6 +865,25 @@ export default function SpacesPageClient({ initialSpaces }: { initialSpaces: Spa
                   style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
                 />
               </div>
+
+              {canSetAudience && (
+                <div className="space-y-1.5">
+                  <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                    Audience
+                  </label>
+                  <select
+                    value={settingsAudience}
+                    onChange={e => setSettingsAudience(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-[#D8D8D8] bg-[#FAFAFA] focus:outline-none focus:ring-2 focus:ring-[#2B2EB8]"
+                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
+                  >
+                    <option value="ALL">Tous les utilisateurs</option>
+                    <option value="EC_ONLY">Enseignants-chercheurs uniquement</option>
+                    <option value="STUDENT_ONLY">Étudiants uniquement</option>
+                    <option value="BIATSS_ONLY">Personnel BIATSS uniquement</option>
+                  </select>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
