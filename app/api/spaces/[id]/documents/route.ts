@@ -6,6 +6,11 @@ import { ocrPdfWithPixtral } from '@/lib/ocr-pixtral'
 import { currentAnneeUniv, defaultVisibleUntil } from '@/lib/academic-calendar'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { NextRequest, NextResponse } from 'next/server'
+import { randomUUID } from 'crypto'
+import fs from 'fs'
+import path from 'path'
+
+const DOCS_STORAGE = path.join(process.cwd(), '.data', 'space-docs')
 
 const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.13:5001'
 const DIFY_DATASET_KEY = process.env.DIFY_DATASET_API_KEY || ''
@@ -99,11 +104,59 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     resolvedFolderId = folder?.id ?? null
   }
 
+  // Personal space — store converted content locally, skip Dify entirely
+  if (!spaceGroup) {
+    const docId = randomUUID()
+    const useOriginal = !pipeline.content || pipeline.method === 'pdf-dify-native'
+    const storedExt = useOriginal
+      ? '.' + (file.name.split('.').pop()?.toLowerCase() ?? 'bin')
+      : pipeline.contentType === 'json' ? '.json' : '.md'
+    const storedFilename = `${docId}${storedExt}`
+    await fs.promises.mkdir(DOCS_STORAGE, { recursive: true })
+    await fs.promises.writeFile(
+      path.join(DOCS_STORAGE, storedFilename),
+      useOriginal ? fileBuffer : Buffer.from(pipeline.content, 'utf-8')
+    )
+
+    const doc = await prisma.spaceDocument.create({
+      data: {
+        id: docId,
+        name: file.name,
+        displayName: null,
+        description: null,
+        folderId: resolvedFolderId,
+        spaceId,
+        difyFileId: null,
+        storedFilename,
+        uploadedById: session.user.id,
+        size: file.size,
+        mimeType: file.type || null,
+        visibleFrom: new Date(),
+        visibleUntil: defaultVisibleUntil(),
+        isVisible: true,
+        diplomeSlug: null,
+        anneeUniv: currentAnneeUniv(),
+        metadata: JSON.stringify({ hasText: pipeline.hasText, method: pipeline.method, targetDatasetId: null }),
+        indexingStatus: 'no_index',
+      },
+      include: { folder: true },
+    })
+
+    await logAction({
+      userId: session.user.id,
+      action: 'DOCUMENT_UPLOAD',
+      entityType: 'SpaceDocument',
+      entityId: doc.id,
+      entityName: doc.name,
+      spaceId,
+    })
+
+    return NextResponse.json({ document: doc }, { status: 201 })
+  }
+
   // Select target KB
   const groupKbId = spaceGroup?.hasKB ? spaceGroup.difyDatasetId : null
   const targetDatasetId = groupKbId || COURS_ACTIFS_DATASET_ID
-
-  console.info('[upload] targetDatasetId:', targetDatasetId || '(vide)', '| method:', pipeline.method)
 
   const difyDocMetadata = {
     space_id: spaceId,

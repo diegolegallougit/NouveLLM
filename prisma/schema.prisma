@@ -491,7 +491,8 @@ model SpaceDocument {
   folder       DocumentFolder? @relation(fields: [folderId], references: [id])
   spaceId      String
   space        DocumentSpace   @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  difyFileId   String
+  difyFileId     String?
+  storedFilename String?
   uploadedById String
   uploadedBy   User            @relation("UploadedDocuments", fields: [uploadedById], references: [id])
   uploadedAt   DateTime        @default(now())

@@ -887,7 +887,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                         const isVis = doc.isVisible !== false
                         const meta = (() => { try { return doc.metadata ? JSON.parse(doc.metadata) : null } catch { return null } })()
                         const isPending = doc.indexingStatus === 'pending'
-                        const isFailed = doc.indexingStatus === 'failed' || doc.indexingStatus === 'no_index'
+                        const isFailed = doc.indexingStatus === 'failed'
                         const isJustIndexed = justIndexedIds.has(doc.id)
                         return (
                         <div

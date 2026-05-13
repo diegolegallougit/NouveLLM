@@ -25,8 +25,8 @@ export async function GET(
     return NextResponse.json({ status: doc.indexingStatus })
   }
 
-  // Never reached Dify (upload failed before creation)
-  if (doc.difyFileId.startsWith('local-')) {
+  // Never reached Dify (personal space or upload failed before creation)
+  if (!doc.difyFileId || doc.difyFileId.startsWith('local-')) {
     await prisma.spaceDocument.update({ where: { id: docId }, data: { indexingStatus: 'failed' } })
     return NextResponse.json({ status: 'failed' })
   }

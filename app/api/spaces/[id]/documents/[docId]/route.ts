@@ -18,7 +18,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const doc = await prisma.spaceDocument.findFirst({ where: { id: docId, spaceId } })
   if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const filePath = path.join(DOCS_STORAGE, docId)
+  const filePath = path.join(DOCS_STORAGE, doc.storedFilename ?? docId)
   if (!fs.existsSync(filePath)) {
     return NextResponse.json({ error: 'Fichier non disponible au téléchargement' }, { status: 404 })
   }
@@ -98,7 +98,10 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
   if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const doc = await prisma.spaceDocument.findUnique({ where: { id: docId }, select: { name: true, displayName: true } })
+  const doc = await prisma.spaceDocument.findUnique({ where: { id: docId }, select: { name: true, displayName: true, storedFilename: true } })
+  if (doc?.storedFilename) {
+    await fs.promises.unlink(path.join(DOCS_STORAGE, doc.storedFilename)).catch(() => {})
+  }
   await prisma.spaceDocument.delete({ where: { id: docId } })
 
   await logAction({
