@@ -4,6 +4,7 @@ import { logAction } from '@/lib/audit'
 import { processDocument } from '@/lib/document-pipeline'
 import { ocrPdfWithPixtral } from '@/lib/ocr-pixtral'
 import { currentAnneeUniv, defaultVisibleUntil } from '@/lib/academic-calendar'
+import { checkRateLimit } from '@/lib/ratelimit'
 import { NextRequest, NextResponse } from 'next/server'
 
 const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.13:5001'
@@ -35,6 +36,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  if (!checkRateLimit(session.user.id, 10, 60_000)) {
+    return NextResponse.json({ error: 'Trop de requêtes — réessayez dans une minute' }, { status: 429 })
+  }
 
   const { id: spaceId } = await params
   const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
