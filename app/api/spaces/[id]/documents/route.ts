@@ -72,18 +72,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // Run document pipeline (conversion + extraction)
   let pipeline = await processDocument(fileBuffer, file.name, file.type)
 
-  // OCR si PDF scanné
+  // OCR si PDF scanné — try/catch car ocrPdfWithPixtral peut throw (timeout réseau Cortecs)
   if (!pipeline.hasText && pipeline.warnings.includes('PDF_SCANNED')) {
-    const ocrText = await ocrPdfWithPixtral(fileBuffer)
-    if (ocrText.length > 100) {
-      pipeline = {
-        content: ocrText,
-        contentType: 'markdown',
-        method: 'pixtral-ocr',
-        hasText: true,
-        warnings: [],
-        filename: file.name.replace(/\.pdf$/i, '-ocr.md'),
+    try {
+      const ocrText = await ocrPdfWithPixtral(fileBuffer)
+      if (ocrText.length > 100) {
+        pipeline = {
+          content: ocrText,
+          contentType: 'markdown',
+          method: 'pixtral-ocr',
+          hasText: true,
+          warnings: [],
+          filename: file.name.replace(/\.pdf$/i, '-ocr.md'),
+        }
       }
+    } catch (err) {
+      console.warn('[upload] OCR Pixtral failed (non-blocking):', err)
+      // Laisse pipeline en pdf-scanned → sera archivé sans indexation
     }
   }
 
@@ -97,6 +102,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // Select target KB
   const groupKbId = spaceGroup?.hasKB ? spaceGroup.difyDatasetId : null
   const targetDatasetId = groupKbId || COURS_ACTIFS_DATASET_ID
+
+  console.info('[upload] targetDatasetId:', targetDatasetId || '(vide)', '| method:', pipeline.method)
 
   const difyDocMetadata = {
     space_id: spaceId,
@@ -121,7 +128,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       `${DIFY_BASE_URL}/v1/datasets/${targetDatasetId}/document/create_by_file`,
       { method: 'POST', headers: { Authorization: `Bearer ${DIFY_DATASET_KEY}` }, body: difyForm, signal: AbortSignal.timeout(30000) }
     )
-    if (!res.ok) return null
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '')
+      console.error('[upload] Dify error:', res.status, errBody.slice(0, 300))
+      return null
+    }
     const data = await res.json()
     return data.document?.id ?? null
   }
@@ -130,29 +141,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   let difyFileId = `local-${Date.now()}`
   let indexingStatus = targetDatasetId ? 'pending' : 'no_index'
 
-  if (targetDatasetId && pipeline.hasText && pipeline.content) {
-    // Cas 1 : contenu extrait par le pipeline (txt/md/json) → upload texte
-    try {
+  if (targetDatasetId && pipeline.hasText) {
+    // Choisir le fichier à envoyer à Dify :
+    // - PDF natif ou contenu vide → envoyer le PDF original (Dify extrait nativement)
+    // - Autres formats → envoyer le contenu converti (txt/md/json)
+    let difyFile: File
+    if (pipeline.method === 'pdf-dify-native' || !pipeline.content) {
+      difyFile = new File([fileBuffer], file.name, { type: file.type || 'application/pdf' })
+    } else {
       const contentBlob = new Blob([pipeline.content], {
         type: pipeline.contentType === 'json' ? 'application/json' : 'text/plain; charset=utf-8',
       })
-      const id = await uploadToDifyDataset(new File([contentBlob], pipeline.filename))
-      if (id) { difyFileId = id } else { indexingStatus = 'failed' }
-    } catch (err) {
-      indexingStatus = 'failed'
-      console.warn('[upload] Dify indexation failed (non-blocking):', err)
+      difyFile = new File([contentBlob], pipeline.filename)
     }
-  } else if (targetDatasetId && pipeline.method === 'pdf-dify-native') {
-    // Cas 2 : PDF avec polices embarquées → upload du PDF brut pour extraction native par Dify
     try {
-      const id = await uploadToDifyDataset(new File([fileBuffer], file.name, { type: 'application/pdf' }))
+      const id = await uploadToDifyDataset(difyFile)
       if (id) { difyFileId = id } else { indexingStatus = 'failed' }
     } catch (err) {
       indexingStatus = 'failed'
-      console.warn('[upload] Dify natif PDF failed (non-blocking):', err)
+      console.warn('[upload] Dify upload failed (non-blocking):', err)
     }
   } else if (!pipeline.hasText) {
-    // Cas 3 : PDF vraiment scanné (image) — archivage brut, pas d'indexation KB
+    // PDF vraiment scanné (image) — archivage brut, pas d'indexation KB
     indexingStatus = 'no_index'
     try {
       const difyForm = new FormData()
