@@ -98,7 +98,6 @@ export async function processDocument(
       const isLikelyScanned = text.length < 30 && buffer.length < 100_000
 
       if (isLikelyScanned) {
-        console.info('[pipeline] PDF scanné (image):', { filename, chars: text.length, bytes: buffer.length })
         return { content: '', contentType: 'text', method: 'pdf-scanned', hasText: false, warnings: ['PDF_SCANNED'], filename }
       }
 
@@ -114,7 +113,6 @@ export async function processDocument(
       }
 
       // Texte court mais fichier volumineux → polices non-standard, Dify gère nativement
-      console.info('[pipeline] PDF polices embarquées, fallback Dify natif:', { filename, chars: text.length, bytes: buffer.length })
       return { content: '', contentType: 'text', method: 'pdf-dify-native', hasText: true, warnings: [], filename }
 
     } catch {
