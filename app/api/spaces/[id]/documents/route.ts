@@ -98,35 +98,32 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const groupKbId = spaceGroup?.hasKB ? spaceGroup.difyDatasetId : null
   const targetDatasetId = groupKbId || COURS_ACTIFS_DATASET_ID
 
+  const difyDocMetadata = {
+    space_id: spaceId,
+    folder_id: resolvedFolderId ?? null,
+    diplome: spaceGroup?.diplomeRef?.slug ?? null,
+    ufr: spaceGroup?.diplomeRef?.ufr ?? null,
+    audience: 'ALL',
+    annee_univ: currentAnneeUniv(),
+    uploader: session.user.email,
+    visible_from: new Date().toISOString(),
+    visible_until: defaultVisibleUntil().toISOString(),
+    is_visible: true,
+    original_filename: file.name,
+    processing_method: pipeline.method,
+  }
+
   // Upload processed content to Dify
   let difyFileId = `local-${Date.now()}`
   if (targetDatasetId && pipeline.hasText && pipeline.content) {
+    // Cas 1 : contenu extrait par le pipeline (txt/md/json) → upload texte
     try {
       const contentBlob = new Blob([pipeline.content], {
         type: pipeline.contentType === 'json' ? 'application/json' : 'text/plain; charset=utf-8',
       })
-      const difyFile = new File([contentBlob], pipeline.filename)
       const difyForm = new FormData()
-      difyForm.append('file', difyFile)
-      difyForm.append('data', JSON.stringify({
-        indexing_technique: 'high_quality',
-        process_rule: { mode: 'automatic' },
-        doc_metadata: {
-          space_id: spaceId,
-          folder_id: resolvedFolderId ?? null,
-          diplome: spaceGroup?.diplomeRef?.slug ?? null,
-          ufr: spaceGroup?.diplomeRef?.ufr ?? null,
-          audience: 'ALL',
-          annee_univ: currentAnneeUniv(),
-          uploader: session.user.email,
-          visible_from: new Date().toISOString(),
-          visible_until: defaultVisibleUntil().toISOString(),
-          is_visible: true,
-          original_filename: file.name,
-          processing_method: pipeline.method,
-        },
-      }))
-
+      difyForm.append('file', new File([contentBlob], pipeline.filename))
+      difyForm.append('data', JSON.stringify({ indexing_technique: 'high_quality', process_rule: { mode: 'automatic' }, doc_metadata: difyDocMetadata }))
       const difyRes = await fetch(
         `${DIFY_BASE_URL}/v1/datasets/${targetDatasetId}/document/create_by_file`,
         { method: 'POST', headers: { Authorization: `Bearer ${DIFY_DATASET_KEY}` }, body: difyForm, signal: AbortSignal.timeout(30000) }
@@ -138,8 +135,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     } catch (err) {
       console.warn('[upload] Dify indexation failed (non-blocking):', err)
     }
+  } else if (targetDatasetId && pipeline.method === 'pdf-dify-native') {
+    // Cas 2 : PDF avec polices embarquées que pdf-parse ne décode pas
+    // → upload du PDF original à Dify pour extraction native
+    try {
+      const difyForm = new FormData()
+      difyForm.append('file', new File([fileBuffer], file.name, { type: 'application/pdf' }))
+      difyForm.append('data', JSON.stringify({ indexing_technique: 'high_quality', process_rule: { mode: 'automatic' }, doc_metadata: difyDocMetadata }))
+      const difyRes = await fetch(
+        `${DIFY_BASE_URL}/v1/datasets/${targetDatasetId}/document/create_by_file`,
+        { method: 'POST', headers: { Authorization: `Bearer ${DIFY_DATASET_KEY}` }, body: difyForm, signal: AbortSignal.timeout(30000) }
+      )
+      if (difyRes.ok) {
+        const difyData = await difyRes.json()
+        difyFileId = difyData.document?.id ?? difyFileId
+      }
+    } catch (err) {
+      console.warn('[upload] Dify natif PDF failed (non-blocking):', err)
+    }
   } else if (!pipeline.hasText) {
-    // PDF scanné sans OCR disponible : upload du fichier brut vers Dify pour archivage
+    // Cas 3 : PDF vraiment scanné (image), sans OCR — archivage brut
     try {
       const difyForm = new FormData()
       difyForm.append('file', new File([fileBuffer], file.name, { type: file.type }))
