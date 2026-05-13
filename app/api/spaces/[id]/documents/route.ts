@@ -113,59 +113,55 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     processing_method: pipeline.method,
   }
 
-  // Upload processed content to Dify
+  async function uploadToDifyDataset(uploadFile: File): Promise<string | null> {
+    const difyForm = new FormData()
+    difyForm.append('file', uploadFile)
+    difyForm.append('data', JSON.stringify({ indexing_technique: 'high_quality', process_rule: { mode: 'automatic' }, doc_metadata: difyDocMetadata }))
+    const res = await fetch(
+      `${DIFY_BASE_URL}/v1/datasets/${targetDatasetId}/document/create_by_file`,
+      { method: 'POST', headers: { Authorization: `Bearer ${DIFY_DATASET_KEY}` }, body: difyForm, signal: AbortSignal.timeout(30000) }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.document?.id ?? null
+  }
+
+  // Upload to Dify — track success/failure for indexingStatus
   let difyFileId = `local-${Date.now()}`
+  let indexingStatus = targetDatasetId ? 'pending' : 'no_index'
+
   if (targetDatasetId && pipeline.hasText && pipeline.content) {
     // Cas 1 : contenu extrait par le pipeline (txt/md/json) → upload texte
     try {
       const contentBlob = new Blob([pipeline.content], {
         type: pipeline.contentType === 'json' ? 'application/json' : 'text/plain; charset=utf-8',
       })
-      const difyForm = new FormData()
-      difyForm.append('file', new File([contentBlob], pipeline.filename))
-      difyForm.append('data', JSON.stringify({ indexing_technique: 'high_quality', process_rule: { mode: 'automatic' }, doc_metadata: difyDocMetadata }))
-      const difyRes = await fetch(
-        `${DIFY_BASE_URL}/v1/datasets/${targetDatasetId}/document/create_by_file`,
-        { method: 'POST', headers: { Authorization: `Bearer ${DIFY_DATASET_KEY}` }, body: difyForm, signal: AbortSignal.timeout(30000) }
-      )
-      if (difyRes.ok) {
-        const difyData = await difyRes.json()
-        difyFileId = difyData.document?.id ?? difyFileId
-      }
+      const id = await uploadToDifyDataset(new File([contentBlob], pipeline.filename))
+      if (id) { difyFileId = id } else { indexingStatus = 'failed' }
     } catch (err) {
+      indexingStatus = 'failed'
       console.warn('[upload] Dify indexation failed (non-blocking):', err)
     }
   } else if (targetDatasetId && pipeline.method === 'pdf-dify-native') {
-    // Cas 2 : PDF avec polices embarquées que pdf-parse ne décode pas
-    // → upload du PDF original à Dify pour extraction native
+    // Cas 2 : PDF avec polices embarquées → upload du PDF brut pour extraction native par Dify
     try {
-      const difyForm = new FormData()
-      difyForm.append('file', new File([fileBuffer], file.name, { type: 'application/pdf' }))
-      difyForm.append('data', JSON.stringify({ indexing_technique: 'high_quality', process_rule: { mode: 'automatic' }, doc_metadata: difyDocMetadata }))
-      const difyRes = await fetch(
-        `${DIFY_BASE_URL}/v1/datasets/${targetDatasetId}/document/create_by_file`,
-        { method: 'POST', headers: { Authorization: `Bearer ${DIFY_DATASET_KEY}` }, body: difyForm, signal: AbortSignal.timeout(30000) }
-      )
-      if (difyRes.ok) {
-        const difyData = await difyRes.json()
-        difyFileId = difyData.document?.id ?? difyFileId
-      }
+      const id = await uploadToDifyDataset(new File([fileBuffer], file.name, { type: 'application/pdf' }))
+      if (id) { difyFileId = id } else { indexingStatus = 'failed' }
     } catch (err) {
+      indexingStatus = 'failed'
       console.warn('[upload] Dify natif PDF failed (non-blocking):', err)
     }
   } else if (!pipeline.hasText) {
-    // Cas 3 : PDF vraiment scanné (image), sans OCR — archivage brut
+    // Cas 3 : PDF vraiment scanné (image) — archivage brut, pas d'indexation KB
+    indexingStatus = 'no_index'
     try {
       const difyForm = new FormData()
       difyForm.append('file', new File([fileBuffer], file.name, { type: file.type }))
       difyForm.append('user', session.user.id)
-      const difyRes = await fetch(`${DIFY_BASE_URL}/v1/files/upload`, {
+      const res = await fetch(`${DIFY_BASE_URL}/v1/files/upload`, {
         method: 'POST', headers: { Authorization: `Bearer ${process.env.DIFY_IIIAAS_API_KEY || ''}` }, body: difyForm
       })
-      if (difyRes.ok) {
-        const d = await difyRes.json()
-        difyFileId = d.id ?? difyFileId
-      }
+      if (res.ok) { const d = await res.json(); difyFileId = d.id ?? difyFileId }
     } catch { /* non-blocking */ }
   }
 
@@ -190,6 +186,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         method: pipeline.method,
         targetDatasetId: targetDatasetId || null,
       }),
+      indexingStatus,
     },
     include: { folder: true },
   })

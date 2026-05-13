@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { SpaceData, SpaceDoc } from '@/components/spaces/SpaceTree'
 
@@ -61,6 +61,7 @@ interface DocWithDate extends SpaceDoc {
   visibleFrom?: string | null
   visibleUntil?: string | null
   metadata?: string | null
+  indexingStatus?: string
 }
 
 export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], userRole = 'EC' }: { initialSpaces: SpaceData[]; sharedSpaces?: SharedSpace[]; userRole?: string }) {
@@ -126,6 +127,11 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
   // Upload error
   const [uploadError, setUploadError] = useState('')
 
+  // Indexing status polling
+  const [pendingDocIds, setPendingDocIds] = useState<Set<string>>(new Set())
+  const [justIndexedIds, setJustIndexedIds] = useState<Set<string>>(new Set())
+  const pendingDocIdsRef = useRef<Set<string>>(new Set())
+
   // Right panel tab
   const [activeTab, setActiveTab] = useState<'files' | 'journal'>('files')
 
@@ -142,16 +148,59 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
 
   const selectedSpace = spaces.find(s => s.id === selectedSpaceId) ?? null
 
+  // Keep pendingDocIds ref in sync for use inside polling interval
+  useEffect(() => { pendingDocIdsRef.current = pendingDocIds }, [pendingDocIds])
+
+  // Polling — runs when there are pending docs; interval re-reads ref each tick
+  const hasPendingDocs = useMemo(() => pendingDocIds.size > 0, [pendingDocIds])
+  useEffect(() => {
+    if (!hasPendingDocs || !selectedSpaceId) return
+    const attempts = new Map<string, number>()
+
+    const intervalId = setInterval(async () => {
+      const toCheck = Array.from(pendingDocIdsRef.current)
+      await Promise.all(toCheck.map(async (docId) => {
+        const n = (attempts.get(docId) ?? 0) + 1
+        attempts.set(docId, n)
+        try {
+          const r = await fetch(`/api/spaces/${selectedSpaceId}/documents/${docId}/status`)
+          if (!r.ok) return
+          const { status } = await r.json() as { status: string }
+          if (status !== 'pending') {
+            setDocs(prev => prev.map(d => d.id === docId ? { ...d, indexingStatus: status } : d))
+            setPendingDocIds(prev => { const s = new Set(prev); s.delete(docId); return s })
+            if (status === 'indexed') {
+              setJustIndexedIds(prev => new Set([...prev, docId]))
+              setTimeout(() => setJustIndexedIds(prev => { const s = new Set(prev); s.delete(docId); return s }), 2000)
+            }
+          } else if (n >= 20) {
+            setDocs(prev => prev.map(d => d.id === docId ? { ...d, indexingStatus: 'failed' } : d))
+            setPendingDocIds(prev => { const s = new Set(prev); s.delete(docId); return s })
+          }
+        } catch { /* skip — réseau transitoire */ }
+      }))
+    }, 3000)
+
+    return () => clearInterval(intervalId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPendingDocs, selectedSpaceId])
+
   // Load documents when space changes
   useEffect(() => {
-    if (!selectedSpaceId) { setDocs([]); return }
+    if (!selectedSpaceId) { setDocs([]); setPendingDocIds(new Set()); return }
     setDocsLoading(true)
     setSelectedFolderId(null)
     setUploadError('')
     setSelectedDocIds(new Set())
+    setPendingDocIds(new Set())
     fetch(`/api/spaces/${selectedSpaceId}/documents`)
       .then(r => r.json())
-      .then(d => setDocs(d.documents ?? []))
+      .then(d => {
+        const loaded: DocWithDate[] = d.documents ?? []
+        setDocs(loaded)
+        const stillPending = new Set(loaded.filter(doc => doc.indexingStatus === 'pending').map(doc => doc.id))
+        if (stillPending.size > 0) setPendingDocIds(stillPending)
+      })
       .catch(() => setDocs([]))
       .finally(() => setDocsLoading(false))
     setActiveTab('files')
@@ -257,6 +306,23 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
     setUploading(true)
     for (const file of files) {
       setUploadMsg(`Importation de ${file.name}…`)
+
+      // Optimistic — ajouter immédiatement avec statut pending
+      const tempId = `optimistic-${Date.now()}-${Math.random()}`
+      const optimisticDoc: DocWithDate = {
+        id: tempId,
+        name: file.name,
+        displayName: null,
+        description: null,
+        folderId: selectedFolderId,
+        mimeType: file.type || null,
+        size: file.size,
+        uploadedAt: new Date().toISOString(),
+        indexingStatus: 'pending',
+        metadata: null,
+      }
+      setDocs(prev => [optimisticDoc, ...prev])
+
       const form = new FormData()
       form.append('file', file)
       if (selectedFolderId) form.append('folderId', selectedFolderId)
@@ -264,12 +330,20 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
         const r = await fetch(`/api/spaces/${selectedSpaceId}/documents`, { method: 'POST', body: form })
         if (r.ok) {
           const data = await r.json()
-          setDocs(prev => [data.document, ...prev])
+          // Remplacer l'entrée optimiste par le doc réel
+          setDocs(prev => prev.map(d => d.id === tempId ? data.document : d))
+          if (data.document?.indexingStatus === 'pending') {
+            setPendingDocIds(prev => new Set([...prev, data.document.id]))
+          }
         } else {
+          // Supprimer l'entrée optimiste en cas d'échec
+          setDocs(prev => prev.filter(d => d.id !== tempId))
           const err = await r.json().catch(() => ({}))
           setUploadError(err.error ?? `Erreur lors de l'importation de ${file.name}`)
         }
-      } catch { /* skip */ }
+      } catch {
+        setDocs(prev => prev.filter(d => d.id !== tempId))
+      }
     }
     setUploadMsg('')
     setUploading(false)
@@ -812,6 +886,9 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                       {displayDocs.map((doc, i) => {
                         const isVis = doc.isVisible !== false
                         const meta = (() => { try { return doc.metadata ? JSON.parse(doc.metadata) : null } catch { return null } })()
+                        const isPending = doc.indexingStatus === 'pending'
+                        const isFailed = doc.indexingStatus === 'failed' || doc.indexingStatus === 'no_index'
+                        const isJustIndexed = justIndexedIds.has(doc.id)
                         return (
                         <div
                           key={doc.id}
@@ -824,7 +901,14 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                               onChange={e => setSelectedDocIds(prev => { const s = new Set(prev); e.target.checked ? s.add(doc.id) : s.delete(doc.id); return s })}
                               className="accent-[#00068D] mt-1 flex-shrink-0" />
                           )}
-                          <span className="text-lg flex-shrink-0 mt-0.5">{fileIcon(doc.mimeType, doc.name)}</span>
+                          <span className="text-lg flex-shrink-0 mt-0.5">
+                            {isPending
+                              ? <span className="nl-spinner" style={{ width: '1.1rem', height: '1.1rem', display: 'inline-block' }} />
+                              : isJustIndexed
+                                ? <span style={{ color: '#2e7d32' }}>✓</span>
+                                : fileIcon(doc.mimeType, doc.name)
+                            }
+                          </span>
                           <div className="flex-1 min-w-0">
                             {renamingDocId === doc.id ? (
                               <input
@@ -838,58 +922,65 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                               />
                             ) : (
                               <>
-                                <p className="truncate" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
-                                  {doc.displayName || doc.name}
-                                </p>
-                                {doc.description && (
+                                {isPending ? (
+                                  <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', fontStyle: 'italic' }}>
+                                    Indexation en cours…
+                                  </p>
+                                ) : (
+                                  <p className="truncate" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
+                                    {doc.displayName || doc.name}
+                                  </p>
+                                )}
+                                {doc.description && !isPending && (
                                   <p className="truncate" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', fontStyle: 'italic' }}>
                                     {doc.description}
                                   </p>
                                 )}
-                                {/* Visibility badge — espaces partagés */}
-                                {isShared && (
-                                  <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                                    <button
-                                      onClick={() => toggleDocVisibility(doc.id, doc.isVisible)}
-                                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border transition-all hover:opacity-80 ${isVis ? 'bg-green-50 border-green-200 text-green-700' : 'bg-[#F2F2F2] border-[#D8D8D8] text-[#8A8A8A]'}`}
-                                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
-                                    >
-                                      <span className={`w-1.5 h-1.5 rounded-full ${isVis ? 'bg-green-500' : 'bg-[#C8C8C8]'}`} />
-                                      {isVis ? 'Visible' : 'Masqué'}
-                                    </button>
-                                    {(doc.visibleFrom || doc.visibleUntil) && editVisibilityDocId !== doc.id && (
-                                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
-                                        {doc.visibleFrom ? `Dès ${fmtVisibleDate(doc.visibleFrom)}` : ''}{doc.visibleFrom && doc.visibleUntil ? ' → ' : ''}{doc.visibleUntil ? `${fmtVisibleDate(doc.visibleUntil)}` : ''}
-                                      </span>
-                                    )}
-                                    {editVisibilityDocId === doc.id ? (
-                                      <div className="flex items-center gap-1">
-                                        <input type="date" defaultValue={doc.visibleFrom ? doc.visibleFrom.slice(0, 10) : ''} id={`vf-${doc.id}`} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontSize: 'var(--text-2xs)' }} />
-                                        <span style={{ fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>→</span>
-                                        <input type="date" defaultValue={doc.visibleUntil ? doc.visibleUntil.slice(0, 10) : ''} id={`vu-${doc.id}`} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontSize: 'var(--text-2xs)' }} />
-                                        <button onClick={() => {
-                                          const f = (document.getElementById(`vf-${doc.id}`) as HTMLInputElement)?.value ?? ''
-                                          const u = (document.getElementById(`vu-${doc.id}`) as HTMLInputElement)?.value ?? ''
-                                          saveDocDates(doc.id, f, u)
-                                        }} className="px-1.5 py-0.5 rounded bg-[#00068D] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>OK</button>
-                                        <button aria-label="Fermer l'édition des dates" onClick={() => setEditVisibilityDocId(null)} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>✕</button>
-                                      </div>
-                                    ) : (
-                                      <button aria-label="Modifier les dates de visibilité" onClick={() => setEditVisibilityDocId(doc.id)} className="text-[#8A8A8A] hover:text-[#00068D]" title="Modifier les dates" style={{ fontSize: 'var(--text-xs)' }}>✏</button>
-                                    )}
-                                    {meta?.hasText === false && (
-                                      <span title="PDF scanné — OCR non disponible" className="px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 border border-orange-200" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
-                                        ⚠ Non interrogeable
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                                {/* Badge non-interrogeable — espaces personnels */}
-                                {!isShared && meta?.hasText === false && (
-                                  <span title="PDF scanné — OCR non disponible" className="inline-block mt-1 px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 border border-orange-200" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
-                                    ⚠ Non interrogeable
-                                  </span>
-                                )}
+                                {/* Badges d'indexation */}
+                                <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                                  {doc.indexingStatus === 'indexed' && !isJustIndexed && (
+                                    <span title="Document indexé et interrogeable" style={{ color: '#2e7d32', fontSize: 'var(--text-xs)' }}>✓</span>
+                                  )}
+                                  {isFailed && (
+                                    <span title="Non indexé — le document peut être téléchargé mais pas interrogé"
+                                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#C8C8C8', fontStyle: 'italic' }}>
+                                      non indexé
+                                    </span>
+                                  )}
+                                  {/* Visibility badges — espaces partagés */}
+                                  {isShared && !isPending && (
+                                    <>
+                                      <button
+                                        onClick={() => toggleDocVisibility(doc.id, doc.isVisible)}
+                                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border transition-all hover:opacity-80 ${isVis ? 'bg-green-50 border-green-200 text-green-700' : 'bg-[#F2F2F2] border-[#D8D8D8] text-[#8A8A8A]'}`}
+                                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
+                                      >
+                                        <span className={`w-1.5 h-1.5 rounded-full ${isVis ? 'bg-green-500' : 'bg-[#C8C8C8]'}`} />
+                                        {isVis ? 'Visible' : 'Masqué'}
+                                      </button>
+                                      {(doc.visibleFrom || doc.visibleUntil) && editVisibilityDocId !== doc.id && (
+                                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
+                                          {doc.visibleFrom ? `Dès ${fmtVisibleDate(doc.visibleFrom)}` : ''}{doc.visibleFrom && doc.visibleUntil ? ' → ' : ''}{doc.visibleUntil ? `${fmtVisibleDate(doc.visibleUntil)}` : ''}
+                                        </span>
+                                      )}
+                                      {editVisibilityDocId === doc.id ? (
+                                        <div className="flex items-center gap-1">
+                                          <input type="date" defaultValue={doc.visibleFrom ? doc.visibleFrom.slice(0, 10) : ''} id={`vf-${doc.id}`} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontSize: 'var(--text-2xs)' }} />
+                                          <span style={{ fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>→</span>
+                                          <input type="date" defaultValue={doc.visibleUntil ? doc.visibleUntil.slice(0, 10) : ''} id={`vu-${doc.id}`} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontSize: 'var(--text-2xs)' }} />
+                                          <button onClick={() => {
+                                            const f = (document.getElementById(`vf-${doc.id}`) as HTMLInputElement)?.value ?? ''
+                                            const u = (document.getElementById(`vu-${doc.id}`) as HTMLInputElement)?.value ?? ''
+                                            saveDocDates(doc.id, f, u)
+                                          }} className="px-1.5 py-0.5 rounded bg-[#00068D] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>OK</button>
+                                          <button aria-label="Fermer l'édition des dates" onClick={() => setEditVisibilityDocId(null)} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>✕</button>
+                                        </div>
+                                      ) : (
+                                        <button aria-label="Modifier les dates de visibilité" onClick={() => setEditVisibilityDocId(doc.id)} className="text-[#8A8A8A] hover:text-[#00068D]" title="Modifier les dates" style={{ fontSize: 'var(--text-xs)' }}>✏</button>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
                               </>
                             )}
                           </div>

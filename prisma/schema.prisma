@@ -502,7 +502,8 @@ model SpaceDocument {
   isVisible    Boolean         @default(true)
   diplomeSlug  String?
   anneeUniv    String?
-  metadata     String?
+  metadata        String?
+  indexingStatus  String  @default("pending")
 }
 
 model Report {
