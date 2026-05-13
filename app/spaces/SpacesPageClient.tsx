@@ -57,6 +57,10 @@ function formatAuditAction(action: string): string {
 
 interface DocWithDate extends SpaceDoc {
   uploadedAt?: string
+  isVisible?: boolean
+  visibleFrom?: string | null
+  visibleUntil?: string | null
+  metadata?: string | null
 }
 
 export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], userRole = 'EC' }: { initialSpaces: SpaceData[]; sharedSpaces?: SharedSpace[]; userRole?: string }) {
@@ -87,6 +91,13 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
   // Right panel — documents
   const [docs, setDocs] = useState<DocWithDate[]>([])
   const [docsLoading, setDocsLoading] = useState(false)
+
+  // Visibility — batch selection
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set())
+  const [batchDatesOpen, setBatchDatesOpen] = useState(false)
+  const [batchFrom, setBatchFrom] = useState('')
+  const [batchUntil, setBatchUntil] = useState('')
+  const [editVisibilityDocId, setEditVisibilityDocId] = useState<string | null>(null)
 
   // Right panel — create folder inline
   const [creatingFolder, setCreatingFolder] = useState(false)
@@ -137,6 +148,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
     setDocsLoading(true)
     setSelectedFolderId(null)
     setUploadError('')
+    setSelectedDocIds(new Set())
     fetch(`/api/spaces/${selectedSpaceId}/documents`)
       .then(r => r.json())
       .then(d => setDocs(d.documents ?? []))
@@ -161,6 +173,60 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
     const r = await fetch('/api/spaces')
     const d = await r.json()
     setSpaces(d.spaces ?? [])
+  }
+
+  async function toggleDocVisibility(docId: string, current: boolean | undefined) {
+    if (!selectedSpaceId) return
+    const next = current === false ? true : false
+    const r = await fetch(`/api/spaces/${selectedSpaceId}/documents/${docId}/visibility`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isVisible: next }),
+    })
+    if (r.ok) setDocs(prev => prev.map(d => d.id === docId ? { ...d, isVisible: next } : d))
+  }
+
+  async function saveDocDates(docId: string, from: string, until: string) {
+    if (!selectedSpaceId) return
+    await fetch(`/api/spaces/${selectedSpaceId}/documents/${docId}/visibility`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        visibleFrom: from || null,
+        visibleUntil: until || null,
+      }),
+    })
+    setDocs(prev => prev.map(d => d.id === docId ? { ...d, visibleFrom: from || null, visibleUntil: until || null } : d))
+    setEditVisibilityDocId(null)
+  }
+
+  async function batchVisibility(action: string, from?: string, until?: string) {
+    if (!selectedSpaceId || selectedDocIds.size === 0) return
+    await fetch(`/api/spaces/${selectedSpaceId}/documents/batch-visibility`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        docIds: [...selectedDocIds],
+        action,
+        ...(from !== undefined && { visibleFrom: from || null }),
+        ...(until !== undefined && { visibleUntil: until || null }),
+      }),
+    })
+    setDocs(prev => prev.map(d => {
+      if (!selectedDocIds.has(d.id)) return d
+      if (action === 'activate') return { ...d, isVisible: true }
+      if (action === 'hide') return { ...d, isVisible: false }
+      if (action === 'archive') return { ...d, isVisible: false, visibleUntil: new Date().toISOString() }
+      if (action === 'set-dates') return { ...d, visibleFrom: from || null, visibleUntil: until || null }
+      return d
+    }))
+    setSelectedDocIds(new Set())
+    setBatchDatesOpen(false)
+  }
+
+  function fmtVisibleDate(iso?: string | null) {
+    if (!iso) return null
+    return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
   }
 
   // Close context menu on outside click
@@ -696,11 +762,46 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                   ? docs.filter(d => d.folderId === selectedFolderId)
                   : docs.filter(d => d.folderId === null)
                 if (!docsLoading && displayDocs.length === 0) return null
+                const isShared = selectedSpace && selectedSpace.enrichmentGroups !== '[]'
+                const allSelected = displayDocs.length > 0 && displayDocs.every(d => selectedDocIds.has(d.id))
                 return (
                 <div>
-                  <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
-                    Fichiers
-                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      Fichiers
+                    </p>
+                  </div>
+
+                  {/* Batch actions bar — espaces partagés uniquement */}
+                  {isShared && displayDocs.length > 0 && (
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input type="checkbox" checked={allSelected}
+                          onChange={e => setSelectedDocIds(e.target.checked ? new Set(displayDocs.map(d => d.id)) : new Set())}
+                          className="accent-[#00068D]" />
+                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
+                          {selectedDocIds.size > 0 ? `${selectedDocIds.size} sélectionné(s)` : 'Tout sélectionner'}
+                        </span>
+                      </label>
+                      {selectedDocIds.size > 0 && (
+                        <>
+                          <button onClick={() => batchVisibility('activate')} className="px-2 py-0.5 rounded border border-green-200 text-green-700 hover:bg-green-50 transition-all" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Activer</button>
+                          <button onClick={() => batchVisibility('hide')} className="px-2 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2] transition-all" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Masquer</button>
+                          <button onClick={() => batchVisibility('archive')} className="px-2 py-0.5 rounded border border-orange-200 text-orange-600 hover:bg-orange-50 transition-all" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Archiver</button>
+                          <button onClick={() => setBatchDatesOpen(v => !v)} className="px-2 py-0.5 rounded border border-[#2B2EB8] text-[#00068D] hover:bg-[#E8E9F8] transition-all" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Définir dates…</button>
+                          {batchDatesOpen && (
+                            <div className="flex items-center gap-2 ml-1 flex-wrap">
+                              <input type="date" value={batchFrom} onChange={e => setBatchFrom(e.target.value)} className="px-2 py-0.5 rounded border border-[#D8D8D8] text-xs focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
+                              <span style={{ fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>→</span>
+                              <input type="date" value={batchUntil} onChange={e => setBatchUntil(e.target.value)} className="px-2 py-0.5 rounded border border-[#D8D8D8] text-xs focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
+                              <button onClick={() => batchVisibility('set-dates', batchFrom, batchUntil)} className="px-2 py-0.5 rounded bg-[#00068D] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>OK</button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+
                   {docsLoading ? (
                     <div className="flex items-center gap-2 py-4">
                       <div className="w-4 h-4 border-2 border-[#00068D] border-t-transparent rounded-full animate-spin" />
@@ -708,14 +809,22 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                     </div>
                   ) : (
                     <div className="bg-white rounded-xl border border-[#D8D8D8] overflow-hidden">
-                      {displayDocs.map((doc, i) => (
+                      {displayDocs.map((doc, i) => {
+                        const isVis = doc.isVisible !== false
+                        const meta = (() => { try { return doc.metadata ? JSON.parse(doc.metadata) : null } catch { return null } })()
+                        return (
                         <div
                           key={doc.id}
-                          className={`flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAFA] transition-all group ${i > 0 ? 'border-t border-[#F2F2F2]' : ''}`}
+                          className={`flex items-start gap-3 px-4 py-3 hover:bg-[#FAFAFA] transition-all group ${i > 0 ? 'border-t border-[#F2F2F2]' : ''} ${!isVis ? 'opacity-60' : ''}`}
                           onMouseEnter={() => setHoveredDocId(doc.id)}
                           onMouseLeave={() => { setHoveredDocId(null); if (deletingDocId === doc.id) setDeletingDocId(null) }}
                         >
-                          <span className="text-lg flex-shrink-0">{fileIcon(doc.mimeType, doc.name)}</span>
+                          {isShared && (
+                            <input type="checkbox" checked={selectedDocIds.has(doc.id)}
+                              onChange={e => setSelectedDocIds(prev => { const s = new Set(prev); e.target.checked ? s.add(doc.id) : s.delete(doc.id); return s })}
+                              className="accent-[#00068D] mt-1 flex-shrink-0" />
+                          )}
+                          <span className="text-lg flex-shrink-0 mt-0.5">{fileIcon(doc.mimeType, doc.name)}</span>
                           <div className="flex-1 min-w-0">
                             {renamingDocId === doc.id ? (
                               <input
@@ -736,6 +845,50 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                                   <p className="truncate" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', fontStyle: 'italic' }}>
                                     {doc.description}
                                   </p>
+                                )}
+                                {/* Visibility badge — espaces partagés */}
+                                {isShared && (
+                                  <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                                    <button
+                                      onClick={() => toggleDocVisibility(doc.id, doc.isVisible)}
+                                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border transition-all hover:opacity-80 ${isVis ? 'bg-green-50 border-green-200 text-green-700' : 'bg-[#F2F2F2] border-[#D8D8D8] text-[#8A8A8A]'}`}
+                                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
+                                    >
+                                      <span className={`w-1.5 h-1.5 rounded-full ${isVis ? 'bg-green-500' : 'bg-[#C8C8C8]'}`} />
+                                      {isVis ? 'Visible' : 'Masqué'}
+                                    </button>
+                                    {(doc.visibleFrom || doc.visibleUntil) && editVisibilityDocId !== doc.id && (
+                                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
+                                        {doc.visibleFrom ? `Dès ${fmtVisibleDate(doc.visibleFrom)}` : ''}{doc.visibleFrom && doc.visibleUntil ? ' → ' : ''}{doc.visibleUntil ? `${fmtVisibleDate(doc.visibleUntil)}` : ''}
+                                      </span>
+                                    )}
+                                    {editVisibilityDocId === doc.id ? (
+                                      <div className="flex items-center gap-1">
+                                        <input type="date" defaultValue={doc.visibleFrom ? doc.visibleFrom.slice(0, 10) : ''} id={`vf-${doc.id}`} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontSize: 'var(--text-2xs)' }} />
+                                        <span style={{ fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>→</span>
+                                        <input type="date" defaultValue={doc.visibleUntil ? doc.visibleUntil.slice(0, 10) : ''} id={`vu-${doc.id}`} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontSize: 'var(--text-2xs)' }} />
+                                        <button onClick={() => {
+                                          const f = (document.getElementById(`vf-${doc.id}`) as HTMLInputElement)?.value ?? ''
+                                          const u = (document.getElementById(`vu-${doc.id}`) as HTMLInputElement)?.value ?? ''
+                                          saveDocDates(doc.id, f, u)
+                                        }} className="px-1.5 py-0.5 rounded bg-[#00068D] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>OK</button>
+                                        <button onClick={() => setEditVisibilityDocId(null)} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>✕</button>
+                                      </div>
+                                    ) : (
+                                      <button onClick={() => setEditVisibilityDocId(doc.id)} className="text-[#8A8A8A] hover:text-[#00068D]" title="Modifier les dates" style={{ fontSize: 'var(--text-xs)' }}>✏</button>
+                                    )}
+                                    {meta?.hasText === false && (
+                                      <span title="PDF scanné — OCR non disponible" className="px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 border border-orange-200" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
+                                        ⚠ Non interrogeable
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                {/* Badge non-interrogeable — espaces personnels */}
+                                {!isShared && meta?.hasText === false && (
+                                  <span title="PDF scanné — OCR non disponible" className="inline-block mt-1 px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 border border-orange-200" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
+                                    ⚠ Non interrogeable
+                                  </span>
                                 )}
                               </>
                             )}
@@ -787,7 +940,8 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                             ) : null}
                           </div>
                         </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </div>
