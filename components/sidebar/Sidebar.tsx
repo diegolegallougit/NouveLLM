@@ -423,9 +423,12 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                       </button>
                     </div>
                   ) : (
-                    <button
+                    <div
+                      role="button"
+                      tabIndex={0}
                       onClick={() => onSelectConversation(conv.id)}
-                      className={`w-full flex flex-col items-start gap-1 px-3 py-2.5 text-left transition-all border-l-2 ${
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onSelectConversation(conv.id) }}
+                      className={`w-full flex flex-col items-start gap-1 px-3 py-2.5 text-left transition-all border-l-2 cursor-pointer ${
                         activeConversationId === conv.id
                           ? 'bg-[#E8E9F8] border-l-[#00068D]'
                           : 'border-l-transparent hover:bg-[#F2F2F2] hover:border-l-[#D8D8D8]'
@@ -440,6 +443,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                         </span>
                         {hoveredConvId === conv.id && (
                           <button
+                            aria-label="Supprimer la conversation"
                             onClick={e => { e.stopPropagation(); setDeletingConvId(conv.id) }}
                             className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded text-[#C8C8C8] hover:text-[#EF4444] hover:bg-red-50 transition-all"
                             title="Supprimer"
@@ -461,7 +465,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                           {formatRelativeDate(conv.updatedAt)}
                         </span>
                       </div>
-                    </button>
+                    </div>
                   )}
                 </div>
               ))
