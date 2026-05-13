@@ -21,7 +21,7 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ['archiver', 'better-sqlite3', '@prisma/adapter-better-sqlite3'],
+  serverExternalPackages: ['archiver', 'better-sqlite3', '@prisma/adapter-better-sqlite3', 'pdf-parse', 'mammoth', 'xlsx'],
   allowedDevOrigins: ['100.120.16.114', '192.168.1.90'],
   async headers() {
     return [

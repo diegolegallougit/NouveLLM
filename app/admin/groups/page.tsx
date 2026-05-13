@@ -349,7 +349,7 @@ export default function AdminGroupsPage() {
                   Créer une KB Dify dédiée pour cette UFR
                 </span>
               </label>
-            )
+            )}
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#8A8A8A] mb-1" style={{ fontFamily: 'Gilroy, sans-serif' }}>Quota tokens</label>
               <input

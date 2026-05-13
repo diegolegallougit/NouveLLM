@@ -1,6 +1,12 @@
-import mammoth from 'mammoth'
-import pdfParse from 'pdf-parse'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const mammoth = require('mammoth') as {
+  convertToMarkdown: (input: { buffer: Buffer }) => Promise<{ value: string; messages: { message: string }[] }>
+  convertToHtml: (input: { buffer: Buffer }) => Promise<{ value: string; messages: { message: string }[] }>
+}
 import * as XLSX from 'xlsx'
+// pdf-parse doesn't ship a proper ESM default — require at call site
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string; numpages: number }>
 
 export type PipelineResult = {
   content: string
