@@ -18,6 +18,10 @@ out/
 # Build
 dist/
 build/
+tsconfig.tsbuildinfo
+
+# Local document storage (personal spaces)
+.data/
 
 # Misc
 .DS_Store
