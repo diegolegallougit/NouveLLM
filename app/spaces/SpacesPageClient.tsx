@@ -343,6 +343,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
         }
       } catch {
         setDocs(prev => prev.filter(d => d.id !== tempId))
+        setUploadError(`Erreur réseau lors de l'importation de ${file.name}`)
       }
     }
     setUploadMsg('')

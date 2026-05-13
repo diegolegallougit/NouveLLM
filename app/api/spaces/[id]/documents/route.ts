@@ -75,7 +75,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const fileBuffer = Buffer.from(await file.arrayBuffer())
 
   // Run document pipeline (conversion + extraction)
-  let pipeline = await processDocument(fileBuffer, file.name, file.type)
+  let pipeline: Awaited<ReturnType<typeof processDocument>>
+  try {
+    pipeline = await processDocument(fileBuffer, file.name, file.type)
+  } catch (err) {
+    console.error('[upload] processDocument failed:', err)
+    return NextResponse.json({ error: 'Impossible de lire le fichier — il est peut-être corrompu ou protégé.' }, { status: 422 })
+  }
 
   // OCR si PDF scanné — try/catch car ocrPdfWithPixtral peut throw (timeout réseau Cortecs)
   if (!pipeline.hasText && pipeline.warnings.includes('PDF_SCANNED')) {
@@ -112,11 +118,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       ? '.' + (file.name.split('.').pop()?.toLowerCase() ?? 'bin')
       : pipeline.contentType === 'json' ? '.json' : '.md'
     const storedFilename = `${docId}${storedExt}`
-    await fs.promises.mkdir(DOCS_STORAGE, { recursive: true })
-    await fs.promises.writeFile(
-      path.join(DOCS_STORAGE, storedFilename),
-      useOriginal ? fileBuffer : Buffer.from(pipeline.content, 'utf-8')
-    )
+    try {
+      await fs.promises.mkdir(DOCS_STORAGE, { recursive: true })
+      await fs.promises.writeFile(
+        path.join(DOCS_STORAGE, storedFilename),
+        useOriginal ? fileBuffer : Buffer.from(pipeline.content, 'utf-8')
+      )
+    } catch (err) {
+      console.error('[upload] local write failed:', err)
+      return NextResponse.json({ error: 'Erreur lors de l\'enregistrement du fichier.' }, { status: 500 })
+    }
 
     const doc = await prisma.spaceDocument.create({
       data: {
@@ -157,6 +168,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // Select target KB
   const groupKbId = spaceGroup?.hasKB ? spaceGroup.difyDatasetId : null
   const targetDatasetId = groupKbId || COURS_ACTIFS_DATASET_ID
+
+  console.info('[upload-debug] START', {
+    spaceId,
+    enrichmentGroups: space.enrichmentGroups,
+    spaceGroup: spaceGroup ? { hasKB: spaceGroup.hasKB, difyDatasetId: spaceGroup.difyDatasetId } : null,
+    hasText: pipeline.hasText,
+    method: pipeline.method,
+    contentLength: pipeline.content?.length ?? 0,
+    coursActifsId: COURS_ACTIFS_DATASET_ID || '(vide)',
+    targetDatasetId: targetDatasetId || '(vide)',
+  })
 
   const difyDocMetadata = {
     space_id: spaceId,
@@ -222,37 +244,44 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       difyForm.append('file', new File([fileBuffer], file.name, { type: file.type }))
       difyForm.append('user', session.user.id)
       const res = await fetch(`${DIFY_BASE_URL}/v1/files/upload`, {
-        method: 'POST', headers: { Authorization: `Bearer ${process.env.DIFY_IIIAAS_API_KEY || ''}` }, body: difyForm
+        method: 'POST', headers: { Authorization: `Bearer ${process.env.DIFY_IIIAAS_API_KEY || ''}` }, body: difyForm,
+        signal: AbortSignal.timeout(10000),
       })
       if (res.ok) { const d = await res.json(); difyFileId = d.id ?? difyFileId }
     } catch { /* non-blocking */ }
   }
 
-  const doc = await prisma.spaceDocument.create({
-    data: {
-      name: file.name,
-      displayName: null,
-      description: null,
-      folderId: resolvedFolderId,
-      spaceId,
-      difyFileId,
-      uploadedById: session.user.id,
-      size: file.size,
-      mimeType: file.type || null,
-      visibleFrom: new Date(),
-      visibleUntil: defaultVisibleUntil(),
-      isVisible: true,
-      diplomeSlug: spaceGroup?.diplomeRef?.slug ?? null,
-      anneeUniv: currentAnneeUniv(),
-      metadata: JSON.stringify({
-        hasText: pipeline.hasText,
-        method: pipeline.method,
-        targetDatasetId: targetDatasetId || null,
-      }),
-      indexingStatus,
-    },
-    include: { folder: true },
-  })
+  let doc: Awaited<ReturnType<typeof prisma.spaceDocument.create>>
+  try {
+    doc = await prisma.spaceDocument.create({
+      data: {
+        name: file.name,
+        displayName: null,
+        description: null,
+        folderId: resolvedFolderId,
+        spaceId,
+        difyFileId,
+        uploadedById: session.user.id,
+        size: file.size,
+        mimeType: file.type || null,
+        visibleFrom: new Date(),
+        visibleUntil: defaultVisibleUntil(),
+        isVisible: true,
+        diplomeSlug: spaceGroup?.diplomeRef?.slug ?? null,
+        anneeUniv: currentAnneeUniv(),
+        metadata: JSON.stringify({
+          hasText: pipeline.hasText,
+          method: pipeline.method,
+          targetDatasetId: targetDatasetId || null,
+        }),
+        indexingStatus,
+      },
+      include: { folder: true },
+    })
+  } catch (err) {
+    console.error('[upload] prisma.create failed:', err)
+    return NextResponse.json({ error: 'Erreur lors de l\'enregistrement en base de données.' }, { status: 500 })
+  }
 
   await logAction({
     userId: session.user.id,
