@@ -2,6 +2,15 @@
 
 import { useEffect, useState } from 'react'
 
+interface DiplomeRef {
+  id: string
+  slug: string
+  label: string
+  niveau: string
+  ufr: string
+  actif?: boolean
+}
+
 interface Group {
   id: string
   slug: string
@@ -12,6 +21,9 @@ interface Group {
   description: string | null
   memberCount: number
   responsables: { id: string; name: string | null; email: string }[]
+  diplomeRef: DiplomeRef | null
+  hasKB: boolean
+  difyDatasetId: string | null
 }
 
 interface Member {
@@ -54,11 +66,12 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   )
 }
 
-const EMPTY_FORM = { slug: '', label: '', type: 'SYSTEME', quotaTokens: 500000, allowPersonalSources: false, description: '' }
+const EMPTY_FORM = { slug: '', label: '', type: 'SYSTEME', quotaTokens: 500000, allowPersonalSources: false, description: '', diplomeRefId: '', hasKB: false }
 
 export default function AdminGroupsPage() {
   const [groups, setGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(true)
+  const [diplomes, setDiplomes] = useState<DiplomeRef[]>([])
 
   // Create modal
   const [createOpen, setCreateOpen] = useState(false)
@@ -80,6 +93,10 @@ export default function AdminGroupsPage() {
     } finally { setLoading(false) }
   }
 
+  useEffect(() => {
+    fetch('/api/admin/diplomes').then(r => r.json()).then(d => setDiplomes(d.diplomes ?? []))
+  }, [])
+
   // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   useEffect(() => { load() }, [])
 
@@ -92,7 +109,11 @@ export default function AdminGroupsPage() {
       const r = await fetch('/api/admin/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, quotaTokens: Number(form.quotaTokens) }),
+        body: JSON.stringify({
+          ...form,
+          quotaTokens: Number(form.quotaTokens),
+          diplomeRefId: form.diplomeRefId || null,
+        }),
       })
       const data = await r.json()
       if (!r.ok) { setCreateError(data.error ?? 'Erreur'); return }
@@ -247,13 +268,60 @@ export default function AdminGroupsPage() {
               <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#8A8A8A] mb-1" style={{ fontFamily: 'Gilroy, sans-serif' }}>Type</label>
               <select
                 value={form.type}
-                onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+                onChange={e => setForm(f => ({ ...f, type: e.target.value, diplomeRefId: '', hasKB: false }))}
                 className="w-full px-3 py-2 rounded-lg border border-[#D8D8D8] text-sm focus:outline-none focus:ring-2 focus:ring-[#2B2EB8] bg-white"
                 style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
               >
                 {Object.entries(TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </div>
+
+            {form.type === 'DIPLOME' && (
+              <div>
+                <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#8A8A8A] mb-1" style={{ fontFamily: 'Gilroy, sans-serif' }}>
+                  Diplôme de référence <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={form.diplomeRefId}
+                  onChange={e => {
+                    const ref = diplomes.find(d => d.id === e.target.value)
+                    setForm(f => ({
+                      ...f,
+                      diplomeRefId: e.target.value,
+                      slug: f.slug || (ref ? ref.slug : ''),
+                      label: f.label || (ref ? ref.label : ''),
+                    }))
+                  }}
+                  className="w-full px-3 py-2 rounded-lg border border-[#D8D8D8] text-sm focus:outline-none focus:ring-2 focus:ring-[#2B2EB8] bg-white"
+                  style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+                >
+                  <option value="">— Sélectionner un diplôme —</option>
+                  {(['langues','dfle','cav','lld','autre'] as const).map(ufr => {
+                    const items = diplomes.filter(d => d.ufr === ufr && d.actif !== false)
+                    if (!items.length) return null
+                    return (
+                      <optgroup key={ufr} label={`UFR ${ufr.toUpperCase()}`}>
+                        {items.map(d => <option key={d.id} value={d.id}>{d.niveau} — {d.label}</option>)}
+                      </optgroup>
+                    )
+                  })}
+                </select>
+              </div>
+            )}
+
+            {form.type === 'UFR' && (
+              <label className="flex items-center gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.hasKB}
+                  onChange={e => setForm(f => ({ ...f, hasKB: e.target.checked }))}
+                  className="accent-[#00068D]"
+                />
+                <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#3A3A3A' }}>
+                  Créer une KB Dify dédiée pour cette UFR
+                </span>
+              </label>
+            )
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#8A8A8A] mb-1" style={{ fontFamily: 'Gilroy, sans-serif' }}>Quota tokens</label>
               <input

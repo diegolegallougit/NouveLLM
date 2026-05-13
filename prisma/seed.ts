@@ -875,6 +875,29 @@ En fin de session, sors du rôle et propose un débriefing des moments clés.`,
     })
   }
 
+  const DIPLOMES_REF = [
+    { slug: 'l1-llcer',         label: 'Licence 1 LLCER',             niveau: 'L1', ufr: 'langues' },
+    { slug: 'l2-llcer',         label: 'Licence 2 LLCER',             niveau: 'L2', ufr: 'langues' },
+    { slug: 'l3-llcer',         label: 'Licence 3 LLCER',             niveau: 'L3', ufr: 'langues' },
+    { slug: 'l3-linguistique',  label: 'Licence 3 Linguistique',      niveau: 'L3', ufr: 'langues' },
+    { slug: 'm1-traductologie', label: 'Master 1 Traductologie',       niveau: 'M1', ufr: 'langues' },
+    { slug: 'm2-traductologie', label: 'Master 2 Traductologie',       niveau: 'M2', ufr: 'langues' },
+    { slug: 'm1-fle',           label: 'Master 1 FLE/Didactique',      niveau: 'M1', ufr: 'dfle' },
+    { slug: 'm2-fle',           label: 'Master 2 FLE/Didactique',      niveau: 'M2', ufr: 'dfle' },
+    { slug: 'm1-cav',           label: 'Master 1 Cinéma-Audiovisuel',  niveau: 'M1', ufr: 'cav' },
+    { slug: 'm2-cav',           label: 'Master 2 Cinéma-Audiovisuel',  niveau: 'M2', ufr: 'cav' },
+    { slug: 'm1-lettres',       label: 'Master 1 Lettres',             niveau: 'M1', ufr: 'lld' },
+    { slug: 'm2-lettres',       label: 'Master 2 Lettres',             niveau: 'M2', ufr: 'lld' },
+  ]
+
+  for (const d of DIPLOMES_REF) {
+    await prisma.diplomeRef.upsert({
+      where: { slug: d.slug },
+      update: d,
+      create: d,
+    })
+  }
+
   console.log('Seed complete.')
   console.log('Demo EC:    camille.daniaux@sorbonne-nouvelle.fr / demo1234')
   console.log('Admin:      transvers.art@gmail.com / demo1234')

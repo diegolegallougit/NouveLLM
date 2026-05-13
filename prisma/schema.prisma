@@ -84,6 +84,16 @@ enum Role {
   ADMIN
 }
 
+model DiplomeRef {
+  id      String  @id @default(cuid())
+  slug    String  @unique
+  label   String
+  niveau  String
+  ufr     String
+  actif   Boolean @default(true)
+  groups  Group[] @relation("DiplomeGroups")
+}
+
 model Group {
   id                   String        @id @default(cuid())
   slug                 String        @unique
@@ -92,6 +102,10 @@ model Group {
   quotaTokens          Int           @default(500000)
   allowPersonalSources Boolean       @default(false)
   systemPromptExtra    String?
+  diplomeRefId         String?
+  diplomeRef           DiplomeRef?   @relation("DiplomeGroups", fields: [diplomeRefId], references: [id])
+  hasKB                Boolean       @default(false)
+  difyDatasetId        String?
   users                UserGroup[]
   allowedAgents        GroupAgent[]
   allowedSources       GroupSource[]
@@ -482,6 +496,12 @@ model SpaceDocument {
   uploadedAt   DateTime        @default(now())
   size         Int?
   mimeType     String?
+  visibleFrom  DateTime?
+  visibleUntil DateTime?
+  isVisible    Boolean         @default(true)
+  diplomeSlug  String?
+  anneeUniv    String?
+  metadata     String?
 }
 
 model Report {

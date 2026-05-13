@@ -2,6 +2,8 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
+const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.13:5001'
+
 async function requireAdmin() {
   const session = await auth()
   const user = session?.user as { id?: string; role?: string } | undefined
@@ -17,6 +19,7 @@ export async function GET() {
     include: {
       _count: { select: { users: true } },
       scopes: { include: { user: { select: { id: true, name: true, email: true } } } },
+      diplomeRef: true,
     },
   })
 
@@ -31,6 +34,9 @@ export async function GET() {
       description: g.systemPromptExtra ?? null,
       memberCount: g._count.users,
       responsables: g.scopes.map((s) => ({ id: s.user.id, name: s.user.name, email: s.user.email })),
+      diplomeRef: g.diplomeRef ?? null,
+      hasKB: g.hasKB,
+      difyDatasetId: g.difyDatasetId ?? null,
     })),
   })
 }
@@ -45,6 +51,8 @@ export async function POST(req: NextRequest) {
     quotaTokens?: number
     allowPersonalSources?: boolean
     description?: string
+    diplomeRefId?: string
+    hasKB?: boolean
   }
 
   if (!body.slug || !body.label) {
@@ -54,6 +62,32 @@ export async function POST(req: NextRequest) {
   const existing = await prisma.group.findUnique({ where: { slug: body.slug } })
   if (existing) return NextResponse.json({ error: 'Slug déjà utilisé' }, { status: 409 })
 
+  // Create Dify KB if UFR group with hasKB
+  let difyDatasetId: string | null = null
+  if (body.type === 'UFR' && body.hasKB) {
+    try {
+      const res = await fetch(`${DIFY_BASE_URL}/v1/datasets`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.DIFY_DATASET_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: `ufr-${body.slug}`,
+          permission: 'only_me',
+          indexing_technique: 'high_quality',
+        }),
+        signal: AbortSignal.timeout(10000),
+      })
+      if (res.ok) {
+        const kb = await res.json()
+        difyDatasetId = kb.id ?? null
+      }
+    } catch (err) {
+      console.warn('Dify KB creation failed (non-blocking):', err)
+    }
+  }
+
   const group = await prisma.group.create({
     data: {
       slug: body.slug,
@@ -62,6 +96,9 @@ export async function POST(req: NextRequest) {
       quotaTokens: body.quotaTokens ?? 500000,
       allowPersonalSources: body.allowPersonalSources ?? false,
       systemPromptExtra: body.description ?? null,
+      diplomeRefId: body.diplomeRefId ?? null,
+      hasKB: body.hasKB ?? false,
+      difyDatasetId,
     },
   })
 
