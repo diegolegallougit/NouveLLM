@@ -169,17 +169,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const groupKbId = spaceGroup?.hasKB ? spaceGroup.difyDatasetId : null
   const targetDatasetId = groupKbId || COURS_ACTIFS_DATASET_ID
 
-  console.info('[upload-debug] START', {
-    spaceId,
-    enrichmentGroups: space.enrichmentGroups,
-    spaceGroup: spaceGroup ? { hasKB: spaceGroup.hasKB, difyDatasetId: spaceGroup.difyDatasetId } : null,
-    hasText: pipeline.hasText,
-    method: pipeline.method,
-    contentLength: pipeline.content?.length ?? 0,
-    coursActifsId: COURS_ACTIFS_DATASET_ID || '(vide)',
-    targetDatasetId: targetDatasetId || '(vide)',
-  })
-
   const difyDocMetadata = {
     space_id: spaceId,
     folder_id: resolvedFolderId ?? null,
@@ -195,6 +184,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     processing_method: pipeline.method,
   }
 
+  let difyBatch: string | null = null
+
   async function uploadToDifyDataset(uploadFile: File): Promise<string | null> {
     const difyForm = new FormData()
     difyForm.append('file', uploadFile)
@@ -209,6 +200,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return null
     }
     const data = await res.json()
+    difyBatch = data.batch ?? null
     return data.document?.id ?? null
   }
 
@@ -273,6 +265,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           hasText: pipeline.hasText,
           method: pipeline.method,
           targetDatasetId: targetDatasetId || null,
+          difyBatch,
         }),
         indexingStatus,
       },
