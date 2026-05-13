@@ -32,11 +32,7 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  // In production: send email via SMTP. In dev: log the request.
-  console.log(`[HIL] New request → ${expert.contactEmail}`)
-  console.log(`  From: ${user.name ?? user.id}`)
-  console.log(`  Context: ${body.contextSummary}`)
-  console.log(`  Message: ${body.userMessage}`)
+  console.info('[HIL] request created', { expertId: expert.id, userId: user.id })
 
   // TODO: replace with nodemailer in production
   // await sendEmail({
