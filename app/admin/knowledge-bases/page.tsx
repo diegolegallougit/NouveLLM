@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 interface KBStatus {
   id: string
@@ -12,6 +12,9 @@ interface KBStatus {
   docCountDb: number | null
   docCountDify: number | null
   difyOk: boolean
+  category?: 'institutional' | 'shared' | 'ufr'
+  description?: string
+  warning?: string | null
 }
 
 const DIFY_WEB_URL = process.env.NEXT_PUBLIC_DIFY_WEB_URL ?? 'http://localhost:8090'
@@ -78,7 +81,17 @@ export default function AdminKnowledgeBasesPage() {
             </thead>
             <tbody>
               {kbs.map(kb => (
-                <tr key={kb.id} className="border-b border-[#F2F2F2] hover:bg-[#FAFAFA]">
+                <React.Fragment key={kb.id}>
+                {kb.warning && (
+                  <tr className="bg-orange-50 border-b border-orange-100">
+                    <td colSpan={7} className="px-4 py-2">
+                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#ea580c' }}>
+                        ⚠ {kb.warning}
+                      </span>
+                    </td>
+                  </tr>
+                )}
+                <tr className="border-b border-[#F2F2F2] hover:bg-[#FAFAFA]">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span>{kb.icon}</span>
@@ -86,8 +99,9 @@ export default function AdminKnowledgeBasesPage() {
                         <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
                           {kb.label}
                         </span>
-                        <div className="mt-0.5">
+                        <div className="mt-0.5 flex items-center gap-1.5">
                           <span className="nl-token-source">#{kb.slug}</span>
+                          {kb.description && <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>{kb.description}</span>}
                         </div>
                       </div>
                     </div>
@@ -129,6 +143,7 @@ export default function AdminKnowledgeBasesPage() {
                     </a>
                   </td>
                 </tr>
+                </React.Fragment>
               ))}
             </tbody>
           </table>

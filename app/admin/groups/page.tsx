@@ -227,13 +227,41 @@ export default function AdminGroupsPage() {
                   {fmtTokens(g.quotaTokens)}
                 </td>
                 <td className="px-4 py-3">
-                  <button
-                    onClick={() => openMembers(g)}
-                    className="px-2.5 py-1.5 rounded-lg border border-[#D8D8D8] text-[10px] text-[#5A5A5A] hover:bg-[#E8E9F8] hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
-                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em' }}
-                  >
-                    MEMBRES
-                  </button>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button
+                      onClick={() => openMembers(g)}
+                      className="px-2.5 py-1.5 rounded-lg border border-[#D8D8D8] text-[10px] text-[#5A5A5A] hover:bg-[#E8E9F8] hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em' }}
+                    >
+                      MEMBRES
+                    </button>
+                    {g.type === 'DIPLOME' && (
+                      <>
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Archiver tous les documents de "${g.label}" (rendre non-visibles) ?`)) return
+                            await fetch(`/api/admin/groups/${g.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'archive_year' }) })
+                          }}
+                          className="px-2 py-1 rounded border border-orange-200 text-orange-600 text-[10px] hover:bg-orange-50 transition-all"
+                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                          title="Archiver l'année — masque tous les docs"
+                        >
+                          ARCHIVER
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Réactiver tous les documents de "${g.label}" pour la nouvelle année ?`)) return
+                            await fetch(`/api/admin/groups/${g.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'new_year' }) })
+                          }}
+                          className="px-2 py-1 rounded border border-green-200 text-green-700 text-[10px] hover:bg-green-50 transition-all"
+                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                          title="Nouvelle année — réactive tous les docs"
+                        >
+                          ↺ ANNÉE
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

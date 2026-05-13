@@ -2,11 +2,11 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
-const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.5:5001'
+const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.13:5001'
 const DIFY_DATASET_KEY = process.env.DIFY_DATASET_API_KEY || ''
 
 async function getDifyDatasetInfo(datasetId: string): Promise<{ docCount?: number; ok: boolean }> {
-  if (!DIFY_DATASET_KEY) return { ok: false }
+  if (!DIFY_DATASET_KEY || !datasetId) return { ok: false }
   try {
     const r = await fetch(`${DIFY_BASE_URL}/v1/datasets?limit=100`, {
       headers: { Authorization: `Bearer ${DIFY_DATASET_KEY}` },
@@ -28,8 +28,11 @@ export async function GET() {
   if (user?.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const sources = await prisma.source.findMany({ orderBy: { slug: 'asc' } })
+  const ufrGroups = await prisma.group.findMany({ where: { type: 'UFR', hasKB: true } })
+  const coursActifsId = process.env.DIFY_COURS_ACTIFS_DATASET_ID ?? ''
 
-  const results = await Promise.all(
+  // Institutional KBs (Sources)
+  const institutionalResults = await Promise.all(
     sources.map(async (source) => {
       const dify = await getDifyDatasetInfo(source.difyDatasetId)
       return {
@@ -42,9 +45,49 @@ export async function GET() {
         docCountDb: source.docCount,
         docCountDify: dify.ok ? dify.docCount : null,
         difyOk: dify.ok,
+        category: 'institutional' as const,
+        description: 'KB institutionnelle',
       }
     })
   )
 
-  return NextResponse.json({ knowledgeBases: results })
+  // KB cours-actifs
+  const coursActifsInfo = await getDifyDatasetInfo(coursActifsId)
+  const coursActifsResult = {
+    id: 'cours-actifs',
+    slug: 'cours-actifs',
+    label: 'cours-actifs',
+    icon: '📚',
+    difyDatasetId: coursActifsId,
+    access: 'RESTRICTED',
+    docCountDb: null,
+    docCountDify: coursActifsInfo.ok ? coursActifsInfo.docCount : null,
+    difyOk: coursActifsId ? coursActifsInfo.ok : false,
+    category: 'shared' as const,
+    description: 'Espaces EC personnels + diplômes sans KB dédiée',
+    warning: !coursActifsId ? 'DIFY_COURS_ACTIFS_DATASET_ID non configurée dans .env' : null,
+  }
+
+  // UFR KBs
+  const ufrResults = await Promise.all(
+    ufrGroups.map(async (g) => {
+      const dify = await getDifyDatasetInfo(g.difyDatasetId ?? '')
+      return {
+        id: g.id,
+        slug: `ufr-${g.slug}`,
+        label: `UFR — ${g.label}`,
+        icon: '🏛',
+        difyDatasetId: g.difyDatasetId ?? '',
+        access: 'RESTRICTED',
+        docCountDb: null,
+        docCountDify: dify.ok ? dify.docCount : null,
+        difyOk: dify.ok,
+        category: 'ufr' as const,
+        description: `KB dédiée groupe ${g.slug}`,
+        warning: null,
+      }
+    })
+  )
+
+  return NextResponse.json({ knowledgeBases: [...institutionalResults, coursActifsResult, ...ufrResults] })
 }

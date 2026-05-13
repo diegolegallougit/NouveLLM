@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { currentAnneeUniv, defaultVisibleUntil } from '@/lib/academic-calendar'
 import { NextRequest, NextResponse } from 'next/server'
 
 async function requireAdmin() {
@@ -49,7 +50,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params
   const body = await req.json() as {
-    action?: 'remove_member'
+    action?: 'remove_member' | 'archive_year' | 'new_year'
     userId?: string
     label?: string
     type?: string
@@ -64,6 +65,38 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.action === 'remove_member' && body.userId) {
     await prisma.userGroup.delete({ where: { userId_groupId: { userId: body.userId, groupId: id } } })
     return NextResponse.json({ ok: true })
+  }
+
+  if (body.action === 'archive_year') {
+    // Get all spaces linked to this group, archive their docs
+    const spaces = await prisma.documentSpace.findMany({
+      where: { enrichmentGroups: { contains: id } },
+      select: { id: true },
+    })
+    const spaceIds = spaces.map(s => s.id)
+    if (spaceIds.length > 0) {
+      await prisma.spaceDocument.updateMany({
+        where: { spaceId: { in: spaceIds } },
+        data: { isVisible: false, visibleUntil: new Date() },
+      })
+    }
+    return NextResponse.json({ ok: true, archived: spaceIds.length, anneeUniv: currentAnneeUniv() })
+  }
+
+  if (body.action === 'new_year') {
+    const nextUntil = defaultVisibleUntil()
+    const spaces = await prisma.documentSpace.findMany({
+      where: { enrichmentGroups: { contains: id } },
+      select: { id: true },
+    })
+    const spaceIds = spaces.map(s => s.id)
+    if (spaceIds.length > 0) {
+      await prisma.spaceDocument.updateMany({
+        where: { spaceId: { in: spaceIds } },
+        data: { isVisible: true, visibleFrom: new Date(), visibleUntil: nextUntil },
+      })
+    }
+    return NextResponse.json({ ok: true, reset: spaceIds.length })
   }
 
   await prisma.group.update({
