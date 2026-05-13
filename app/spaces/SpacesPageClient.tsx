@@ -452,8 +452,8 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                     className="flex-1 min-w-0 px-1.5 py-0.5 rounded border border-[#2B2EB8] focus:outline-none text-sm"
                     style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
                   />
-                  <button onClick={() => renameSpace(space.id)} className="text-[#00068D] hover:text-[#2B2EB8]" style={{ fontSize: '0.7rem' }}>✓</button>
-                  <button onClick={() => setRenamingSpaceId(null)} className="text-[#8A8A8A] hover:text-red-500" style={{ fontSize: '0.7rem' }}>✕</button>
+                  <button aria-label="Valider le renommage" onClick={() => renameSpace(space.id)} className="text-[#00068D] hover:text-[#2B2EB8]" style={{ fontSize: '0.7rem' }}>✓</button>
+                  <button aria-label="Annuler le renommage" onClick={() => setRenamingSpaceId(null)} className="text-[#8A8A8A] hover:text-red-500" style={{ fontSize: '0.7rem' }}>✕</button>
                 </div>
               ) : deleteConfirmId === space.id ? (
                 <div className="px-3 py-2 bg-red-50">
@@ -538,8 +538,8 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                 className="flex-1 min-w-0 px-1.5 py-0.5 rounded border border-[#2B2EB8] focus:outline-none text-sm"
                 style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
               />
-              <button onClick={createSpace} className="text-[#00068D] hover:text-[#2B2EB8] flex-shrink-0" style={{ fontSize: '0.7rem' }}>✓</button>
-              <button onClick={() => { setCreatingSpace(false); setNewSpaceName('') }} className="text-[#8A8A8A] hover:text-red-500 flex-shrink-0" style={{ fontSize: '0.7rem' }}>✕</button>
+              <button aria-label="Créer l'espace" onClick={createSpace} className="text-[#00068D] hover:text-[#2B2EB8] flex-shrink-0" style={{ fontSize: '0.7rem' }}>✓</button>
+              <button aria-label="Annuler la création" onClick={() => { setCreatingSpace(false); setNewSpaceName('') }} className="text-[#8A8A8A] hover:text-red-500 flex-shrink-0" style={{ fontSize: '0.7rem' }}>✕</button>
             </div>
           )}
 
@@ -738,8 +738,8 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                         style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
                       />
                       <div className="flex gap-0.5 flex-shrink-0">
-                        <button onClick={createFolder} className="w-5 h-5 flex items-center justify-center text-[#00068D] hover:bg-[#E8E9F8] rounded" style={{ fontSize: '0.65rem' }}>✓</button>
-                        <button onClick={() => { setCreatingFolder(false); setNewFolderName('') }} className="w-5 h-5 flex items-center justify-center text-[#8A8A8A] hover:bg-[#F2F2F2] rounded" style={{ fontSize: '0.65rem' }}>✕</button>
+                        <button aria-label="Créer le dossier" onClick={createFolder} className="w-5 h-5 flex items-center justify-center text-[#00068D] hover:bg-[#E8E9F8] rounded" style={{ fontSize: '0.65rem' }}>✓</button>
+                        <button aria-label="Annuler la création du dossier" onClick={() => { setCreatingFolder(false); setNewFolderName('') }} className="w-5 h-5 flex items-center justify-center text-[#8A8A8A] hover:bg-[#F2F2F2] rounded" style={{ fontSize: '0.65rem' }}>✕</button>
                       </div>
                     </div>
                   ) : null}
@@ -872,10 +872,10 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                                           const u = (document.getElementById(`vu-${doc.id}`) as HTMLInputElement)?.value ?? ''
                                           saveDocDates(doc.id, f, u)
                                         }} className="px-1.5 py-0.5 rounded bg-[#00068D] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>OK</button>
-                                        <button onClick={() => setEditVisibilityDocId(null)} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>✕</button>
+                                        <button aria-label="Fermer l'édition des dates" onClick={() => setEditVisibilityDocId(null)} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>✕</button>
                                       </div>
                                     ) : (
-                                      <button onClick={() => setEditVisibilityDocId(doc.id)} className="text-[#8A8A8A] hover:text-[#00068D]" title="Modifier les dates" style={{ fontSize: 'var(--text-xs)' }}>✏</button>
+                                      <button aria-label="Modifier les dates de visibilité" onClick={() => setEditVisibilityDocId(doc.id)} className="text-[#8A8A8A] hover:text-[#00068D]" title="Modifier les dates" style={{ fontSize: 'var(--text-xs)' }}>✏</button>
                                     )}
                                     {meta?.hasText === false && (
                                       <span title="PDF scanné — OCR non disponible" className="px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 border border-orange-200" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
@@ -1067,7 +1067,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
           <div className="fixed right-0 top-0 bottom-0 z-50 bg-white border-l border-[#D8D8D8] flex flex-col overflow-y-auto nl-scroll" style={{ width: '320px' }}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#D8D8D8]">
               <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', color: '#0D0D0D' }}>Paramètres de l&apos;espace</h2>
-              <button onClick={() => setSettingsOpen(false)} className="w-7 h-7 flex items-center justify-center rounded text-[#8A8A8A] hover:bg-[#F2F2F2]" style={{ fontSize: '1rem' }}>✕</button>
+              <button aria-label="Fermer les paramètres" onClick={() => setSettingsOpen(false)} className="w-7 h-7 flex items-center justify-center rounded text-[#8A8A8A] hover:bg-[#F2F2F2]" style={{ fontSize: '1rem' }}>✕</button>
             </div>
 
             <div className="flex-1 px-5 py-5 space-y-5">
