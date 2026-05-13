@@ -1,13 +1,14 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logAction } from '@/lib/audit'
+import { processDocument } from '@/lib/document-pipeline'
+import { ocrPdfWithPixtral } from '@/lib/ocr-pixtral'
+import { currentAnneeUniv, defaultVisibleUntil } from '@/lib/academic-calendar'
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 
-const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.5:5001'
-const DIFY_IIIAAS_KEY = process.env.DIFY_IIIAAS_API_KEY || ''
-const DOCS_STORAGE = path.join(process.cwd(), '.data', 'space-docs')
+const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.13:5001'
+const DIFY_DATASET_KEY = process.env.DIFY_DATASET_API_KEY || ''
+const COURS_ACTIFS_DATASET_ID = process.env.DIFY_COURS_ACTIFS_DATASET_ID || ''
 
 const ALLOWED_EXTENSIONS = new Set(['.pdf', '.doc', '.docx', '.txt', '.md', '.csv', '.ppt', '.pptx', '.xls', '.xlsx', '.json'])
 
@@ -31,47 +32,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ documents })
 }
 
-async function autoGenerateMeta(filename: string, textContent?: string): Promise<{ displayName: string; description: string }> {
-  const preview = textContent?.slice(0, 500) ?? ''
-  const prompt = `Analyse ce fichier et génère exactement deux lignes:
-TITRE: [titre clair en français, 5-10 mots, sans guillemets]
-DESCRIPTION: [une phrase de 15-25 mots décrivant le contenu, sans guillemets]
-
-Fichier: "${filename}"${preview ? `\nExtrait: "${preview}"` : ''}`
-
-  try {
-    const resp = await fetch(`${DIFY_BASE_URL}/v1/chat-messages`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${DIFY_IIIAAS_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        inputs: {},
-        query: prompt,
-        response_mode: 'blocking',
-        user: 'system-autogen',
-      }),
-      signal: AbortSignal.timeout(15000),
-    })
-
-    if (!resp.ok) throw new Error('Dify error')
-    const data = await resp.json()
-    const text: string = data.answer ?? ''
-
-    const titleMatch = text.match(/TITRE\s*:\s*(.+)/i)
-    const descMatch = text.match(/DESCRIPTION\s*:\s*(.+)/i)
-
-    return {
-      displayName: titleMatch?.[1]?.trim() ?? cleanFilename(filename),
-      description: descMatch?.[1]?.trim() ?? '',
-    }
-  } catch {
-    return { displayName: cleanFilename(filename), description: '' }
-  }
-}
-
-function cleanFilename(name: string): string {
-  return name.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).trim()
-}
-
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -79,6 +39,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id: spaceId } = await params
   const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
   if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  // Resolve primary group (first in enrichmentGroups) for KB + diplome metadata
+  let spaceGroup: { hasKB: boolean; difyDatasetId: string | null; diplomeRef: { slug: string; ufr: string } | null } | null = null
+  try {
+    const groupIds: string[] = JSON.parse(space.enrichmentGroups ?? '[]')
+    if (groupIds.length > 0) {
+      const g = await prisma.group.findUnique({ where: { id: groupIds[0] }, include: { diplomeRef: true } })
+      if (g) spaceGroup = { hasKB: g.hasKB, difyDatasetId: g.difyDatasetId ?? null, diplomeRef: g.diplomeRef ?? null }
+    }
+  } catch { /* enrichmentGroups malformé — pas de groupe */ }
 
   const formData = await req.formData()
   const file = formData.get('file') as File | null
@@ -89,69 +59,127 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const ext = '.' + (file.name.split('.').pop()?.toLowerCase() ?? '')
   if (!ALLOWED_EXTENSIONS.has(ext)) {
-    return NextResponse.json({ error: `Format non supporté (${ext}). Formats acceptés : pdf, docx, pptx, xlsx, txt, md, csv` }, { status: 400 })
+    return NextResponse.json({ error: `Format non supporté (${ext}). Formats acceptés : PDF, Word, Excel, PowerPoint, Markdown, CSV, JSON` }, { status: 400 })
   }
 
-  // Read buffer before sending to Dify (Blob supports multiple reads)
   const fileBuffer = Buffer.from(await file.arrayBuffer())
 
-  // Upload to Dify files API
-  const difyForm = new FormData()
-  difyForm.append('file', new File([fileBuffer], file.name, { type: file.type }))
-  difyForm.append('user', session.user.id)
+  // Run document pipeline (conversion + extraction)
+  let pipeline = await processDocument(fileBuffer, file.name, file.type)
 
-  const difyResp = await fetch(`${DIFY_BASE_URL}/v1/files/upload`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${DIFY_IIIAAS_KEY}` },
-    body: difyForm,
-  })
-
-  let difyFileId = `local-${Date.now()}`
-  if (difyResp.ok) {
-    const difyData = await difyResp.json()
-    difyFileId = difyData.id ?? difyFileId
+  // OCR si PDF scanné
+  if (!pipeline.hasText && pipeline.warnings.includes('PDF_SCANNED')) {
+    const ocrText = await ocrPdfWithPixtral(fileBuffer)
+    if (ocrText.length > 100) {
+      pipeline = {
+        content: ocrText,
+        contentType: 'markdown',
+        method: 'pixtral-ocr',
+        hasText: true,
+        warnings: [],
+        filename: file.name.replace(/\.pdf$/i, '-ocr.md'),
+      }
+    }
   }
 
-  // Auto-generate displayName + description
-  let textContent: string | undefined
-  if (file.type.startsWith('text/') || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
-    try { textContent = fileBuffer.toString('utf-8') } catch { /* skip */ }
-  }
-
-  const { displayName, description } = await autoGenerateMeta(file.name, textContent)
-
-  // Validate folderId belongs to this space
+  // Validate folderId
   let resolvedFolderId: string | null = null
   if (folderId) {
     const folder = await prisma.documentFolder.findFirst({ where: { id: folderId, spaceId } })
     resolvedFolderId = folder?.id ?? null
   }
 
+  // Select target KB
+  const groupKbId = spaceGroup?.hasKB ? spaceGroup.difyDatasetId : null
+  const targetDatasetId = groupKbId || COURS_ACTIFS_DATASET_ID
+
+  // Upload processed content to Dify
+  let difyFileId = `local-${Date.now()}`
+  if (targetDatasetId && pipeline.hasText && pipeline.content) {
+    try {
+      const contentBlob = new Blob([pipeline.content], {
+        type: pipeline.contentType === 'json' ? 'application/json' : 'text/plain; charset=utf-8',
+      })
+      const difyFile = new File([contentBlob], pipeline.filename)
+      const difyForm = new FormData()
+      difyForm.append('file', difyFile)
+      difyForm.append('data', JSON.stringify({
+        indexing_technique: 'high_quality',
+        process_rule: { mode: 'automatic' },
+        doc_metadata: {
+          space_id: spaceId,
+          folder_id: resolvedFolderId ?? null,
+          diplome: spaceGroup?.diplomeRef?.slug ?? null,
+          ufr: spaceGroup?.diplomeRef?.ufr ?? null,
+          audience: 'ALL',
+          annee_univ: currentAnneeUniv(),
+          uploader: session.user.email,
+          visible_from: new Date().toISOString(),
+          visible_until: defaultVisibleUntil().toISOString(),
+          is_visible: true,
+          original_filename: file.name,
+          processing_method: pipeline.method,
+        },
+      }))
+
+      const difyRes = await fetch(
+        `${DIFY_BASE_URL}/v1/datasets/${targetDatasetId}/document/create_by_file`,
+        { method: 'POST', headers: { Authorization: `Bearer ${DIFY_DATASET_KEY}` }, body: difyForm, signal: AbortSignal.timeout(30000) }
+      )
+      if (difyRes.ok) {
+        const difyData = await difyRes.json()
+        difyFileId = difyData.document?.id ?? difyFileId
+      }
+    } catch (err) {
+      console.warn('[upload] Dify indexation failed (non-blocking):', err)
+    }
+  } else if (!pipeline.hasText) {
+    // PDF scanné sans OCR disponible : upload du fichier brut vers Dify pour archivage
+    try {
+      const difyForm = new FormData()
+      difyForm.append('file', new File([fileBuffer], file.name, { type: file.type }))
+      difyForm.append('user', session.user.id)
+      const difyRes = await fetch(`${DIFY_BASE_URL}/v1/files/upload`, {
+        method: 'POST', headers: { Authorization: `Bearer ${process.env.DIFY_IIIAAS_API_KEY || ''}` }, body: difyForm
+      })
+      if (difyRes.ok) {
+        const d = await difyRes.json()
+        difyFileId = d.id ?? difyFileId
+      }
+    } catch { /* non-blocking */ }
+  }
+
   const doc = await prisma.spaceDocument.create({
     data: {
       name: file.name,
-      displayName,
-      description: description || null,
+      displayName: null,
+      description: null,
       folderId: resolvedFolderId,
       spaceId,
       difyFileId,
       uploadedById: session.user.id,
       size: file.size,
       mimeType: file.type || null,
+      visibleFrom: new Date(),
+      visibleUntil: defaultVisibleUntil(),
+      isVisible: true,
+      diplomeSlug: spaceGroup?.diplomeRef?.slug ?? null,
+      anneeUniv: currentAnneeUniv(),
+      metadata: JSON.stringify({
+        hasText: pipeline.hasText,
+        method: pipeline.method,
+        targetDatasetId: targetDatasetId || null,
+      }),
     },
     include: { folder: true },
   })
-
-  // Save file locally for future downloads
-  await fs.promises.mkdir(DOCS_STORAGE, { recursive: true })
-  await fs.promises.writeFile(path.join(DOCS_STORAGE, doc.id), fileBuffer)
 
   await logAction({
     userId: session.user.id,
     action: 'DOCUMENT_UPLOAD',
     entityType: 'SpaceDocument',
     entityId: doc.id,
-    entityName: doc.displayName ?? doc.name,
+    entityName: doc.name,
     spaceId,
   })
 
