@@ -6,12 +6,28 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
-  const userId = searchParams.get('state')
+  const state = searchParams.get('state') ?? ''
   const error = searchParams.get('error')
 
-  if (error || !code || !userId) {
+  if (error || !code || !state) {
     return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?gdrive_error=1`)
   }
+
+  const colonIdx = state.indexOf(':')
+  const userId = colonIdx > 0 ? state.slice(0, colonIdx) : ''
+  const csrfToken = colonIdx > 0 ? state.slice(colonIdx + 1) : ''
+
+  if (!userId || !csrfToken) {
+    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?gdrive_error=csrf`)
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { gdriveOAuthState: true } })
+  if (!user?.gdriveOAuthState || user.gdriveOAuthState !== csrfToken) {
+    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?gdrive_error=csrf`)
+  }
+
+  // Invalider le token CSRF après usage
+  await prisma.user.update({ where: { id: userId }, data: { gdriveOAuthState: null } })
 
   const oauth2 = createOAuth2Client()
   const { tokens } = await oauth2.getToken(code)

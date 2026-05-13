@@ -74,6 +74,7 @@ model User {
   googleAccessToken   String?
   googleRefreshToken  String?
   googleTokenExpiry   DateTime?
+  gdriveOAuthState    String?
 }
 
 enum Role {
