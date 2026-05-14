@@ -62,6 +62,7 @@ interface DocWithDate extends SpaceDoc {
   visibleUntil?: string | null
   metadata?: string | null
   indexingStatus?: string
+  progress?: number | null
 }
 
 export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], userRole = 'EC' }: { initialSpaces: SpaceData[]; sharedSpaces?: SharedSpace[]; userRole?: string }) {
@@ -165,9 +166,12 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
         try {
           const r = await fetch(`/api/spaces/${selectedSpaceId}/documents/${docId}/status`)
           if (!r.ok) return
-          const { status } = await r.json() as { status: string }
+          const { status, progress } = await r.json() as { status: string; progress?: number | null }
+          if (progress != null) {
+            setDocs(prev => prev.map(d => d.id === docId ? { ...d, progress } : d))
+          }
           if (status !== 'pending') {
-            setDocs(prev => prev.map(d => d.id === docId ? { ...d, indexingStatus: status } : d))
+            setDocs(prev => prev.map(d => d.id === docId ? { ...d, indexingStatus: status, progress: null } : d))
             setPendingDocIds(prev => { const s = new Set(prev); s.delete(docId); return s })
             if (status === 'indexed') {
               setJustIndexedIds(prev => new Set([...prev, docId]))
@@ -179,7 +183,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
           }
         } catch { /* skip — réseau transitoire */ }
       }))
-    }, 3000)
+    }, 2500)
 
     return () => clearInterval(intervalId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -312,7 +316,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
       const optimisticDoc: DocWithDate = {
         id: tempId,
         name: file.name,
-        displayName: null,
+        displayName: file.name,
         description: null,
         folderId: selectedFolderId,
         mimeType: file.type || null,
@@ -924,9 +928,14 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                             ) : (
                               <>
                                 {isPending ? (
-                                  <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', fontStyle: 'italic' }}>
-                                    Indexation en cours…
-                                  </p>
+                                  <>
+                                    <p className="truncate" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
+                                      {doc.displayName || doc.name}
+                                    </p>
+                                    <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', fontStyle: 'italic' }}>
+                                      {doc.progress != null ? `Indexation ${doc.progress}%…` : 'Indexation en cours…'}
+                                    </p>
+                                  </>
                                 ) : (
                                   <p className="truncate" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
                                     {doc.displayName || doc.name}
