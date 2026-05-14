@@ -223,10 +223,36 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
     try {
       const id = await uploadToDifyDataset(difyFile)
-      if (id) { difyFileId = id } else { indexingStatus = 'failed' }
+      if (id) {
+        difyFileId = id
+
+        // Attendre la fin de l'indexation Dify avant de retourner — évite les 429
+        // cascade sur Cortecs (embeddings) quand plusieurs documents s'indexent en parallèle.
+        if (difyBatch) {
+          const MAX_POLLS = 60 // 5 min (60 × 5 s)
+          for (let i = 0; i < MAX_POLLS; i++) {
+            await new Promise(r => setTimeout(r, 5000))
+            try {
+              const sr = await fetch(
+                `${DIFY_BASE_URL}/v1/datasets/${targetDatasetId}/documents/${difyBatch}/indexing-status`,
+                { headers: { Authorization: `Bearer ${DIFY_DATASET_KEY}` }, signal: AbortSignal.timeout(8000) }
+              )
+              if (!sr.ok) continue
+              const sd = await sr.json() as { data?: { id: string; indexing_status: string }[] }
+              const entry = (sd.data ?? []).find(d => d.id === difyFileId) ?? sd.data?.[0]
+              const st = entry?.indexing_status ?? ''
+              if (st === 'completed') { indexingStatus = 'indexed'; break }
+              if (st === 'error' || st === 'failed') { indexingStatus = 'failed'; break }
+            } catch { /* continue on transient network error */ }
+          }
+          // Timeout (5 min) — Dify encore en cours → statut reste pending, polling client prend le relais
+        }
+      } else {
+        indexingStatus = 'failed'
+      }
     } catch (err) {
       indexingStatus = 'failed'
-      console.warn('[upload] Dify upload failed (non-blocking):', err)
+      console.warn('[upload] Dify upload failed:', err)
     }
   } else if (!pipeline.hasText) {
     // PDF vraiment scanné (image) — archivage brut, pas d'indexation KB
