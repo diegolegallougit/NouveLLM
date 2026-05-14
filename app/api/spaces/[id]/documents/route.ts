@@ -5,12 +5,14 @@ import { processDocument } from '@/lib/document-pipeline'
 import { ocrPdfWithPixtral } from '@/lib/ocr-pixtral'
 import { currentAnneeUniv, defaultVisibleUntil } from '@/lib/academic-calendar'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { indexingQueue } from '@/lib/indexing-queue'
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import fs from 'fs'
 import path from 'path'
 
 const DOCS_STORAGE = path.join(process.cwd(), '.data', 'space-docs')
+const QUEUE_STORAGE = path.join(process.cwd(), '.data', 'indexing-queue')
 
 const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.13:5001'
 const DIFY_DATASET_KEY = process.env.DIFY_DATASET_API_KEY || ''
@@ -50,7 +52,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
   if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  // Resolve primary group (first in enrichmentGroups) for KB + diplome metadata
+  // Resolve primary group for KB + diplome metadata
   let spaceGroup: { hasKB: boolean; difyDatasetId: string | null; diplomeRef: { slug: string; ufr: string } | null } | null = null
   try {
     const groupIds: string[] = JSON.parse(space.enrichmentGroups ?? '[]')
@@ -58,7 +60,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       const g = await prisma.group.findUnique({ where: { id: groupIds[0] }, include: { diplomeRef: true } })
       if (g) spaceGroup = { hasKB: g.hasKB, difyDatasetId: g.difyDatasetId ?? null, diplomeRef: g.diplomeRef ?? null }
     }
-  } catch { /* enrichmentGroups malformé — pas de groupe */ }
+  } catch { /* enrichmentGroups malformé */ }
 
   const formData = await req.formData()
   const file = formData.get('file') as File | null
@@ -74,7 +76,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const fileBuffer = Buffer.from(await file.arrayBuffer())
 
-  // Run document pipeline (conversion + extraction)
   let pipeline: Awaited<ReturnType<typeof processDocument>>
   try {
     pipeline = await processDocument(fileBuffer, file.name, file.type)
@@ -83,7 +84,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: 'Impossible de lire le fichier — il est peut-être corrompu ou protégé.' }, { status: 422 })
   }
 
-  // OCR si PDF scanné — try/catch car ocrPdfWithPixtral peut throw (timeout réseau Cortecs)
   if (!pipeline.hasText && pipeline.warnings.includes('PDF_SCANNED')) {
     try {
       const ocrText = await ocrPdfWithPixtral(fileBuffer)
@@ -99,7 +99,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     } catch (err) {
       console.warn('[upload] OCR Pixtral failed (non-blocking):', err)
-      // Laisse pipeline en pdf-scanned → sera archivé sans indexation
     }
   }
 
@@ -110,7 +109,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     resolvedFolderId = folder?.id ?? null
   }
 
-  // Personal space — store converted content locally, skip Dify entirely
+  // ── Personal space — store locally, no indexing ──────────────────────────────
   if (!spaceGroup) {
     const docId = randomUUID()
     const useOriginal = !pipeline.content || pipeline.method === 'pdf-dify-native'
@@ -126,7 +125,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       )
     } catch (err) {
       console.error('[upload] local write failed:', err)
-      return NextResponse.json({ error: 'Erreur lors de l\'enregistrement du fichier.' }, { status: 500 })
+      return NextResponse.json({ error: "Erreur lors de l'enregistrement du fichier." }, { status: 500 })
     }
 
     const doc = await prisma.spaceDocument.create({
@@ -153,27 +152,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       include: { folder: true },
     })
 
-    await logAction({
-      userId: session.user.id,
-      action: 'DOCUMENT_UPLOAD',
-      entityType: 'SpaceDocument',
-      entityId: doc.id,
-      entityName: doc.name,
-      spaceId,
-    })
-
+    await logAction({ userId: session.user.id, action: 'DOCUMENT_UPLOAD', entityType: 'SpaceDocument', entityId: doc.id, entityName: doc.name, spaceId })
     return NextResponse.json({ document: doc }, { status: 201 })
   }
 
-  // Select target KB
-  const groupKbId = spaceGroup?.hasKB ? spaceGroup.difyDatasetId : null
-  const targetDatasetId = groupKbId || COURS_ACTIFS_DATASET_ID
+  // ── Group space — resolve target KB ─────────────────────────────────────────
+  const targetDatasetId = (spaceGroup.hasKB ? spaceGroup.difyDatasetId : null) || COURS_ACTIFS_DATASET_ID
 
   const difyDocMetadata = {
     space_id: spaceId,
     folder_id: resolvedFolderId ?? null,
-    diplome: spaceGroup?.diplomeRef?.slug ?? null,
-    ufr: spaceGroup?.diplomeRef?.ufr ?? null,
+    diplome: spaceGroup.diplomeRef?.slug ?? null,
+    ufr: spaceGroup.diplomeRef?.ufr ?? null,
     audience: 'ALL',
     annee_univ: currentAnneeUniv(),
     uploader: session.user.email,
@@ -184,53 +174,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     processing_method: pipeline.method,
   }
 
-  let difyBatch: string | null = null
-
-  async function uploadToDifyDataset(uploadFile: File): Promise<string | null> {
-    const difyForm = new FormData()
-    difyForm.append('file', uploadFile)
-    difyForm.append('data', JSON.stringify({ indexing_technique: 'high_quality', process_rule: { mode: 'automatic' }, doc_metadata: difyDocMetadata }))
-    const res = await fetch(
-      `${DIFY_BASE_URL}/v1/datasets/${targetDatasetId}/document/create_by_file`,
-      { method: 'POST', headers: { Authorization: `Bearer ${DIFY_DATASET_KEY}` }, body: difyForm, signal: AbortSignal.timeout(30000) }
-    )
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => '')
-      console.error('[upload] Dify error:', res.status, errBody.slice(0, 300))
-      return null
-    }
-    const data = await res.json()
-    difyBatch = data.batch ?? null
-    return data.document?.id ?? null
-  }
-
-  // Upload to Dify — track success/failure for indexingStatus
-  let difyFileId = `local-${Date.now()}`
-  let indexingStatus = targetDatasetId ? 'pending' : 'no_index'
-
-  if (targetDatasetId && pipeline.hasText) {
-    // Choisir le fichier à envoyer à Dify :
-    // - PDF natif ou contenu vide → envoyer le PDF original (Dify extrait nativement)
-    // - Autres formats → envoyer le contenu converti (txt/md/json)
-    let difyFile: File
-    if (pipeline.method === 'pdf-dify-native' || !pipeline.content) {
-      difyFile = new File([fileBuffer], file.name, { type: file.type || 'application/pdf' })
-    } else {
-      const contentBlob = new Blob([pipeline.content], {
-        type: pipeline.contentType === 'json' ? 'application/json' : 'text/plain; charset=utf-8',
-      })
-      difyFile = new File([contentBlob], pipeline.filename)
-    }
-    try {
-      const id = await uploadToDifyDataset(difyFile)
-      if (id) { difyFileId = id } else { indexingStatus = 'failed' }
-    } catch (err) {
-      indexingStatus = 'failed'
-      console.warn('[upload] Dify upload failed:', err)
-    }
-  } else if (!pipeline.hasText) {
-    // PDF vraiment scanné (image) — archivage brut, pas d'indexation KB
-    indexingStatus = 'no_index'
+  // ── Scanned PDF (no text) — archive to Dify files, no indexing ──────────────
+  if (!pipeline.hasText) {
+    let difyFileId = `local-${Date.now()}`
     try {
       const difyForm = new FormData()
       difyForm.append('file', new File([fileBuffer], file.name, { type: file.type }))
@@ -241,50 +187,159 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       })
       if (res.ok) { const d = await res.json(); difyFileId = d.id ?? difyFileId }
     } catch { /* non-blocking */ }
+
+    let doc: Awaited<ReturnType<typeof prisma.spaceDocument.create>>
+    try {
+      doc = await prisma.spaceDocument.create({
+        data: {
+          name: file.name,
+          displayName: null,
+          description: null,
+          folderId: resolvedFolderId,
+          spaceId,
+          difyFileId,
+          uploadedById: session.user.id,
+          size: file.size,
+          mimeType: file.type || null,
+          visibleFrom: new Date(),
+          visibleUntil: defaultVisibleUntil(),
+          isVisible: true,
+          diplomeSlug: spaceGroup.diplomeRef?.slug ?? null,
+          anneeUniv: currentAnneeUniv(),
+          metadata: JSON.stringify({ hasText: false, method: pipeline.method, targetDatasetId: null }),
+          indexingStatus: 'no_index',
+        },
+        include: { folder: true },
+      })
+    } catch (err) {
+      console.error('[upload] prisma.create failed (scanned):', err)
+      return NextResponse.json({ error: "Erreur lors de l'enregistrement en base de données." }, { status: 500 })
+    }
+    await logAction({ userId: session.user.id, action: 'DOCUMENT_UPLOAD', entityType: 'SpaceDocument', entityId: doc.id, entityName: doc.name, spaceId })
+    return NextResponse.json({ document: doc }, { status: 201 })
+  }
+
+  // ── No target dataset — fall back to local storage ───────────────────────────
+  if (!targetDatasetId) {
+    const docId = randomUUID()
+    const storedExt = '.' + (file.name.split('.').pop()?.toLowerCase() ?? 'bin')
+    const storedFilename = `${docId}${storedExt}`
+    try {
+      await fs.promises.mkdir(DOCS_STORAGE, { recursive: true })
+      await fs.promises.writeFile(path.join(DOCS_STORAGE, storedFilename), fileBuffer)
+    } catch (err) {
+      console.error('[upload] local write failed (no dataset):', err)
+      return NextResponse.json({ error: "Erreur lors de l'enregistrement du fichier." }, { status: 500 })
+    }
+    const doc = await prisma.spaceDocument.create({
+      data: {
+        id: docId, name: file.name, displayName: null, description: null,
+        folderId: resolvedFolderId, spaceId, difyFileId: null, storedFilename,
+        uploadedById: session.user.id, size: file.size, mimeType: file.type || null,
+        visibleFrom: new Date(), visibleUntil: defaultVisibleUntil(), isVisible: true,
+        diplomeSlug: spaceGroup.diplomeRef?.slug ?? null, anneeUniv: currentAnneeUniv(),
+        metadata: JSON.stringify({ hasText: pipeline.hasText, method: pipeline.method, targetDatasetId: null }),
+        indexingStatus: 'no_index',
+      },
+      include: { folder: true },
+    })
+    await logAction({ userId: session.user.id, action: 'DOCUMENT_UPLOAD', entityType: 'SpaceDocument', entityId: doc.id, entityName: doc.name, spaceId })
+    return NextResponse.json({ document: doc }, { status: 201 })
+  }
+
+  // ── Queue for BullMQ indexing ─────────────────────────────────────────────────
+  const docId = randomUUID()
+
+  // Determine content file to store for the worker
+  const useOriginalFile = pipeline.method === 'pdf-dify-native' || !pipeline.content
+  let contentBuffer: Buffer
+  let difyFilename: string
+  let difyMimeType: string
+
+  if (useOriginalFile) {
+    contentBuffer = fileBuffer
+    difyFilename = file.name
+    difyMimeType = file.type || 'application/pdf'
+  } else {
+    contentBuffer = Buffer.from(pipeline.content, 'utf-8')
+    difyFilename = pipeline.filename
+    difyMimeType = pipeline.contentType === 'json' ? 'application/json' : 'text/plain; charset=utf-8'
+  }
+
+  const contentExt = difyFilename.split('.').pop() ?? 'bin'
+  const contentFilename = `${docId}.${contentExt}`
+  const contentPath = path.join(QUEUE_STORAGE, contentFilename)
+
+  try {
+    await fs.promises.mkdir(QUEUE_STORAGE, { recursive: true })
+    await fs.promises.writeFile(contentPath, contentBuffer)
+  } catch (err) {
+    console.error('[upload] queue storage write failed:', err)
+    return NextResponse.json({ error: "Erreur lors de l'enregistrement du fichier." }, { status: 500 })
   }
 
   let doc: Awaited<ReturnType<typeof prisma.spaceDocument.create>>
+  let indexingJobRecord: { id: string }
   try {
     doc = await prisma.spaceDocument.create({
       data: {
+        id: docId,
         name: file.name,
         displayName: null,
         description: null,
         folderId: resolvedFolderId,
         spaceId,
-        difyFileId,
+        difyFileId: null,
+        storedFilename: null,
         uploadedById: session.user.id,
         size: file.size,
         mimeType: file.type || null,
         visibleFrom: new Date(),
         visibleUntil: defaultVisibleUntil(),
         isVisible: true,
-        diplomeSlug: spaceGroup?.diplomeRef?.slug ?? null,
+        diplomeSlug: spaceGroup.diplomeRef?.slug ?? null,
         anneeUniv: currentAnneeUniv(),
-        metadata: JSON.stringify({
-          difyDocumentId: difyFileId.startsWith('local-') ? null : difyFileId,
-          difyBatch,
-          hasText: pipeline.hasText,
-          method: pipeline.method,
-          targetDatasetId: targetDatasetId || null,
-        }),
-        indexingStatus,
+        metadata: JSON.stringify({ hasText: true, method: pipeline.method, targetDatasetId }),
+        indexingStatus: 'queued',
       },
       include: { folder: true },
     })
+
+    indexingJobRecord = await prisma.indexingJob.create({
+      data: {
+        spaceDocumentId: docId,
+        userId: session.user.id,
+        status: 'queued',
+        targetDatasetId,
+        metadata: JSON.stringify({ contentPath, filename: difyFilename }),
+      },
+      select: { id: true },
+    })
   } catch (err) {
     console.error('[upload] prisma.create failed:', err)
-    return NextResponse.json({ error: 'Erreur lors de l\'enregistrement en base de données.' }, { status: 500 })
+    await fs.promises.unlink(contentPath).catch(() => {})
+    return NextResponse.json({ error: "Erreur lors de l'enregistrement en base de données." }, { status: 500 })
   }
 
-  await logAction({
-    userId: session.user.id,
-    action: 'DOCUMENT_UPLOAD',
-    entityType: 'SpaceDocument',
-    entityId: doc.id,
-    entityName: doc.name,
-    spaceId,
-  })
+  try {
+    await indexingQueue.add('index-doc', {
+      docId,
+      indexingJobId: indexingJobRecord.id,
+      spaceId,
+      userId: session.user.id,
+      contentPath,
+      filename: difyFilename,
+      targetDatasetId,
+      mimeType: difyMimeType,
+      difyDocMetadata,
+    })
+  } catch (err) {
+    console.error('[upload] BullMQ enqueue failed:', err)
+    // Don't fail the request — job can be retried via admin or manual re-upload
+    // The document is already in DB with 'queued' status; worker won't pick it up
+    // but it's better than losing the upload entirely
+  }
 
+  await logAction({ userId: session.user.id, action: 'DOCUMENT_UPLOAD', entityType: 'SpaceDocument', entityId: doc.id, entityName: doc.name, spaceId })
   return NextResponse.json({ document: doc }, { status: 201 })
 }

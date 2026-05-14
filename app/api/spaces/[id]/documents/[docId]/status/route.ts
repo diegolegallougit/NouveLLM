@@ -32,6 +32,11 @@ export async function GET(
     return NextResponse.json({ status: 'indexed' })
   }
 
+  // En attente dans la queue BullMQ
+  if (doc.indexingStatus === 'queued') {
+    return NextResponse.json({ status: 'queued' })
+  }
+
   // Récupérer batch + datasetId depuis metadata
   const meta = (() => { try { return doc.metadata ? JSON.parse(doc.metadata) : null } catch { return null } })()
   const difyBatch: string | null = meta?.difyBatch ?? null
@@ -56,7 +61,7 @@ export async function GET(
   // Endpoint batch natif Dify — même logique que le frontend Dify interne
   try {
     const difyRes = await fetch(
-      `${DIFY_BASE_URL}/v1/datasets/${targetDatasetId}/batch/${difyBatch}/indexing-status`,
+      `${DIFY_BASE_URL}/v1/datasets/${targetDatasetId}/documents/${difyBatch}/indexing-status`,
       { headers: { Authorization: `Bearer ${DIFY_DATASET_KEY}` }, signal: AbortSignal.timeout(5000) }
     )
 

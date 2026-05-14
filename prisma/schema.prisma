@@ -69,6 +69,7 @@ model User {
   reports             Report[]
   scopes              Scope[]
   auditLogs           AuditLog[]
+  indexingJobs        IndexingJob[]
   // Connectors
   notionToken         String?
   googleAccessToken   String?
@@ -505,6 +506,29 @@ model SpaceDocument {
   anneeUniv    String?
   metadata        String?
   indexingStatus  String  @default("pending")
+  indexingJobs    IndexingJob[]
+}
+
+// ─── File d'indexation ────────────────────────────────────────────────────────
+
+model IndexingJob {
+  id              String        @id @default(cuid())
+  spaceDocumentId String
+  spaceDocument   SpaceDocument @relation(fields: [spaceDocumentId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  status          String        @default("queued")
+  // queued | processing | completed | failed
+  position        Int?
+  attempts        Int           @default(0)
+  maxAttempts     Int           @default(3)
+  error           String?
+  difyBatch       String?
+  targetDatasetId String?
+  createdAt       DateTime      @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  metadata        String?
 }
 
 model Report {

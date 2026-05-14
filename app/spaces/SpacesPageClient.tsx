@@ -170,7 +170,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
           if (progress != null) {
             setDocs(prev => prev.map(d => d.id === docId ? { ...d, progress } : d))
           }
-          if (status !== 'pending') {
+          if (status !== 'pending' && status !== 'queued') {
             setDocs(prev => prev.map(d => d.id === docId ? { ...d, indexingStatus: status, progress: null } : d))
             setPendingDocIds(prev => { const s = new Set(prev); s.delete(docId); return s })
             if (status === 'indexed') {
@@ -202,7 +202,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
       .then(d => {
         const loaded: DocWithDate[] = d.documents ?? []
         setDocs(loaded)
-        const stillPending = new Set(loaded.filter(doc => doc.indexingStatus === 'pending').map(doc => doc.id))
+        const stillPending = new Set(loaded.filter(doc => doc.indexingStatus === 'pending' || doc.indexingStatus === 'queued').map(doc => doc.id))
         if (stillPending.size > 0) setPendingDocIds(stillPending)
       })
       .catch(() => setDocs([]))
@@ -322,7 +322,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
         mimeType: file.type || null,
         size: file.size,
         uploadedAt: new Date().toISOString(),
-        indexingStatus: 'pending',
+        indexingStatus: 'queued',
         metadata: null,
       }
       setDocs(prev => [optimisticDoc, ...prev])
@@ -336,7 +336,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
           const data = await r.json()
           // Remplacer l'entrée optimiste par le doc réel
           setDocs(prev => prev.map(d => d.id === tempId ? data.document : d))
-          if (data.document?.indexingStatus === 'pending') {
+          if (data.document?.indexingStatus === 'pending' || data.document?.indexingStatus === 'queued') {
             setPendingDocIds(prev => new Set([...prev, data.document.id]))
           }
         } else {
@@ -891,7 +891,8 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                       {displayDocs.map((doc, i) => {
                         const isVis = doc.isVisible !== false
                         const meta = (() => { try { return doc.metadata ? JSON.parse(doc.metadata) : null } catch { return null } })()
-                        const isPending = doc.indexingStatus === 'pending'
+                        const isPending = doc.indexingStatus === 'pending' || doc.indexingStatus === 'queued'
+                        const isQueued = doc.indexingStatus === 'queued'
                         const isFailed = doc.indexingStatus === 'failed'
                         const isJustIndexed = justIndexedIds.has(doc.id)
                         return (
@@ -933,7 +934,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                                       {doc.displayName || doc.name}
                                     </p>
                                     <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', fontStyle: 'italic' }}>
-                                      {doc.progress != null ? `Indexation ${doc.progress}%…` : 'Indexation en cours…'}
+                                      {isQueued ? 'En attente d\'indexation…' : doc.progress != null ? `Indexation ${doc.progress}%…` : 'Indexation en cours…'}
                                     </p>
                                   </>
                                 ) : (

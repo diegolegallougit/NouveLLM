@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import Link from 'next/link'
 
 function StatCard({ label, value, sub, color = '#00068D' }: { label: string; value: string | number; sub?: string; color?: string }) {
   return (
@@ -21,6 +22,15 @@ function StatCard({ label, value, sub, color = '#00068D' }: { label: string; val
 export default async function AdminDashboard() {
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const today = new Date(now); today.setHours(0, 0, 0, 0)
+
+  // Queue stats
+  const [queuedJobs, processingJobs, completedToday, failedJobs] = await Promise.all([
+    prisma.indexingJob.count({ where: { status: 'queued' } }),
+    prisma.indexingJob.count({ where: { status: 'processing' } }),
+    prisma.indexingJob.count({ where: { status: 'completed', completedAt: { gte: today } } }),
+    prisma.indexingJob.count({ where: { status: 'failed' } }),
+  ])
 
   // Aggregated — no content ever fetched
   const [activeConvs, totalUsers, monthMessages, agentStats, feedbackRaw] = await Promise.all([
@@ -211,6 +221,31 @@ export default async function AdminDashboard() {
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Queue d'indexation */}
+      <div className="bg-white rounded-xl border border-[#D8D8D8] overflow-hidden">
+        <div className="px-5 py-3 border-b border-[#D8D8D8] flex items-center justify-between">
+          <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.04em', color: '#0D0D0D', textTransform: 'uppercase' }}>
+            Queue d&apos;indexation
+          </h2>
+          <Link href="/api/admin/indexing-queue" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.62rem', color: '#8A8A8A', letterSpacing: '0.04em' }}>
+            JSON →
+          </Link>
+        </div>
+        <div className="grid grid-cols-4 divide-x divide-[#F2F2F2] px-0">
+          {[
+            { label: 'En attente', value: queuedJobs, color: '#2B2EB8' },
+            { label: 'En cours', value: processingJobs, color: '#d97706' },
+            { label: 'Indexés aujourd\'hui', value: completedToday, color: '#2e7d32' },
+            { label: 'Échecs cumulés', value: failedJobs, color: failedJobs > 0 ? '#EF4444' : '#8A8A8A' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="px-5 py-4">
+              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.62rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#8A8A8A' }}>{label}</p>
+              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.8rem', color, letterSpacing: '-0.02em' }} className="mt-1">{value}</p>
+            </div>
+          ))}
         </div>
       </div>
 
