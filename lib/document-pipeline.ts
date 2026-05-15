@@ -8,6 +8,21 @@ import * as XLSX from 'xlsx'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string; numpages: number }>
 
+function cleanPdfText(raw: string): string {
+  return raw
+    .replace(/\r\n/g, '\n')
+    // Rejoindre les lignes d'un même paragraphe (simple \n → espace)
+    .replace(/([^\n])\n([^\n])/g, '$1 $2')
+    .replace(/ {2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    // Supprimer les lignes très courtes isolées (artefacts mise en page, numéros de page)
+    .replace(/\n([^\n]{1,15})\n/g, (match, line) => {
+      if (/^[A-Z0-9]/.test(line.trim())) return match
+      return '\n'
+    })
+    .trim()
+}
+
 export type PipelineResult = {
   content: string
   contentType: 'markdown' | 'json' | 'text'
@@ -102,8 +117,9 @@ export async function processDocument(
       }
 
       if (text.length >= 30) {
+        const cleanedText = cleanPdfText(text)
         return {
-          content: text,
+          content: cleanedText,
           contentType: 'text',
           method: 'pdf-parse',
           hasText: true,
