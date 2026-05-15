@@ -8,7 +8,7 @@ export function syncDocVisibilityToDify(
   fetch(`${base}/v1/datasets/${datasetId}/documents/${difyFileId}`, {
     method: 'PATCH',
     headers: {
-      Authorization: `Bearer ${process.env.DIFY_DATASET_API_KEY}`,
+      Authorization: `Bearer ${process.env.DIFY_KNOWLEDGE_WRITE_KEY || process.env.DIFY_DATASET_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({

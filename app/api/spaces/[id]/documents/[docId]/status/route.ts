@@ -32,11 +32,6 @@ export async function GET(
     return NextResponse.json({ status: 'indexed' })
   }
 
-  // En attente dans la queue BullMQ
-  if (doc.indexingStatus === 'queued') {
-    return NextResponse.json({ status: 'queued' })
-  }
-
   // Récupérer batch + datasetId depuis metadata
   const meta = (() => { try { return doc.metadata ? JSON.parse(doc.metadata) : null } catch { return null } })()
   const difyBatch: string | null = meta?.difyBatch ?? null
