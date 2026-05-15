@@ -101,23 +101,19 @@ export async function processDocument(
     }
   }
 
-  // PDF → détection scanned ou texte
+  // PDF → toujours tenter pdf-parse + cleanPdfText, fallback natif si résultat insuffisant
   if (ext === 'pdf' || mimeType.includes('pdf')) {
     try {
       const data = await pdfParse(buffer)
-      const text = data.text.trim()
+      const cleanedText = cleanPdfText(data.text.trim())
 
-      // Scanné uniquement si : texte très court ET fichier petit (< 100 Ko)
-      // Les PDFs avec polices embarquées peuvent avoir peu de texte extrait
-      // mais sont volumineux — Dify gère leur extraction nativement.
-      const isLikelyScanned = text.length < 30 && buffer.length < 100_000
-
-      if (isLikelyScanned) {
+      // PDF scanné : texte nettoyé très court ET fichier petit → déclencher OCR
+      if (cleanedText.length < 100 && buffer.length < 100_000) {
         return { content: '', contentType: 'text', method: 'pdf-scanned', hasText: false, warnings: ['PDF_SCANNED'], filename }
       }
 
-      if (text.length >= 30) {
-        const cleanedText = cleanPdfText(text)
+      // Texte suffisant après nettoyage → utiliser le résultat pdf-parse
+      if (cleanedText.length >= 100) {
         return {
           content: cleanedText,
           contentType: 'text',
@@ -128,11 +124,10 @@ export async function processDocument(
         }
       }
 
-      // Texte court mais fichier volumineux → polices non-standard, Dify gère nativement
+      // Texte insuffisant mais fichier volumineux → polices non-standard, Dify extrait nativement
       return { content: '', contentType: 'text', method: 'pdf-dify-native', hasText: true, warnings: [], filename }
 
     } catch {
-      // En cas d'erreur pdf-parse → laisser Dify gérer nativement
       return { content: '', contentType: 'text', method: 'pdf-dify-native', hasText: true, warnings: [], filename }
     }
   }
