@@ -23,6 +23,21 @@ export async function middleware(req: NextRequest) {
   }
 
   if (pathname.startsWith('/api/')) {
+    // Whitelist: routes that are intentionally public (no auth required)
+    // All other /api/ routes return 401 if the request has no valid session token
+    const PUBLIC_API_PREFIXES = [
+      '/api/auth/',           // NextAuth callbacks, session, csrf, signout
+      '/api/admin/webhook/',  // Dify webhook (HMAC-signed, verified in the route)
+      '/api/session/',        // Student session lookup + guest-chat (no login required)
+      '/api/docs',            // OpenAPI spec
+    ]
+    if (PUBLIC_API_PREFIXES.some(p => pathname.startsWith(p))) {
+      return NextResponse.next()
+    }
+    const apiToken = await getToken({ req, secret: process.env.AUTH_SECRET })
+    if (!apiToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     return NextResponse.next()
   }
 
