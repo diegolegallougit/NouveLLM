@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import SourcesBlock from './SourcesBlock'
 import ProcessingState from './ProcessingState'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 export interface Source {
   title: string
@@ -149,7 +150,7 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
           <ProcessingState agentSlug={message.agentUsed} />
         ) : (
           <div className={`nl-prose${message.isStreaming ? ' nl-cursor' : ''}`}>
-            <div dangerouslySetInnerHTML={{ __html: formatContent(cleanContent) }} />
+            <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatContent(cleanContent)) }} />
           </div>
         )}
 
