@@ -154,7 +154,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     ufr: spaceGroup.diplomeRef?.ufr ?? null,
     audience: 'ALL',
     annee_univ: currentAnneeUniv(),
-    uploader: session.user.email,
+    user_ref: session.user.id,
     visible_from: new Date().toISOString(),
     visible_until: defaultVisibleUntil().toISOString(),
     is_visible: true,
