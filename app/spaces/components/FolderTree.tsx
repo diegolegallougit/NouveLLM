@@ -20,7 +20,7 @@ interface FolderTreeProps {
   onSelectSpace: (id: string) => void
   onCreateSpace: (name: string) => Promise<void>
   onRenameSpace: (id: string, name: string) => Promise<void>
-  onDeleteSpace: (id: string) => Promise<void>
+  onDeleteSpace: (id: string) => void
   onDeleteFolder: (folderId: string) => Promise<void>
 }
 

@@ -33,7 +33,7 @@ interface FileListProps {
   onSetSelectedFolderId: (id: string | null) => void
   onSetSelectedDocIds: React.Dispatch<React.SetStateAction<Set<string>>>
   onUploadFiles: (files: File[]) => Promise<void>
-  onRenameDoc: (docId: string, name: string) => Promise<void>
+  onRenameDoc: (docId: string, name: string) => void
   onDeleteDoc: (docId: string) => Promise<void>
   onCreateFolder: (name: string) => Promise<void>
   onDeleteFolder: (folderId: string) => Promise<void>
@@ -81,9 +81,9 @@ const FileList = memo(function FileList({
 
   const totalDocs = docs.length
 
-  const handleRenameDoc = useCallback(async (docId: string) => {
+  const handleRenameDoc = useCallback((docId: string) => {
     if (!renameDocVal.trim()) { setRenamingDocId(null); return }
-    await onRenameDoc(docId, renameDocVal.trim())
+    onRenameDoc(docId, renameDocVal.trim())
     setRenamingDocId(null)
   }, [renameDocVal, onRenameDoc])
 

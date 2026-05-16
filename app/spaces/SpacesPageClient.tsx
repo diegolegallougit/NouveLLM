@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, useTransition } from 'react'
 import Link from 'next/link'
 import { SpaceData } from '@/components/spaces/SpaceTree'
 import { DocWithDate } from './utils'
@@ -43,6 +43,9 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
   const [settingsAudience, setSettingsAudience] = useState('ALL')
   const [settingsSaving, setSettingsSaving] = useState(false)
   const pendingDocIdsRef = useRef<Set<string>>(new Set())
+  const [isSpacesPending, startSpacesTransition] = useTransition()
+  const [isRenamePending, startRenameTransition] = useTransition()
+  const [isDeletePending, startDeleteTransition] = useTransition()
 
   const selectedSpace = useMemo(() => spaces.find(s => s.id === selectedSpaceId) ?? null, [spaces, selectedSpaceId])
   const canSetAudience = userRole === 'ADMIN' || userRole === 'RESPONSABLE' || userRole === 'EC'
@@ -113,11 +116,13 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
       .finally(() => setJournalLoading(false))
   }, [activeTab, selectedSpaceId])
 
-  const loadSpaces = useCallback(async () => {
-    const r = await fetch('/api/spaces')
-    const d = await r.json()
-    setSpaces(d.spaces ?? [])
-  }, [])
+  const loadSpaces = useCallback(() => {
+    startSpacesTransition(async () => {
+      const r = await fetch('/api/spaces')
+      const d = await r.json()
+      setSpaces(d.spaces ?? [])
+    })
+  }, [startSpacesTransition])
 
   const uploadFiles = useCallback(async (files: File[]) => {
     if (!selectedSpaceId || uploading) return
@@ -187,11 +192,13 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
     setMobilePanelView('documents')
   }, [])
 
-  const deleteSpace = useCallback(async (id: string) => {
-    await fetch(`/api/spaces/${id}`, { method: 'DELETE' })
-    if (selectedSpaceId === id) setSelectedSpaceId(null)
-    await loadSpaces()
-  }, [selectedSpaceId, loadSpaces])
+  const deleteSpace = useCallback((id: string) => {
+    startDeleteTransition(async () => {
+      await fetch(`/api/spaces/${id}`, { method: 'DELETE' })
+      if (selectedSpaceId === id) setSelectedSpaceId(null)
+      await fetch('/api/spaces').then(r => r.json()).then(d => setSpaces(d.spaces ?? []))
+    })
+  }, [selectedSpaceId, startDeleteTransition])
 
   const createFolder = useCallback(async (name: string) => {
     if (!selectedSpaceId) return
@@ -206,11 +213,13 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
     setDocs(prev => prev.filter(d => d.folderId !== folderId))
   }, [selectedSpaceId, loadSpaces])
 
-  const renameDoc = useCallback(async (docId: string, displayName: string) => {
+  const renameDoc = useCallback((docId: string, displayName: string) => {
     if (!selectedSpaceId) return
-    const r = await fetch(`/api/spaces/${selectedSpaceId}/documents/${docId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ displayName }) })
-    if (r.ok) { const data = await r.json(); setDocs(prev => prev.map(d => d.id === docId ? { ...d, displayName: data.document.displayName } : d)) }
-  }, [selectedSpaceId])
+    startRenameTransition(async () => {
+      const r = await fetch(`/api/spaces/${selectedSpaceId}/documents/${docId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ displayName }) })
+      if (r.ok) { const data = await r.json(); setDocs(prev => prev.map(d => d.id === docId ? { ...d, displayName: data.document.displayName } : d)) }
+    })
+  }, [selectedSpaceId, startRenameTransition])
 
   const deleteDoc = useCallback(async (docId: string) => {
     if (!selectedSpaceId) return
@@ -300,7 +309,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
       <PanelToggle view={mobilePanelView} onToggle={setMobilePanelView} />
 
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        <div className={`${mobilePanelView === 'folders' ? 'flex' : 'hidden'} md:flex flex-col border-r border-[#D8D8D8] bg-white md:flex-shrink-0 overflow-y-auto nl-scroll w-full md:w-[280px]`}>
+        <div className={`${mobilePanelView === 'folders' ? 'flex' : 'hidden'} md:flex flex-col border-r border-[#D8D8D8] bg-white md:flex-shrink-0 overflow-y-auto nl-scroll w-full md:w-[280px] transition-opacity ${isSpacesPending || isDeletePending ? 'opacity-60' : ''}`}>
           <FolderTree
             spaces={spaces}
             selectedSpaceId={selectedSpaceId}
@@ -313,7 +322,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
             onDeleteFolder={deleteFolder}
           />
         </div>
-        <div className={`${mobilePanelView === 'documents' ? 'flex' : 'hidden'} md:flex flex-col flex-1 overflow-y-auto nl-scroll`}>
+        <div className={`${mobilePanelView === 'documents' ? 'flex' : 'hidden'} md:flex flex-col flex-1 overflow-y-auto nl-scroll transition-opacity ${isRenamePending || isDeletePending ? 'opacity-60' : ''}`}>
           <FileList
             selectedSpace={selectedSpace}
             selectedSpaceId={selectedSpaceId}
