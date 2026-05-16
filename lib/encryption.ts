@@ -32,3 +32,25 @@ export function decrypt(ciphertext: string): string {
   decipher.setAuthTag(tag)
   return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8')
 }
+
+// Binary format: IV (12 bytes) || AuthTag (16 bytes) || Ciphertext
+export function encryptBuffer(buf: Buffer): Buffer {
+  const key = getKey()
+  const iv = randomBytes(12)
+  const cipher = createCipheriv(ALGORITHM, key, iv)
+  const encrypted = Buffer.concat([cipher.update(buf), cipher.final()])
+  const tag = cipher.getAuthTag()
+  return Buffer.concat([iv, tag, encrypted])
+}
+
+export function decryptBuffer(buf: Buffer): Buffer<ArrayBuffer> {
+  const key = getKey()
+  if (buf.length < 28) throw new Error('Buffer too short to be encrypted')
+  const iv = buf.subarray(0, 12)
+  const tag = buf.subarray(12, 28)
+  const encrypted = buf.subarray(28)
+  const decipher = createDecipheriv(ALGORITHM, key, iv)
+  decipher.setAuthTag(tag)
+  // Buffer.from garantit Buffer<ArrayBuffer> (compatible BodyInit dans les routes Next.js)
+  return Buffer.from(Buffer.concat([decipher.update(encrypted), decipher.final()]))
+}

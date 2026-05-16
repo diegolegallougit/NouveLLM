@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logAction } from '@/lib/audit'
+import { decryptBuffer } from '@/lib/encryption'
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
@@ -23,7 +24,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: 'Fichier non disponible au téléchargement' }, { status: 404 })
   }
 
-  const buffer = await fs.promises.readFile(filePath)
+  const rawFile = await fs.promises.readFile(filePath)
+  // Fichiers antérieurs au chiffrement servis en clair (fallback migration)
+  let buffer: NonSharedBuffer = rawFile
+  try {
+    buffer = decryptBuffer(rawFile)
+  } catch { /* pre-encryption file — serve as-is */ }
 
   await logAction({
     userId: session.user.id,

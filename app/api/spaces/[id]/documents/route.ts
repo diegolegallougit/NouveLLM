@@ -6,6 +6,7 @@ import { ocrPdfWithPixtral } from '@/lib/ocr-pixtral'
 import { currentAnneeUniv, defaultVisibleUntil } from '@/lib/academic-calendar'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { UploadDocumentSchema } from '@/lib/schemas/spaces.schema'
+import { encryptBuffer } from '@/lib/encryption'
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import fs from 'fs'
@@ -123,10 +124,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const storedFilename = `${docId}${storedExt}`
     try {
       await fs.promises.mkdir(DOCS_STORAGE, { recursive: true })
-      await fs.promises.writeFile(
-        path.join(DOCS_STORAGE, storedFilename),
-        useOriginal ? fileBuffer : Buffer.from(pipeline.content, 'utf-8')
-      )
+      const rawContent = useOriginal ? fileBuffer : Buffer.from(pipeline.content, 'utf-8')
+      // TODO: les fichiers antérieurs au chiffrement (avant 2025-12) sont stockés en clair.
+      // Migration one-shot à prévoir avant déploiement institutionnel sept. 2026.
+      await fs.promises.writeFile(path.join(DOCS_STORAGE, storedFilename), encryptBuffer(rawContent))
     } catch (err) {
       console.error('[upload] local write failed:', err)
       return NextResponse.json({ error: "Erreur lors de l'enregistrement du fichier." }, { status: 500 })
