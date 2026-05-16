@@ -1,12 +1,6 @@
 import { prisma } from '@/lib/prisma'
-import dynamic from 'next/dynamic'
-import AdminLoading from './loading'
+import AdminDashboardClientWrapper from './AdminDashboardClientWrapper'
 import type { AdminDashboardProps } from './AdminDashboardClient'
-
-const AdminDashboardClient = dynamic(() => import('./AdminDashboardClient'), {
-  ssr: false,
-  loading: () => <AdminLoading />,
-})
 
 export default async function AdminDashboard() {
   const now = new Date()
@@ -87,7 +81,7 @@ export default async function AdminDashboard() {
   const monthLabel = now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
 
   return (
-    <AdminDashboardClient
+    <AdminDashboardClientWrapper
       queuedJobs={queuedJobs}
       processingJobs={processingJobs}
       completedToday={completedToday}
