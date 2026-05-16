@@ -127,15 +127,22 @@ export async function POST(req: NextRequest) {
   })
 
   // Call Dify streaming API
-  const difyResponse = await streamDifyChat({
-    apiKey,
-    query: message,
-    conversationId: difyConvId,
-    userId: session.user.id,
-    inputs,
-    uploadedFileId,
-    datasetIds: datasetIds.length > 0 ? datasetIds : undefined,
-  })
+  let difyResponse: Response
+  try {
+    difyResponse = await streamDifyChat({
+      apiKey,
+      query: message,
+      conversationId: difyConvId,
+      userId: session.user.id,
+      inputs,
+      uploadedFileId,
+      datasetIds: datasetIds.length > 0 ? datasetIds : undefined,
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'network error'
+    console.error('[chat] Dify unreachable:', msg)
+    return NextResponse.json({ error: 'Service IA indisponible — réessayez dans un instant.', detail: msg }, { status: 503 })
+  }
 
   if (!difyResponse.ok || !difyResponse.body) {
     return NextResponse.json({ error: 'Dify API error', status: difyResponse.status }, { status: 502 })
