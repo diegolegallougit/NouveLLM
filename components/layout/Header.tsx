@@ -1,7 +1,7 @@
 'use client'
 
 import { signOut } from 'next-auth/react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import MetaPromptsPanel from '@/components/meta-prompts/MetaPromptsPanel'
 
 interface HeaderProps {
@@ -13,6 +13,15 @@ interface HeaderProps {
 export default function Header({ userName = 'Utilisateur', userRole = 'EC', userInitials = 'U' }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const mobileMenuRef = useRef<HTMLElement>(null)
+  const hamburgerRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setMobileMenuOpen(false); hamburgerRef.current?.focus() } }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [mobileMenuOpen])
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsTab, setSettingsTab] = useState<'data' | 'meta-prompts'>('meta-prompts')
   const [deleteConvsConfirm, setDeleteConvsConfirm] = useState(false)
@@ -107,9 +116,11 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
 
           {/* Hamburger — mobile only */}
           <button
+            ref={hamburgerRef}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
+            className="sm:hidden w-11 h-11 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all focus-visible:ring-2 focus-visible:ring-[#2B2EB8]"
             aria-label="Menu"
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
@@ -190,8 +201,8 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
       {mobileMenuOpen && (
         <>
           <div className="fixed inset-0 z-40 sm:hidden" onClick={() => setMobileMenuOpen(false)} />
-          <div className="fixed top-[var(--header-h)] left-0 right-0 z-40 bg-white border-b border-[#D8D8D8] shadow-lg sm:hidden">
-            <nav className="flex flex-col p-3 gap-1">
+          <nav ref={mobileMenuRef} role="dialog" aria-label="Menu principal" className="fixed top-[var(--header-h)] left-0 right-0 z-40 bg-white border-b border-[#D8D8D8] shadow-lg sm:hidden">
+            <div className="flex flex-col p-3 gap-1">
               {(userRole === 'EC' || userRole === 'ADMIN') && (
                 <>
                   <a
@@ -242,8 +253,8 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
                 Se déconnecter
               </button>
-            </nav>
-          </div>
+            </div>
+          </nav>
         </>
       )}
 

@@ -140,6 +140,9 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
   const [journalEntries, setJournalEntries] = useState<{ id: string; action: string; entityName: string; createdAt: string; user: { name: string | null; email: string } }[]>([])
   const [journalLoading, setJournalLoading] = useState(false)
 
+  // Mobile panel toggle — 'folders' shows left panel, 'documents' shows right panel
+  const [mobilePanelView, setMobilePanelView] = useState<'folders' | 'documents'>('folders')
+
   // Settings drawer
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsName, setSettingsName] = useState('')
@@ -423,6 +426,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
       return n
     })
     setCtxSpaceId(null)
+    setMobilePanelView('documents')
   }
 
   // Folder actions
@@ -494,24 +498,43 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
   return (
     <div className="flex flex-col bg-[#FAFAFA]" style={{ height: '100vh' }}>
       {/* Header */}
-      <header className="flex items-center justify-between px-6 bg-white border-b border-[#D8D8D8] flex-shrink-0" style={{ height: 'var(--header-h)' }}>
+      <header className="flex items-center justify-between px-3 sm:px-6 bg-white border-b border-[#D8D8D8] flex-shrink-0" style={{ height: 'var(--header-h)' }}>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#00068D' }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#00068D' }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M12 3v18M3 12h18" /><path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" /></svg>
           </div>
-          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', letterSpacing: '-0.02em', color: '#00068D' }}>NouveLLM</span>
-          <span className="w-px h-4 bg-[#D8D8D8]" />
-          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>Mes fichiers</span>
+          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'clamp(1.1rem, 4vw, var(--text-lg))', letterSpacing: '-0.02em', color: '#00068D' }}>NouveLLM</span>
+          <span className="hidden sm:block w-px h-4 bg-[#D8D8D8]" />
+          <span className="hidden sm:inline" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>Mes fichiers</span>
         </div>
         <Link href="/" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#8A8A8A' }}
-          className="hover:text-[#00068D] transition-colors">
-          ← Retour à la conversation
+          className="flex items-center gap-1 hover:text-[#00068D] transition-colors min-h-[44px] px-2">
+          <svg className="sm:hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M19 12H5M5 12l7-7M5 12l7 7" /></svg>
+          <span className="hidden sm:inline">← Retour à la conversation</span>
         </Link>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      {/* Mobile tab switcher — visible only on small screens */}
+      <div className="flex md:hidden border-b border-[#D8D8D8] bg-white flex-shrink-0">
+        <button
+          onClick={() => setMobilePanelView('folders')}
+          className={`flex-1 py-2.5 text-center border-b-2 transition-all ${mobilePanelView === 'folders' ? 'border-[#00068D] text-[#00068D]' : 'border-transparent text-[#8A8A8A]'}`}
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em' }}
+        >
+          Espaces
+        </button>
+        <button
+          onClick={() => setMobilePanelView('documents')}
+          className={`flex-1 py-2.5 text-center border-b-2 transition-all ${mobilePanelView === 'documents' ? 'border-[#00068D] text-[#00068D]' : 'border-transparent text-[#8A8A8A]'}`}
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em' }}
+        >
+          Fichiers
+        </button>
+      </div>
+
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* ── LEFT PANEL ── */}
-        <div className="flex flex-col border-r border-[#D8D8D8] bg-white flex-shrink-0 overflow-y-auto nl-scroll" style={{ width: '280px' }}>
+        <div className={`${mobilePanelView === 'folders' ? 'flex' : 'hidden'} md:flex flex-col border-r border-[#D8D8D8] bg-white md:flex-shrink-0 overflow-y-auto nl-scroll w-full md:w-[280px]`}>
           {/* Section: Mes espaces */}
           <div className="px-3 pt-4 pb-2">
             <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Mes espaces</p>
@@ -654,7 +677,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
         </div>
 
         {/* ── RIGHT PANEL ── */}
-        <div className="flex-1 overflow-y-auto nl-scroll">
+        <div className={`${mobilePanelView === 'documents' ? 'flex' : 'hidden'} md:flex flex-col flex-1 overflow-y-auto nl-scroll`}>
           {!selectedSpace ? (
             <div className="flex flex-col items-center justify-center h-full text-center px-8">
               <span className="text-5xl mb-4">📂</span>
@@ -664,13 +687,13 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
               </p>
             </div>
           ) : (
-            <div className="p-6 space-y-6">
+            <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
               {/* Space header */}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <span className="text-3xl">{selectedSpace.icon}</span>
                   <div>
-                    <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xl)', color: '#0D0D0D', letterSpacing: '-0.02em' }}>
+                    <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'clamp(1.25rem, 5vw, var(--text-xl))', color: '#0D0D0D', letterSpacing: '-0.02em' }}>
                       {selectedSpace.name}
                     </h1>
                     {selectedSpace.description && (
@@ -734,7 +757,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                 {!selectedFolderId && (
                   <button
                     onClick={() => { setCreatingFolder(true); setTimeout(() => newFolderRef.current?.focus(), 50) }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#D8D8D8] bg-white hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
+                    className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg border border-[#D8D8D8] bg-white hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
                     style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#0D0D0D' }}
                   >
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
@@ -744,7 +767,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#D8D8D8] bg-white hover:border-[#2B2EB8] hover:text-[#00068D] transition-all disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg border border-[#D8D8D8] bg-white hover:border-[#2B2EB8] hover:text-[#00068D] transition-all disabled:opacity-50"
                   style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#0D0D0D' }}
                 >
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>

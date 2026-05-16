@@ -125,14 +125,14 @@ export default async function AdminDashboard() {
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <StatCard label="Utilisateurs actifs ce mois" value={activeUserCount} sub={`sur ${totalUsers} inscrits`} />
         <StatCard label="Sessions ce mois" value={activeConvs.length} />
         <StatCard label="Tokens consommés ce mois" value={totalTokens > 1000 ? `${(totalTokens / 1000).toFixed(0)}k` : totalTokens} />
         <StatCard label="Agents utilisés" value={agentStats.length} sub="ce mois" color="#2B2EB8" />
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {/* Top 5 agents */}
         <div className="bg-white rounded-xl border border-[#D8D8D8] overflow-hidden">
           <div className="px-5 py-3 border-b border-[#D8D8D8]">
@@ -140,6 +140,7 @@ export default async function AdminDashboard() {
               Top 5 agents
             </h2>
           </div>
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#F2F2F2]">
@@ -183,6 +184,7 @@ export default async function AdminDashboard() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Tokens by group */}
@@ -192,6 +194,7 @@ export default async function AdminDashboard() {
               Tokens par groupe
             </h2>
           </div>
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#F2F2F2]">
@@ -221,6 +224,7 @@ export default async function AdminDashboard() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 

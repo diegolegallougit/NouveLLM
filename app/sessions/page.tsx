@@ -80,30 +80,31 @@ export default function SessionsPage() {
   const closed = sessions.filter(s => s.status === 'CLOSED')
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#FAFAFA] p-3 sm:p-6">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-start sm:items-center justify-between gap-3 flex-wrap">
           <div>
-            <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>
+            <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'clamp(1.1rem, 4vw, 1.3rem)', color: '#0D0D0D' }}>
               Mes Activités IA
             </h1>
             <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#8A8A8A' }}>
               {active.length} activité{active.length !== 1 ? 's' : ''} active{active.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-[10px] text-[#8A8A8A] hover:text-[#00068D] transition-colors"
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+            <Link href="/" className="hidden sm:inline text-[10px] text-[#8A8A8A] hover:text-[#00068D] transition-colors"
               style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, letterSpacing: '0.04em' }}>
               ← Retour à la conversation
             </Link>
             <button
               onClick={() => router.push('/sessions/new')}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition-all hover:opacity-90"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] rounded-xl text-sm transition-all hover:opacity-90"
               style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-              NOUVELLE ACTIVITÉ IA
+              <span className="hidden sm:inline">NOUVELLE ACTIVITÉ IA</span>
+              <span className="sm:hidden">Nouvelle</span>
             </button>
           </div>
         </div>
@@ -181,8 +182,8 @@ function SessionCard({
   const isExpired = new Date(s.validUntil) < new Date()
 
   return (
-    <div className={`bg-white rounded-xl border border-[#D8D8D8] p-5 ${s.status === 'CLOSED' ? 'opacity-60' : ''}`}>
-      <div className="flex items-start justify-between gap-4">
+    <div className={`bg-white rounded-xl border border-[#D8D8D8] p-3 sm:p-5 ${s.status === 'CLOSED' ? 'opacity-60' : ''}`}>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.95rem', color: '#0D0D0D' }}>
@@ -226,7 +227,7 @@ function SessionCard({
           )}
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-wrap flex-shrink-0 mt-2 sm:mt-0">
           {s.status !== 'CLOSED' && (
             <>
               <button
