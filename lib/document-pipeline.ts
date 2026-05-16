@@ -1,5 +1,6 @@
 import { MarkItDown } from 'markitdown-ts'
 import * as XLSX from 'xlsx'
+import { parse as parseCsv } from 'csv-parse/sync'
 
 const markitdown = new MarkItDown()
 
@@ -81,24 +82,25 @@ export async function processDocument(
 
   // CSV → JSON structuré
   if (ext === 'csv') {
-    const text = buffer.toString('utf-8')
-    const lines = text.split('\n').filter(l => l.trim())
-    if (!lines.length) {
-      return { content: '{}', contentType: 'json', method: 'csv-json', hasText: false, warnings, filename: filename.replace('.csv', '.json') }
-    }
-    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''))
-    const rows = lines.slice(1).map(line =>
-      Object.fromEntries(
-        line.split(',').map((v, i) => [headers[i] ?? `col${i}`, v.trim().replace(/^"|"$/g, '')])
-      )
-    )
-    return {
-      content: JSON.stringify({ headers, rows }, null, 2),
-      contentType: 'json',
-      method: 'csv-json',
-      hasText: rows.length > 0,
-      warnings,
-      filename: filename.replace('.csv', '.json'),
+    try {
+      const rows = parseCsv(buffer, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+        relax_quotes: true,
+        bom: true,
+      }) as Record<string, string>[]
+      const headers = rows.length > 0 ? Object.keys(rows[0]) : []
+      return {
+        content: JSON.stringify({ headers, rows }, null, 2),
+        contentType: 'json',
+        method: 'csv-json',
+        hasText: rows.length > 0,
+        warnings,
+        filename: filename.replace(/\.csv$/i, '.json'),
+      }
+    } catch {
+      return { content: '{}', contentType: 'json', method: 'csv-json', hasText: false, warnings, filename: filename.replace(/\.csv$/i, '.json') }
     }
   }
 
