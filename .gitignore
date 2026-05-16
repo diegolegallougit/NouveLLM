@@ -9,6 +9,7 @@ out/
 .env
 .env.local
 .env.production
+.env.bak*
 
 # Database (SQLite — pré-v0.5.0, archivé)
 *.db
