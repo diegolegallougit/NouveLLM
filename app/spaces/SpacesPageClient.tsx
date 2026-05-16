@@ -177,7 +177,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
               setJustIndexedIds(prev => new Set([...prev, docId]))
               setTimeout(() => setJustIndexedIds(prev => { const s = new Set(prev); s.delete(docId); return s }), 2000)
             }
-          } else if (n >= 20) {
+          } else if (n >= 72) {
             setDocs(prev => prev.map(d => d.id === docId ? { ...d, indexingStatus: 'failed' } : d))
             setPendingDocIds(prev => { const s = new Set(prev); s.delete(docId); return s })
           }
