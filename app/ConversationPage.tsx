@@ -245,19 +245,20 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
       <Header userName={userName} userRole={userRole} userInitials={userInitials} />
 
       <div className="flex flex-1 min-h-0">
-        {/* Sidebar — EC/Admin only */}
+        {/* Sidebar — EC/Admin only, hidden on mobile */}
         {showSidebar && (
-          <Sidebar
-            onSelectConversation={loadConversation}
-            activeConversationId={conversationId}
-            onNewConversation={handleNewConversation}
-            refreshKey={sidebarRefreshKey}
-            userRole={userRole}
-            onFolderToken={(token) => {
-              // Insert #spaceSlug/folderSlug token into the chat input via a custom event
-              window.dispatchEvent(new CustomEvent('chat:insert-source', { detail: { token } }))
-            }}
-          />
+          <div className="hidden md:flex">
+            <Sidebar
+              onSelectConversation={loadConversation}
+              activeConversationId={conversationId}
+              onNewConversation={handleNewConversation}
+              refreshKey={sidebarRefreshKey}
+              userRole={userRole}
+              onFolderToken={(token) => {
+                window.dispatchEvent(new CustomEvent('chat:insert-source', { detail: { token } }))
+              }}
+            />
+          </div>
         )}
 
         {/* Main area */}

@@ -12,6 +12,7 @@ interface HeaderProps {
 
 export default function Header({ userName = 'Utilisateur', userRole = 'EC', userInitials = 'U' }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsTab, setSettingsTab] = useState<'data' | 'meta-prompts'>('meta-prompts')
   const [deleteConvsConfirm, setDeleteConvsConfirm] = useState(false)
@@ -61,53 +62,66 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
             <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', letterSpacing: '-0.02em', color: '#00068D' }}>
               NouveLLM
             </span>
-            <span className="w-px h-4 bg-[#D8D8D8]" />
-            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.08em', color: '#8A8A8A', textTransform: 'uppercase' }}>
+            <span className="hidden sm:block w-px h-4 bg-[#D8D8D8]" />
+            <span className="hidden sm:inline" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.08em', color: '#8A8A8A', textTransform: 'uppercase' }}>
               Université Sorbonne Nouvelle
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Sessions link for EC */}
-          {(userRole === 'EC' || userRole === 'ADMIN') && (
-            <>
+          {/* Desktop nav links — hidden on mobile */}
+          <div className="hidden sm:flex items-center gap-2">
+            {(userRole === 'EC' || userRole === 'ADMIN') && (
+              <>
+                <a
+                  href="/spaces"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[#5A5A5A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
+                  FICHIERS
+                </a>
+                <a
+                  href="/sessions"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[#5A5A5A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                  ACTIVITÉS IA
+                </a>
+              </>
+            )}
+            {userRole === 'ADMIN' && (
               <a
-                href="/spaces"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[#5A5A5A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
+                href="/admin"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white transition-all"
+                style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.06em' }}
+                title="Panel d'administration"
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
-                FICHIERS
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                ADMIN
               </a>
-              <a
-                href="/sessions"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[#5A5A5A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-                ACTIVITÉS IA
-              </a>
-            </>
-          )}
+            )}
+          </div>
 
-          {/* Admin shortcut */}
-          {userRole === 'ADMIN' && (
-            <a
-              href="/admin"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white transition-all"
-              style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.06em' }}
-              title="Panel d'administration"
-            >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
-              ADMIN
-            </a>
-          )}
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
+            aria-label="Menu"
+          >
+            {mobileMenuOpen ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
+            )}
+          </button>
 
-          {/* Settings */}
+          {/* Settings — desktop only */}
           <button
             onClick={() => { setSettingsOpen(true); setMenuOpen(false) }}
-            className="w-9 h-9 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
+            className="hidden sm:flex w-9 h-9 items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
             aria-label="Paramètres"
             title="Paramètres"
           >
@@ -171,6 +185,67 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
           </div>
         </div>
       </header>
+
+      {/* Mobile menu drawer */}
+      {mobileMenuOpen && (
+        <>
+          <div className="fixed inset-0 z-40 sm:hidden" onClick={() => setMobileMenuOpen(false)} />
+          <div className="fixed top-[var(--header-h)] left-0 right-0 z-40 bg-white border-b border-[#D8D8D8] shadow-lg sm:hidden">
+            <nav className="flex flex-col p-3 gap-1">
+              {(userRole === 'EC' || userRole === 'ADMIN') && (
+                <>
+                  <a
+                    href="/spaces"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-3 rounded-lg text-[#3A3A3A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
+                    Fichiers
+                  </a>
+                  <a
+                    href="/sessions"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-3 rounded-lg text-[#3A3A3A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                    Activités IA
+                  </a>
+                </>
+              )}
+              {userRole === 'ADMIN' && (
+                <a
+                  href="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-3 rounded-lg text-white transition-all"
+                  style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                  Administration
+                </a>
+              )}
+              <div className="border-t border-[#D8D8D8] my-1" />
+              <button
+                onClick={() => { setMobileMenuOpen(false); setSettingsOpen(true) }}
+                className="flex items-center gap-2.5 px-3 py-3 rounded-lg text-[#3A3A3A] hover:bg-[#F2F2F2] transition-all text-left"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                Paramètres
+              </button>
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="flex items-center gap-2.5 px-3 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all text-left"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                Se déconnecter
+              </button>
+            </nav>
+          </div>
+        </>
+      )}
 
       {/* Settings modal */}
       {settingsOpen && (
