@@ -1,21 +1,16 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const mammoth = require('mammoth') as {
-  convertToMarkdown: (input: { buffer: Buffer }) => Promise<{ value: string; messages: { message: string }[] }>
-  convertToHtml: (input: { buffer: Buffer }) => Promise<{ value: string; messages: { message: string }[] }>
-}
+import { MarkItDown } from 'markitdown-ts'
 import * as XLSX from 'xlsx'
-// pdf-parse doesn't ship a proper ESM default — require at call site
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string; numpages: number }>
 
+const markitdown = new MarkItDown()
+
+// markitdown-ts PdfConverter wraps pdf-parse without paragraph reconstruction
+// → cleanPdfText est encore nécessaire pour éviter le micro-chunking Dify
 function cleanPdfText(raw: string): string {
   return raw
     .replace(/\r\n/g, '\n')
-    // Rejoindre les lignes d'un même paragraphe (simple \n → espace)
     .replace(/([^\n])\n([^\n])/g, '$1 $2')
     .replace(/ {2,}/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
-    // Supprimer les lignes très courtes isolées (artefacts mise en page, numéros de page)
     .replace(/\n([^\n]{1,15})\n/g, (match, line) => {
       if (/^[A-Z0-9]/.test(line.trim())) return match
       return '\n'
@@ -40,18 +35,24 @@ export async function processDocument(
   const ext = filename.split('.').pop()?.toLowerCase() ?? ''
   const warnings: string[] = []
 
-  // DOCX/DOC → Markdown via mammoth
+  // DOCX/DOC → Markdown via markitdown-ts (mammoth→HTML→turndown)
   if (['docx', 'doc'].includes(ext) || mimeType.includes('word')) {
-    const result = await mammoth.convertToMarkdown({ buffer })
-    warnings.push(...result.messages.map(m => m.message))
-    return {
-      content: result.value,
-      contentType: 'markdown',
-      method: 'mammoth',
-      hasText: result.value.trim().length > 50,
-      warnings,
-      filename: filename.replace(/\.[^.]+$/, '.md'),
-    }
+    try {
+      const result = await markitdown.convertBuffer(buffer, { file_extension: '.docx' })
+      const markdown = result?.markdown ?? ''
+      if (markdown.trim().length > 50) {
+        return {
+          content: markdown,
+          contentType: 'markdown',
+          method: 'markitdown',
+          hasText: true,
+          warnings,
+          filename: filename.replace(/\.[^.]+$/, '.md'),
+        }
+      }
+    } catch { /* fall through to Dify native */ }
+    // .doc ou échec conversion → Dify extrait nativement
+    return { content: '', contentType: 'text', method: 'pdf-dify-native', hasText: true, warnings, filename }
   }
 
   // XLSX/XLS → JSON structuré (meilleur que MD pour RAG tabulaire)
@@ -101,30 +102,29 @@ export async function processDocument(
     }
   }
 
-  // PDF → toujours tenter pdf-parse + cleanPdfText, fallback natif si résultat insuffisant
+  // PDF → markitdown-ts (wraps pdf-parse) + cleanPdfText pour reconstruction paragraphes
   if (ext === 'pdf' || mimeType.includes('pdf')) {
     try {
-      const data = await pdfParse(buffer)
-      const cleanedText = cleanPdfText(data.text.trim())
+      const result = await markitdown.convertBuffer(buffer, { file_extension: '.pdf' })
+      const markdown = result?.markdown ?? ''
+      const cleanedText = cleanPdfText(markdown)
 
-      // PDF scanné : texte nettoyé très court ET fichier petit → déclencher OCR
       if (cleanedText.length < 100 && buffer.length < 100_000) {
         return { content: '', contentType: 'text', method: 'pdf-scanned', hasText: false, warnings: ['PDF_SCANNED'], filename }
       }
 
-      // Texte suffisant après nettoyage → utiliser le résultat pdf-parse
       if (cleanedText.length >= 100) {
         return {
           content: cleanedText,
-          contentType: 'text',
-          method: 'pdf-parse',
+          contentType: 'markdown',
+          method: 'markitdown',
           hasText: true,
           warnings,
-          filename: filename.replace(/\.pdf$/i, '.txt'),
+          filename: filename.replace(/\.pdf$/i, '.md'),
         }
       }
 
-      // Texte insuffisant mais fichier volumineux → polices non-standard, Dify extrait nativement
+      // Texte insuffisant + gros fichier → Dify extrait nativement
       return { content: '', contentType: 'text', method: 'pdf-dify-native', hasText: true, warnings: [], filename }
 
     } catch {
