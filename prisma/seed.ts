@@ -497,6 +497,166 @@ async function main() {
     }
   }
 
+  // ── USN guide 2026 : 11 familles d'usages étudiant ──────────────────────
+  // Désactiver les 6 anciennes familles (conservées pour traçabilité historique)
+  const OLD_FAMILY_SLUGS = ['produire-document', 'travailler-cours', 'chercher-comprendre', 'transformer-contenu', 'piloter-evaluer', 'aide-humaine']
+  await prisma.routingFamily.updateMany({
+    where: { slug: { in: OLD_FAMILY_SLUGS } },
+    data: { active: false },
+  })
+
+  const USN_FAMILIES: Array<{
+    slug: string; label: string; icon: string; description: string; order: number; targetRoles: string;
+    questions: Array<{ question: string; order: number; options: Array<{ label: string; agentSlug: string | null; order: number; comingSoon?: boolean }> }>;
+  }> = [
+    {
+      slug: 'usn-comprendre',
+      label: 'Comprendre / résumer',
+      icon: 'brain',
+      description: 'Résumer un texte, clarifier un concept',
+      order: 10,
+      targetRoles: '',
+      questions: [{ question: 'Que souhaitez-vous faire ?', order: 1, options: [
+        { label: 'Résumer un document', agentSlug: null, order: 1 },
+        { label: 'Expliquer un concept', agentSlug: null, order: 2 },
+      ]}],
+    },
+    {
+      slug: 'usn-reviser',
+      label: 'Préparer un examen',
+      icon: 'exam',
+      description: 'Générer des questions, réviser par thème',
+      order: 11,
+      targetRoles: 'STUDENT,EC,ADMIN',
+      questions: [{ question: 'Type de préparation ?', order: 1, options: [
+        { label: 'Questions d\'entraînement', agentSlug: 'examen', order: 1 },
+        { label: 'Fiche de révision thématique', agentSlug: null, order: 2 },
+      ]}],
+    },
+    {
+      slug: 'usn-bibliographie',
+      label: 'Bibliographie annotée',
+      icon: 'book',
+      description: 'Rechercher des sources académiques et les annoter',
+      order: 12,
+      targetRoles: '',
+      questions: [{ question: 'Prêt à lancer la recherche ?', order: 1, options: [
+        { label: 'Construire ma bibliographie', agentSlug: 'bibliographie', order: 1 },
+      ]}],
+    },
+    {
+      slug: 'usn-rediger',
+      label: 'Rédiger un document',
+      icon: 'write',
+      description: 'Rapport, dissertation, synthèse, module de cours',
+      order: 13,
+      targetRoles: '',
+      questions: [{ question: 'Type de document ?', order: 1, options: [
+        { label: 'Dissertation / synthèse / rapport', agentSlug: 'redaction', order: 1 },
+        { label: 'Module ou fiche de cours (EC)', agentSlug: 'module', order: 2 },
+        { label: 'Autre document', agentSlug: 'redaction', order: 3 },
+      ]}],
+    },
+    {
+      slug: 'usn-corriger',
+      label: 'Corriger / améliorer',
+      icon: 'check',
+      description: 'Améliorer le style, la clarté ou la grammaire',
+      order: 14,
+      targetRoles: '',
+      questions: [{ question: 'Prêt à soumettre votre texte ?', order: 1, options: [
+        { label: 'Corriger mon texte', agentSlug: null, order: 1 },
+      ]}],
+    },
+    {
+      slug: 'usn-traduire',
+      label: 'Traduire un texte',
+      icon: 'globe',
+      description: 'Traduction académique en SHS',
+      order: 15,
+      targetRoles: '',
+      questions: [{ question: 'Prêt à traduire ?', order: 1, options: [
+        { label: 'Lancer la traduction', agentSlug: 'traduction', order: 1 },
+      ]}],
+    },
+    {
+      slug: 'usn-analyser',
+      label: 'Analyser un document',
+      icon: 'search',
+      description: 'Analyser le contenu d\'un document uploadé',
+      order: 16,
+      targetRoles: '',
+      questions: [{ question: 'Prêt à analyser ?', order: 1, options: [
+        { label: 'Analyser le document', agentSlug: 'analyse', order: 1 },
+      ]}],
+    },
+    {
+      slug: 'usn-oral',
+      label: 'Présentation orale',
+      icon: 'mic',
+      description: 'Préparer un plan, des notes ou des supports oraux',
+      order: 17,
+      targetRoles: '',
+      questions: [{ question: 'Que préparez-vous ?', order: 1, options: [
+        { label: 'Plan et notes pour ma présentation', agentSlug: null, order: 1 },
+      ]}],
+    },
+    {
+      slug: 'usn-activite-peda',
+      label: 'Créer une activité pédagogique',
+      icon: 'teacher',
+      description: 'Concevoir un module ou scénario pédagogique (EC)',
+      order: 18,
+      targetRoles: 'EC,ADMIN',
+      questions: [{ question: 'Type d\'activité ?', order: 1, options: [
+        { label: 'Module de cours structuré', agentSlug: 'module', order: 1 },
+        { label: 'Créer une session étudiants', agentSlug: 'session-cours', order: 2 },
+      ]}],
+    },
+    {
+      slug: 'usn-admin',
+      label: 'Document administratif',
+      icon: 'admin',
+      description: 'Rédiger ou préparer un document administratif (BIATSS)',
+      order: 19,
+      targetRoles: 'BIATSS,ADMIN',
+      questions: [{ question: 'Type de document administratif ?', order: 1, options: [
+        { label: 'Compte-rendu ou note', agentSlug: 'redaction', order: 1 },
+        { label: 'Briefing ou rapport', agentSlug: 'briefing', order: 2 },
+      ]}],
+    },
+    {
+      slug: 'usn-aide-generale',
+      label: 'Aide générale',
+      icon: 'help',
+      description: 'Toute autre question académique ou administrative',
+      order: 20,
+      targetRoles: '',
+      questions: [{ question: 'Prêt à poser votre question ?', order: 1, options: [
+        { label: 'Poser ma question', agentSlug: null, order: 1 },
+      ]}],
+    },
+  ]
+
+  for (const fam of USN_FAMILIES) {
+    const { questions, ...famData } = fam
+    const family = await prisma.routingFamily.upsert({
+      where: { slug: famData.slug },
+      update: { label: famData.label, icon: famData.icon, description: famData.description, order: famData.order, targetRoles: famData.targetRoles, active: true },
+      create: { ...famData },
+    })
+    const existingCount = await prisma.routingQuestion.count({ where: { familyId: family.id } })
+    if (existingCount === 0) {
+      for (const q of questions) {
+        const { options, ...qData } = q
+        const question = await prisma.routingQuestion.create({ data: { ...qData, familyId: family.id } })
+        for (const opt of options) {
+          await prisma.routingOption.create({ data: { ...opt, questionId: question.id, comingSoon: opt.comingSoon ?? false } })
+        }
+      }
+    }
+  }
+
   // ── Expert contacts ────────────────────────────────────────────────────────
   const EXPERT_CONTACTS = [
     {

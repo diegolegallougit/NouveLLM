@@ -343,6 +343,7 @@ model RoutingFamily {
   description String
   order       Int               @default(0)
   active      Boolean           @default(true)
+  targetRoles String            @default("")
   questions   RoutingQuestion[]
   createdAt   DateTime          @default(now())
 }

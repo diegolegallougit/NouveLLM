@@ -275,6 +275,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
                   }}
                   onExpertMode={() => setExpertMode(true)}
                   conversationId={conversationId}
+                  userRole={userRole}
                 />
               )
             ) : (
