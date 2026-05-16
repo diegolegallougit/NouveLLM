@@ -5,6 +5,7 @@ import { processDocument } from '@/lib/document-pipeline'
 import { ocrPdfWithPixtral } from '@/lib/ocr-pixtral'
 import { currentAnneeUniv, defaultVisibleUntil } from '@/lib/academic-calendar'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { UploadDocumentSchema } from '@/lib/schemas/spaces.schema'
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import fs from 'fs'
@@ -64,7 +65,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const formData = await req.formData()
   const file = formData.get('file') as File | null
-  const folderId = formData.get('folderId') as string | null
+
+  const fieldsParsed = UploadDocumentSchema.safeParse({ folderId: formData.get('folderId') ?? null })
+  if (!fieldsParsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  const folderId = fieldsParsed.data.folderId ?? null
 
   if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   if (file.size > 20 * 1024 * 1024) return NextResponse.json({ error: 'File too large (max 20 MB)' }, { status: 413 })

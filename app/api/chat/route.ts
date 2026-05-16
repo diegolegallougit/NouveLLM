@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { streamDifyChat, parseDifySources, DifySource, AGENT_INPUTS } from '@/lib/dify'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { ChatBodySchema } from '@/lib/schemas/chat.schema'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
@@ -17,16 +18,9 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const body = await req.json()
-  const { message, agentSlug, sourceSlugs, conversationId, uploadedFileId, courseSessionId, prebuiltInputs } = body as {
-    message: string
-    agentSlug?: string
-    sourceSlugs?: string[]
-    conversationId?: string
-    uploadedFileId?: string
-    courseSessionId?: string
-    prebuiltInputs?: Record<string, string>
-  }
+  const parsed = ChatBodySchema.safeParse(await req.json().catch(() => null))
+  if (!parsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  const { message, agentSlug, sourceSlugs, conversationId, uploadedFileId, courseSessionId, prebuiltInputs } = parsed.data
 
   // Resolve folder filters from #spaceSlug/folderSlug tokens
   const folderPaths: string[] = []

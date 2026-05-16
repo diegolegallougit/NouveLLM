@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { CreateSessionSchema } from '@/lib/schemas/sessions.schema'
 import { NextRequest, NextResponse } from 'next/server'
 import QRCode from 'qrcode'
 
@@ -64,23 +65,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const body = await req.json() as {
-    name: string
-    description?: string
-    systemPrompt?: string
-    studentConsigne?: string
-    scenarioSlug?: string
-    visibility?: number
-    validUntil: string
-    maxParticipants?: number
-    access?: 'OPEN' | 'CLOSED'
-    agentSlugs?: string[]
-    sourceSlugs?: string[]
-  }
-
-  if (!body.name || !body.validUntil) {
-    return NextResponse.json({ error: 'name and validUntil required' }, { status: 400 })
-  }
+  const parsed = CreateSessionSchema.safeParse(await req.json().catch(() => null))
+  if (!parsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  const body = parsed.data
 
   const code = generateCode(body.name)
 
