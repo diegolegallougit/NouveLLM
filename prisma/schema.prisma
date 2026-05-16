@@ -1,12 +1,9 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
-// TODO: changer provider "sqlite" → "postgresql" et ajouter url = env("DATABASE_URL") pour la prod
-// Voir scripts/migrate-to-postgres.md
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model Account {

@@ -10,10 +10,13 @@ out/
 .env.local
 .env.production
 
-# Database
+# Database (SQLite — pré-v0.5.0, archivé)
 *.db
 *.db-shm
 *.db-wal
+*.db-journal
+*.db.bak-*
+prisma/migrations.sqlite-backup/
 
 # Build
 dist/
