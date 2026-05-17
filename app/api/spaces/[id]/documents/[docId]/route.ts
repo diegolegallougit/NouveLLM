@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logAction } from '@/lib/audit'
 import { decryptBuffer } from '@/lib/encryption'
+import { getSpaceAccess, hasMinimumRole } from '@/lib/space-access'
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
@@ -13,8 +14,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id: spaceId, docId } = await params
-  const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
-  if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const access = await getSpaceAccess(spaceId, session.user.id)
+  if (!access) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!hasMinimumRole(access.role, 'READER')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const space = access.space
 
   const doc = await prisma.spaceDocument.findFirst({ where: { id: docId, spaceId } })
   if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -54,8 +57,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id: spaceId, docId } = await params
-  const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
-  if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const access = await getSpaceAccess(spaceId, session.user.id)
+  if (!access) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!hasMinimumRole(access.role, 'CONTRIBUTOR')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const space = access.space
 
   const body = await req.json()
   const { displayName, description, folderId } = body as {
@@ -101,8 +106,10 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id: spaceId, docId } = await params
-  const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
-  if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const access = await getSpaceAccess(spaceId, session.user.id)
+  if (!access) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!hasMinimumRole(access.role, 'CONTRIBUTOR')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const space = access.space
 
   const doc = await prisma.spaceDocument.findUnique({ where: { id: docId }, select: { name: true, displayName: true, storedFilename: true } })
   if (doc?.storedFilename) {

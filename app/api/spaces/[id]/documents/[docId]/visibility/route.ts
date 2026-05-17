@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getSpaceAccess, hasMinimumRole } from '@/lib/space-access'
 import { NextRequest, NextResponse } from 'next/server'
 import { syncDocVisibilityToDify } from '@/lib/dify-sync'
 
@@ -11,8 +12,10 @@ export async function PATCH(
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id: spaceId, docId } = await params
-  const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
-  if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const access = await getSpaceAccess(spaceId, session.user.id)
+  if (!access) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!hasMinimumRole(access.role, 'MANAGER')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const space = access.space
 
   const doc = await prisma.spaceDocument.findFirst({ where: { id: docId, spaceId } })
   if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 })

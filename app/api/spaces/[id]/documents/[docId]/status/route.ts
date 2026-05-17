@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getSpaceAccess, hasMinimumRole } from '@/lib/space-access'
 import { NextRequest, NextResponse } from 'next/server'
 
 const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.13:5001'
@@ -15,8 +16,10 @@ export async function GET(
 
   const { id: spaceId, docId } = await params
 
-  const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
-  if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const access = await getSpaceAccess(spaceId, session.user.id)
+  if (!access) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!hasMinimumRole(access.role, 'READER')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const space = access.space
 
   const doc = await prisma.spaceDocument.findFirst({ where: { id: docId, spaceId } })
   if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 })

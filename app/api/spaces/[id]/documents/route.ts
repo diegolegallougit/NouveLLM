@@ -7,6 +7,7 @@ import { currentAnneeUniv, defaultVisibleUntil } from '@/lib/academic-calendar'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { UploadDocumentSchema } from '@/lib/schemas/spaces.schema'
 import { encryptBuffer } from '@/lib/encryption'
+import { getSpaceAccess, hasMinimumRole } from '@/lib/space-access'
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import fs from 'fs'
@@ -27,8 +28,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id: spaceId } = await params
-  const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
-  if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const access = await getSpaceAccess(spaceId, session.user.id)
+  if (!access) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!hasMinimumRole(access.role, 'READER')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const space = access.space
 
   const documents = await prisma.spaceDocument.findMany({
     where: { spaceId },
@@ -51,8 +54,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const { id: spaceId } = await params
-  const space = await prisma.documentSpace.findFirst({ where: { id: spaceId, ownerId: session.user.id } })
-  if (!space) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const access = await getSpaceAccess(spaceId, session.user.id)
+  if (!access) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!hasMinimumRole(access.role, 'CONTRIBUTOR')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const space = access.space
 
   // Resolve primary group for KB + diplome metadata
   let spaceGroup: { hasKB: boolean; difyDatasetId: string | null; diplomeRef: { slug: string; ufr: string } | null } | null = null

@@ -61,6 +61,7 @@ model User {
   hilRequests         HILRequest[]
   ownedSpaces         DocumentSpace[]      @relation("OwnedSpaces")
   uploadedDocuments   SpaceDocument[]      @relation("UploadedDocuments")
+  spaceMemberships    SpaceUserMember[]    @relation("SpaceUserMemberships")
   authoredMetaPrompts MetaPrompt[]         @relation("AuthoredMetaPrompts")
   activeMetaPrompts   UserActiveMetaPrompt[]
   reports             Report[]
@@ -110,6 +111,7 @@ model Group {
   allowedSources       GroupSource[]
   surveys              Survey[]
   scopes               Scope[]
+  spaceMemberships     SpaceGroupMember[] @relation("SpaceGroupMemberships")
 }
 
 model UserGroup {
@@ -449,20 +451,22 @@ model SystemAlert {
 // ─── Espaces documentaires ────────────────────────────────────────────────────
 
 model DocumentSpace {
-  id               String           @id @default(cuid())
-  slug             String           @unique
+  id               String             @id @default(cuid())
+  slug             String             @unique
   name             String
   description      String?
-  icon             String           @default("📁")
+  icon             String             @default("📁")
   ownerId          String
-  owner            User             @relation("OwnedSpaces", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner            User               @relation("OwnedSpaces", fields: [ownerId], references: [id], onDelete: Cascade)
   difyDatasetId    String?
-  enrichmentGroups String           @default("[]")
-  audience         SpaceAudience    @default(ALL)
+  enrichmentGroups String             @default("[]")
+  audience         SpaceAudience      @default(ALL)
   folders          DocumentFolder[]
   documents        SpaceDocument[]
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  userMembers      SpaceUserMember[]  @relation("SpaceUserMembers")
+  groupMembers     SpaceGroupMember[] @relation("SpaceGroupMembers")
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 }
 
 model DocumentFolder {
@@ -585,4 +589,36 @@ enum SpaceAudience {
   EC_ONLY
   STUDENT_ONLY
   BIATSS_ONLY
+}
+
+enum SpaceMemberRole {
+  READER
+  CONTRIBUTOR
+  MANAGER
+}
+
+model SpaceUserMember {
+  spaceId   String
+  userId    String
+  role      SpaceMemberRole @default(READER)
+  addedAt   DateTime        @default(now())
+  addedById String?
+
+  space DocumentSpace @relation("SpaceUserMembers", fields: [spaceId], references: [id], onDelete: Cascade)
+  user  User          @relation("SpaceUserMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([spaceId, userId])
+}
+
+model SpaceGroupMember {
+  spaceId   String
+  groupId   String
+  role      SpaceMemberRole @default(READER)
+  addedAt   DateTime        @default(now())
+  addedById String?
+
+  space DocumentSpace @relation("SpaceGroupMembers", fields: [spaceId], references: [id], onDelete: Cascade)
+  group Group         @relation("SpaceGroupMemberships", fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([spaceId, groupId])
 }
