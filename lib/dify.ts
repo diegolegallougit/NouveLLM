@@ -25,7 +25,7 @@ export const AGENT_INPUTS: Record<string, (message: string) => Record<string, st
     nb_refs: '10',
   }),
   redaction: (msg) => ({
-    type_document: 'note',
+    doc_type: 'note',
     contexte: msg,
     destinataires: '',
   }),
