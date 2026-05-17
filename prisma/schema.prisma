@@ -74,6 +74,12 @@ model User {
   googleRefreshToken  String?
   googleTokenExpiry   DateTime?
   gdriveOAuthState    String?
+  // Profil professionnel
+  discipline           String?
+  roleExact            String?
+  ufr                  String?
+  niveauxEnseignement  String?
+  languesTravail       String?
 }
 
 enum Role {

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { streamDifyChat, parseDifySources, DifySource, AGENT_INPUTS } from '@/lib/dify'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { ChatBodySchema } from '@/lib/schemas/chat.schema'
+import { buildUserContext } from '@/lib/user-context'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
@@ -93,6 +94,23 @@ export async function POST(req: NextRequest) {
   })
   if (activeMetaPrompt?.metaPrompt?.content) {
     inputs.system_context = activeMetaPrompt.metaPrompt.content
+  }
+
+  // Inject professional profile as user context
+  const userProfile = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      name: true,
+      roleExact: true,
+      discipline: true,
+      ufr: true,
+      niveauxEnseignement: true,
+      languesTravail: true,
+    },
+  })
+  if (userProfile) {
+    const userContext = buildUserContext(userProfile)
+    if (userContext) inputs.user_context = userContext
   }
 
   // Get or create conversation in DB
