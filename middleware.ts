@@ -60,6 +60,13 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Sessions list requires EC or ADMIN role (/session/ without 's' is public — student join link)
+  if (pathname.startsWith('/sessions')) {
+    if (token.role !== 'EC' && token.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/', req.url))
+    }
+  }
+
   return NextResponse.next()
 }
 

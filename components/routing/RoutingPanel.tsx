@@ -25,7 +25,39 @@ interface RoutingFamily {
   label: string
   icon: string
   description: string
+  targetRoles: string
   questions: RoutingQuestion[]
+}
+
+function audienceLabel(targetRoles: string): string {
+  if (!targetRoles) return 'Tous'
+  const roles = targetRoles.split(',').map(r => r.trim()).filter(r => r !== 'ADMIN')
+  if (roles.includes('STUDENT') && roles.includes('EC')) return 'Étudiants + EC'
+  if (roles.includes('EC')) return 'EC'
+  if (roles.includes('STUDENT')) return 'Étudiants'
+  if (roles.includes('BIATSS')) return 'BIATSS'
+  return roles.join(', ')
+}
+
+function audienceBadgeClass(targetRoles: string): string {
+  if (!targetRoles) return 'bg-gray-100 text-gray-500'
+  if (targetRoles.includes('EC') && targetRoles.includes('STUDENT')) return 'bg-indigo-100 text-indigo-600'
+  if (targetRoles.includes('EC')) return 'bg-blue-100 text-blue-600'
+  if (targetRoles.includes('STUDENT')) return 'bg-green-100 text-green-600'
+  if (targetRoles.includes('BIATSS')) return 'bg-amber-100 text-amber-700'
+  return 'bg-gray-100 text-gray-500'
+}
+
+type AudienceSection = { label: string; families: RoutingFamily[] }
+
+function groupByAudience(families: RoutingFamily[]): AudienceSection[] {
+  const sections: AudienceSection[] = [
+    { label: 'Tous les rôles', families: families.filter(f => !f.targetRoles) },
+    { label: 'Étudiants + EC', families: families.filter(f => f.targetRoles?.includes('STUDENT') && f.targetRoles?.includes('EC')) },
+    { label: 'EC uniquement', families: families.filter(f => f.targetRoles?.includes('EC') && !f.targetRoles?.includes('STUDENT')) },
+    { label: 'BIATSS uniquement', families: families.filter(f => f.targetRoles?.includes('BIATSS')) },
+  ]
+  return sections.filter(s => s.families.length > 0)
 }
 
 interface RoutingPanelProps {
@@ -174,29 +206,68 @@ export default function RoutingPanel({ onSelectAgent, onExpertMode, conversation
           </button>
         </div>
       ) : !selectedFamily ? (
-        /* Family grid — 2 columns mobile, 3 desktop */
         <div className="w-full max-w-2xl">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-            {families.map(family => (
-              <button
-                key={family.slug}
-                onClick={() => selectFamily(family)}
-                className="flex flex-col items-start gap-2 p-3 sm:p-4 rounded-xl border border-[#D8D8D8] bg-white hover:bg-[#F0F1FB] hover:border-[#2B2EB8] transition-all text-left min-h-[80px] sm:min-h-[100px]"
-              >
-                <span className="text-[#00068D] flex-shrink-0">
-                  <FamilyIcon name={family.icon} size={18} />
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#0D0D0D', lineHeight: 1.3 }}>
-                    {family.label}
+          {userRole === 'ADMIN' ? (
+            /* Admin view — families grouped by audience with section headers */
+            <div className="space-y-5">
+              {groupByAudience(families).map(section => (
+                <div key={section.label}>
+                  <p className="mb-2 px-0.5 uppercase tracking-widest text-[#8A8A8A]"
+                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem' }}>
+                    {section.label}
                   </p>
-                  <p className="mt-0.5 hidden sm:block" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A', lineHeight: 1.4 }}>
-                    {family.description}
-                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                    {section.families.map(family => (
+                      <button
+                        key={family.slug}
+                        onClick={() => selectFamily(family)}
+                        className="relative flex flex-col items-start gap-2 p-3 sm:p-4 rounded-xl border border-[#D8D8D8] bg-white hover:bg-[#F0F1FB] hover:border-[#2B2EB8] transition-all text-left min-h-[80px] sm:min-h-[100px]"
+                      >
+                        <span className="text-[#00068D] flex-shrink-0">
+                          <FamilyIcon name={family.icon} size={18} />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#0D0D0D', lineHeight: 1.3 }}>
+                            {family.label}
+                          </p>
+                          <p className="mt-0.5 hidden sm:block" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A', lineHeight: 1.4 }}>
+                            {family.description}
+                          </p>
+                        </div>
+                        <span className={`absolute top-2 right-2 text-[9px] px-1.5 py-0.5 rounded-full ${audienceBadgeClass(family.targetRoles)}`}
+                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                          {audienceLabel(family.targetRoles)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </button>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            /* Standard flat grid for non-admin roles */
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+              {families.map(family => (
+                <button
+                  key={family.slug}
+                  onClick={() => selectFamily(family)}
+                  className="flex flex-col items-start gap-2 p-3 sm:p-4 rounded-xl border border-[#D8D8D8] bg-white hover:bg-[#F0F1FB] hover:border-[#2B2EB8] transition-all text-left min-h-[80px] sm:min-h-[100px]"
+                >
+                  <span className="text-[#00068D] flex-shrink-0">
+                    <FamilyIcon name={family.icon} size={18} />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#0D0D0D', lineHeight: 1.3 }}>
+                      {family.label}
+                    </p>
+                    <p className="mt-0.5 hidden sm:block" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A', lineHeight: 1.4 }}>
+                      {family.description}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="flex justify-end pt-3">
             <button
