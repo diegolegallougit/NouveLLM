@@ -218,7 +218,7 @@ export default function NewSessionPage() {
             <button onClick={() => router.push('/sessions')}
               className="w-full py-2.5 rounded-xl text-sm transition-all hover:opacity-90"
               style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, background: '#00068D', color: '#fff' }}>
-              Voir mes Activités IA
+              Voir mes Séances
             </button>
           </div>
         </div>

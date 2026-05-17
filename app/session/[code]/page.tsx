@@ -143,7 +143,7 @@ export default function SessionPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `activite-ia-${sessionInfo.code}-${date.replace(/ /g, '-')}.md`
+    a.download = `seance-${sessionInfo.code}-${date.replace(/ /g, '-')}.md`
     a.click()
     URL.revokeObjectURL(url)
   }, [sessionInfo, messages, guestFirstName, guestLastName])

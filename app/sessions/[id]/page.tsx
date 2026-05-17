@@ -116,7 +116,7 @@ export default function SessionDashboardPage() {
       <div className="bg-white rounded-2xl border border-[#D8D8D8] p-8 max-w-sm w-full text-center space-y-4">
         <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#dc2626' }}>{error || 'Activité IA introuvable'}</p>
         <button onClick={() => router.push('/sessions')} className="text-[#00068D] text-sm hover:underline"
-          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>← Mes Activités IA</button>
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>← Mes Séances</button>
       </div>
     </div>
   )

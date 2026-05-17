@@ -295,7 +295,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
           </div>
           <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'clamp(1.1rem, 4vw, var(--text-lg))', letterSpacing: '-0.02em', color: '#00068D' }}>NouveLLM</span>
           <span className="hidden sm:block w-px h-4 bg-[#D8D8D8]" />
-          <span className="hidden sm:inline" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>Mes fichiers</span>
+          <span className="hidden sm:inline" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>Mes dossiers</span>
         </div>
         <Link href="/"
           style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#8A8A8A' }}

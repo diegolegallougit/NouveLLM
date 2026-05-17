@@ -328,7 +328,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                 <div className="flex items-center justify-between mb-1.5">
                   <p className="text-[#8A8A8A] uppercase tracking-widest"
                     style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
-                    Mes fichiers
+                    Mes dossiers
                   </p>
                   <button
                     onClick={() => setCreatingSpace(v => !v)}

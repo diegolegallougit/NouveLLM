@@ -86,7 +86,7 @@ export default function SessionsPage() {
         <div className="flex items-start sm:items-center justify-between gap-3 flex-wrap">
           <div>
             <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'clamp(1.1rem, 4vw, 1.3rem)', color: '#0D0D0D' }}>
-              Mes Activités IA
+              Mes Séances
             </h1>
             <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#8A8A8A' }}>
               {active.length} activité{active.length !== 1 ? 's' : ''} active{active.length !== 1 ? 's' : ''}
