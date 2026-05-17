@@ -91,6 +91,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         role: m.role === 'USER' ? 'user' : 'assistant',
         content: m.content,
         agentUsed: m.agentUsed || undefined,
+        agentLabel: m.agentUsed ? agents.find((a) => a.slug === m.agentUsed)?.label : undefined,
         sources: m.sources ? JSON.parse(m.sources) : undefined,
         createdAt: new Date(m.createdAt),
       }))
@@ -115,6 +116,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
 
       // Upload file first if provided
       let uploadedFileId: string | undefined
+      let uploadFailed = false
       if (file) {
         try {
           const form = new FormData()
@@ -123,9 +125,11 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
           if (uploadRes.ok) {
             const uploadData = await uploadRes.json()
             uploadedFileId = uploadData.id
+          } else {
+            uploadFailed = true
           }
         } catch {
-          // proceed without file if upload fails
+          uploadFailed = true
         }
       }
 
@@ -147,7 +151,31 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
       }
 
       setMessages((prev) => [...prev, userMsg, streamingMsg])
+
+      if (uploadFailed) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === streamingId
+              ? {
+                  ...m,
+                  isStreaming: false,
+                  content: "_Erreur :_ Échec de l'envoi du fichier. Réessayez.",
+                }
+              : m
+          )
+        )
+        return
+      }
+
       setIsStreaming(true)
+
+      const controller = new AbortController()
+      const CLIENT_IDLE_TIMEOUT_MS = 90_000
+      let idleTimer: ReturnType<typeof setTimeout> | undefined
+      const resetIdle = () => {
+        if (idleTimer) clearTimeout(idleTimer)
+        idleTimer = setTimeout(() => controller.abort(), CLIENT_IDLE_TIMEOUT_MS)
+      }
 
       try {
         const response = await fetch('/api/chat', {
@@ -161,6 +189,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
             uploadedFileId,
             prebuiltInputs,
           }),
+          signal: controller.signal,
         })
 
         if (!response.ok || !response.body) {
@@ -172,10 +201,14 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         let buffer = ''
         let finalSources: Source[] = []
         let agentLabel: string | undefined
+        let errorMessage: string | undefined
+
+        resetIdle()
 
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
+          resetIdle()
 
           buffer += decoder.decode(value, { stream: true })
           const lines = buffer.split('\n')
@@ -201,7 +234,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
                 finalSources = event.sources || []
                 agentLabel = event.agentLabel
               } else if (event.type === 'error') {
-                throw new Error(event.message)
+                errorMessage = event.message
               }
             } catch {
               // skip malformed
@@ -209,29 +242,52 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
           }
         }
 
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === streamingId
-              ? { ...m, isStreaming: false, sources: finalSources, agentLabel }
-              : m
+        if (errorMessage) {
+          const finalError = errorMessage
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === streamingId
+                ? {
+                    ...m,
+                    isStreaming: false,
+                    content: m.content
+                      ? `${m.content}\n\n_Erreur :_ ${finalError}`
+                      : `_Erreur :_ ${finalError}`,
+                    sources: [],
+                  }
+                : m
+            )
           )
-        )
-        setSidebarRefreshKey((k) => k + 1)
+        } else {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === streamingId
+                ? { ...m, isStreaming: false, sources: finalSources, agentLabel }
+                : m
+            )
+          )
+          setSidebarRefreshKey((k) => k + 1)
+        }
       } catch (err) {
         console.error('Chat error:', err)
+        const isAbort = err instanceof Error && err.name === 'AbortError'
+        const fallback = isAbort
+          ? '_Erreur :_ Réponse trop longue — requête interrompue.'
+          : "Une erreur s'est produite. Veuillez réessayer."
         setMessages((prev) =>
           prev.map((m) =>
             m.id === streamingId
               ? {
                   ...m,
                   isStreaming: false,
-                  content: "Une erreur s'est produite. Veuillez réessayer.",
+                  content: fallback,
                   sources: [],
                 }
               : m
           )
         )
       } finally {
+        if (idleTimer) clearTimeout(idleTimer)
         setIsStreaming(false)
       }
     },

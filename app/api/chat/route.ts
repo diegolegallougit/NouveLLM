@@ -6,6 +6,69 @@ import { ChatBodySchema } from '@/lib/schemas/chat.schema'
 import { buildUserContext } from '@/lib/user-context'
 import { NextRequest, NextResponse } from 'next/server'
 
+const IDLE_TIMEOUT_MS = 60_000
+
+function mapDifyError(status: number, body: string): string {
+  let detail = ''
+  try {
+    const parsed = JSON.parse(body) as { message?: string; code?: string }
+    detail = parsed.message || parsed.code || ''
+  } catch {
+    // body wasn't JSON
+  }
+
+  if (status === 400 || status === 422) {
+    return `Les paramètres envoyés à l'agent sont invalides${detail ? ` (${detail})` : ''} — contactez un administrateur.`
+  }
+  if (status === 401 || status === 403) {
+    return 'Clé API Dify expirée ou révoquée — contactez un administrateur.'
+  }
+  if (status === 404) {
+    return 'Workflow Dify introuvable ou non publié.'
+  }
+  if (status === 429) {
+    return 'Service IA saturé — réessayez dans un instant.'
+  }
+  if (status >= 500) {
+    return "Service IA en erreur — l'incident a été enregistré."
+  }
+  return `Erreur Dify (HTTP ${status}).`
+}
+
+function sseErrorResponse(message: string, status: number): Response {
+  const encoder = new TextEncoder()
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ type: 'error', message, status })}\n\n`)
+      )
+      controller.close()
+    },
+  })
+  return new Response(body, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  })
+}
+
+async function readWithIdleTimeout<T>(
+  reader: ReadableStreamDefaultReader<T>,
+  ms: number
+): Promise<ReadableStreamReadResult<T>> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error('IDLE_TIMEOUT')), ms)
+  })
+  try {
+    return await Promise.race([reader.read(), timeout])
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -159,11 +222,16 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'network error'
     console.error('[chat] Dify unreachable:', msg)
-    return NextResponse.json({ error: 'Service IA indisponible — réessayez dans un instant.', detail: msg }, { status: 503 })
+    const message = msg.includes('TTFB_TIMEOUT')
+      ? 'Le service IA met trop de temps à répondre — réessayez dans un instant.'
+      : 'Service IA indisponible — réessayez dans un instant.'
+    return sseErrorResponse(message, 503)
   }
 
   if (!difyResponse.ok || !difyResponse.body) {
-    return NextResponse.json({ error: 'Dify API error', status: difyResponse.status }, { status: 502 })
+    const errorBody = await difyResponse.text().catch(() => '')
+    console.error('[chat] Dify HTTP error:', difyResponse.status, errorBody.slice(0, 500))
+    return sseErrorResponse(mapDifyError(difyResponse.status, errorBody), 502)
   }
 
   const encoder = new TextEncoder()
@@ -179,10 +247,11 @@ export async function POST(req: NextRequest) {
       const reader = difyResponse.body!.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
+      let streamError: string | undefined
 
       try {
         while (true) {
-          const { done, value } = await reader.read()
+          const { done, value } = await readWithIdleTimeout(reader, IDLE_TIMEOUT_MS)
           if (done) break
 
           buffer += decoder.decode(value, { stream: true })
@@ -217,22 +286,43 @@ export async function POST(req: NextRequest) {
             }
           }
         }
-      } finally {
         reader.releaseLock()
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'unknown'
+        streamError =
+          msg === 'IDLE_TIMEOUT'
+            ? 'Le service IA met trop de temps à répondre.'
+            : 'Interruption du flux IA.'
+        console.error('[chat] stream error:', msg)
+        try {
+          await reader.cancel()
+        } catch {
+          // reader may already be released
+        }
+      }
+
+      if (streamError) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ type: 'error', message: streamError })}\n\n`)
+        )
       }
 
       const sources = parseDifySources(retrieverResources)
 
-      const savedMsg = await prisma.message.create({
-        data: {
-          conversationId: dbConvId!,
-          role: 'ASSISTANT',
-          content: fullText,
-          agentUsed: agentSlug ?? null,
-          sources: sources.length > 0 ? JSON.stringify(sources) : null,
-          tokenCount: totalTokens ?? null,
-        },
-      })
+      let savedMsgId: string | undefined
+      if (fullText.length > 0) {
+        const savedMsg = await prisma.message.create({
+          data: {
+            conversationId: dbConvId!,
+            role: 'ASSISTANT',
+            content: streamError ? `${fullText}\n\n_[Réponse interrompue]_` : fullText,
+            agentUsed: agentSlug ?? null,
+            sources: sources.length > 0 ? JSON.stringify(sources) : null,
+            tokenCount: totalTokens ?? null,
+          },
+        })
+        savedMsgId = savedMsg.id
+      }
 
       if (difyNewConvId) {
         await prisma.conversation.update({
@@ -241,16 +331,18 @@ export async function POST(req: NextRequest) {
         })
       }
 
-      controller.enqueue(
-        encoder.encode(
-          `data: ${JSON.stringify({
-            type: 'done',
-            messageId: savedMsg.id,
-            sources,
-            agentLabel,
-          })}\n\n`
+      if (!streamError) {
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({
+              type: 'done',
+              messageId: savedMsgId,
+              sources,
+              agentLabel,
+            })}\n\n`
+          )
         )
-      )
+      }
       controller.close()
     },
   })

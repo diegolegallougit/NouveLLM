@@ -1,4 +1,5 @@
-const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.5:5001'
+const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.13:5001'
+const DIFY_TTFB_TIMEOUT_MS = 30_000
 
 export interface DifySource {
   document_name: string
@@ -71,6 +72,7 @@ export async function streamDifyChat({
   inputs = {},
   uploadedFileId,
   datasetIds,
+  signal,
 }: {
   apiKey: string
   query: string
@@ -79,6 +81,7 @@ export async function streamDifyChat({
   inputs?: Record<string, string>
   uploadedFileId?: string
   datasetIds?: string[]
+  signal?: AbortSignal
 }): Promise<Response> {
   const mergedInputs: Record<string, string> = { ...inputs }
   if (datasetIds && datasetIds.length > 0) {
@@ -103,14 +106,28 @@ export async function streamDifyChat({
     ]
   }
 
-  return fetch(`${DIFY_BASE_URL}/v1/chat-messages`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  })
+  const ttfbController = new AbortController()
+  const ttfbTimeoutId = setTimeout(
+    () => ttfbController.abort(new Error('TTFB_TIMEOUT')),
+    DIFY_TTFB_TIMEOUT_MS
+  )
+  const combinedSignal = signal
+    ? AbortSignal.any([signal, ttfbController.signal])
+    : ttfbController.signal
+
+  try {
+    return await fetch(`${DIFY_BASE_URL}/v1/chat-messages`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+      signal: combinedSignal,
+    })
+  } finally {
+    clearTimeout(ttfbTimeoutId)
+  }
 }
 
 export function parseDifySources(retrieverResources: DifySource[]): ParsedSource[] {
