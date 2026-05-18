@@ -29,6 +29,8 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const [onboardingDone, setOnboardingDone] = useState(false)
   const [expertMode, setExpertMode] = useState(false)
   const [pendingAgent, setPendingAgent] = useState<string | null | undefined>(undefined)
+  const [activeMetaPrompt, setActiveMetaPrompt] = useState<{ id: string; title: string } | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const isStudent = userRole === 'STUDENT'
@@ -72,6 +74,23 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    fetch('/api/meta-prompts/active')
+      .then((r) => r.json())
+      .then((data) => setActiveMetaPrompt(data.active ?? null))
+      .catch(() => {})
+  }, [])
+
+  async function handleDeactivateMetaPrompt() {
+    await fetch('/api/meta-prompts/active', { method: 'DELETE' })
+    setActiveMetaPrompt(null)
+  }
+
+  async function handleActivateMetaPrompt(id: string, title: string) {
+    await fetch(`/api/meta-prompts/${id}/activate`, { method: 'POST' })
+    setActiveMetaPrompt({ id, title })
+  }
 
   async function loadConversation(convId: string) {
     try {
@@ -170,6 +189,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
       setIsStreaming(true)
 
       const controller = new AbortController()
+      abortRef.current = controller
       const CLIENT_IDLE_TIMEOUT_MS = 90_000
       let idleTimer: ReturnType<typeof setTimeout> | undefined
       const resetIdle = () => {
@@ -288,6 +308,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         )
       } finally {
         if (idleTimer) clearTimeout(idleTimer)
+        abortRef.current = null
         setIsStreaming(false)
       }
     },
@@ -366,6 +387,10 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
             }}
             disabled={isStreaming}
             preselectedAgent={pendingAgent ?? undefined}
+            activeMetaPrompt={activeMetaPrompt}
+            onDeactivateMetaPrompt={handleDeactivateMetaPrompt}
+            onActivateMetaPrompt={handleActivateMetaPrompt}
+            onAbort={() => abortRef.current?.abort()}
           />
         </div>
       </div>

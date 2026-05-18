@@ -5,19 +5,35 @@ import AgentPalette, { AgentConfig } from './AgentPalette'
 import SourcePalette, { SourceConfig } from './SourcePalette'
 import AgentFormModal from './AgentFormModal'
 
+interface MetaPromptItem {
+  id: string
+  title: string
+}
+
+interface MetaPromptsData {
+  institutional: MetaPromptItem[]
+  shared: MetaPromptItem[]
+  personal: MetaPromptItem[]
+}
+
 interface ChatInputProps {
   agents: AgentConfig[]
   sources: SourceConfig[]
   onSend: (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File, prebuiltInputs?: Record<string, string>) => void
   disabled?: boolean
   preselectedAgent?: string
+  activeMetaPrompt?: { id: string; title: string } | null
+  onDeactivateMetaPrompt?: () => void
+  onActivateMetaPrompt?: (id: string, title: string) => void
+  onAbort?: () => void
 }
 
 type PaletteMode = null | 'agent' | 'source'
 
-export default function ChatInput({ agents, sources, onSend, disabled, preselectedAgent }: ChatInputProps) {
+export default function ChatInput({ agents, sources, onSend, disabled, preselectedAgent, activeMetaPrompt, onDeactivateMetaPrompt, onActivateMetaPrompt, onAbort }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
   const [text, setText] = useState('')
   const [paletteMode, setPaletteMode] = useState<PaletteMode>(null)
   const [paletteQuery, setPaletteQuery] = useState('')
@@ -25,6 +41,9 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   const [selectedSources, setSelectedSources] = useState<string[]>([])
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [showFormModal, setShowFormModal] = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false)
+  const [metaPromptsData, setMetaPromptsData] = useState<MetaPromptsData | null>(null)
+  const [metaPromptsLoading, setMetaPromptsLoading] = useState(false)
 
   // Pre-select agent from routing
   useEffect(() => {
@@ -63,6 +82,33 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
     ta.style.height = 'auto'
     ta.style.height = Math.min(ta.scrollHeight, 200) + 'px'
   }, [text])
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!popoverOpen) return
+    function onClickOutside(e: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setPopoverOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [popoverOpen])
+
+  // Load meta-prompts list when popover opens
+  useEffect(() => {
+    if (!popoverOpen || metaPromptsData) return
+    setMetaPromptsLoading(true)
+    fetch('/api/meta-prompts')
+      .then((r) => r.json())
+      .then((data) => setMetaPromptsData({
+        institutional: data.institutional ?? [],
+        shared: data.shared ?? [],
+        personal: data.personal ?? [],
+      }))
+      .catch(() => {})
+      .finally(() => setMetaPromptsLoading(false))
+  }, [popoverOpen, metaPromptsData])
 
   function handleTextChange(value: string) {
     setText(value)
@@ -129,6 +175,11 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       prev.includes(source.slug) ? prev.filter((s) => s !== source.slug) : [...prev, source.slug]
     )
     textareaRef.current?.focus()
+  }
+
+  function handleSelectMetaPrompt(mp: MetaPromptItem) {
+    onActivateMetaPrompt?.(mp.id, mp.title)
+    setPopoverOpen(false)
   }
 
   function handleRemoveAgent() {
@@ -218,8 +269,100 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       )}
 
       {/* Tokens row */}
-      {(selectedAgent || selectedSources.length > 0 || selectedFile) && (
+      {(activeMetaPrompt || selectedAgent || selectedSources.length > 0 || selectedFile) && (
         <div className="flex flex-wrap items-center gap-2 pt-3 pb-1">
+
+          {/* Meta-prompt badge */}
+          {activeMetaPrompt && (
+            <div ref={popoverRef} className="relative">
+              <div className="flex items-center rounded-lg border border-[#B8BAEA]" style={{ background: '#E8E9F8' }}>
+                <button
+                  type="button"
+                  onClick={() => setPopoverOpen((o) => !o)}
+                  className="flex items-center gap-1.5 pl-2 pr-1.5 py-1 rounded-l-lg hover:bg-[#D8DAF5] transition-all"
+                  title="Changer de posture"
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00068D" strokeWidth="2.5" strokeLinecap="round">
+                    <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                  </svg>
+                  <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.06em', color: '#00068D', textTransform: 'uppercase' }}>
+                    POSTURE :
+                  </span>
+                  <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#00068D', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {activeMetaPrompt.title}
+                  </span>
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#00068D" strokeWidth="2.5" strokeLinecap="round" className={`transition-transform ${popoverOpen ? 'rotate-180' : ''}`}>
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+                <div className="w-px h-4 bg-[#B8BAEA]" />
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onDeactivateMetaPrompt?.() }}
+                  className="w-6 h-6 flex items-center justify-center rounded-r-lg hover:bg-[#D8DAF5] transition-all"
+                  aria-label="Désactiver la posture"
+                  title="Désactiver"
+                >
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#00068D" strokeWidth="3" strokeLinecap="round">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Popover */}
+              {popoverOpen && (
+                <div
+                  className="absolute bottom-full mb-2 left-0 z-50 bg-white rounded-xl shadow-xl border border-[#D8D8D8] overflow-hidden"
+                  style={{ width: 300, maxHeight: 360, overflowY: 'auto' }}
+                >
+                  <div className="px-3 pt-3 pb-1">
+                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#0D0D0D' }}>
+                      CHANGER DE POSTURE
+                    </p>
+                  </div>
+
+                  {metaPromptsLoading ? (
+                    <div className="flex items-center justify-center py-6">
+                      <div className="w-4 h-4 border-2 border-[#D8D8D8] border-t-[#00068D] rounded-full animate-spin" />
+                    </div>
+                  ) : metaPromptsData ? (
+                    <div className="px-2 pb-2">
+                      {(['institutional', 'shared', 'personal'] as const).map((section) => {
+                        const items = metaPromptsData[section]
+                        if (items.length === 0) return null
+                        const label = section === 'institutional' ? 'Institutionnel' : section === 'shared' ? 'Partagé' : 'Personnel'
+                        return (
+                          <div key={section}>
+                            <p className="px-1 mt-2 mb-0.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 9, letterSpacing: '0.1em', color: '#8A8A8A', textTransform: 'uppercase' }}>
+                              {label}
+                            </p>
+                            {items.map((mp) => (
+                              <button
+                                key={mp.id}
+                                type="button"
+                                onClick={() => handleSelectMetaPrompt(mp)}
+                                className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-[#E8E9F8] transition-all flex items-center justify-between gap-2 group"
+                              >
+                                <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D', lineHeight: '1.3' }}>
+                                  {mp.title}
+                                </span>
+                                {activeMetaPrompt?.id === mp.id && (
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00068D" strokeWidth="2.5" strokeLinecap="round" className="flex-shrink-0">
+                                    <path d="M20 6L9 17l-5-5" />
+                                  </svg>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+          )}
+
           {selectedAgent && (
             <div className="flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-lg bg-[#E8E9F8] border border-[#2B2EB8]">
               <span className="text-sm">{selectedAgent.icon}</span>
@@ -367,24 +510,44 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
             )}
           </div>
 
-          {/* Send button */}
-          <button
-            onClick={handleSend}
-            disabled={!hasContent || disabled}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{
-              background: hasContent && !disabled ? '#00068D' : '#D8D8D8',
-              fontFamily: 'Gilroy, sans-serif',
-              fontWeight: 800,
-              fontSize: 'var(--text-xs)',
-              letterSpacing: '0.04em',
-            }}
-          >
-            ENVOYER
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </button>
+          {/* Stop / Send button */}
+          {disabled ? (
+            <button
+              type="button"
+              onClick={() => onAbort?.()}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white transition-all"
+              style={{
+                background: '#EF4444',
+                fontFamily: 'Gilroy, sans-serif',
+                fontWeight: 800,
+                fontSize: 'var(--text-xs)',
+                letterSpacing: '0.04em',
+              }}
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                <rect width="10" height="10" rx="1.5" />
+              </svg>
+              ARRÊTER
+            </button>
+          ) : (
+            <button
+              onClick={handleSend}
+              disabled={!hasContent}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: hasContent ? '#00068D' : '#D8D8D8',
+                fontFamily: 'Gilroy, sans-serif',
+                fontWeight: 800,
+                fontSize: 'var(--text-xs)',
+                letterSpacing: '0.04em',
+              }}
+            >
+              ENVOYER
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
     </div>
