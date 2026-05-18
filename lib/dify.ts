@@ -53,7 +53,7 @@ export const AGENT_INPUTS: Record<string, (message: string) => Record<string, st
     sujet: msg,
   }),
   analyse: (msg) => ({
-    question: msg,
+    questions: msg,
   }),
   'fiche-cours': (msg) => ({
     titre: msg,
