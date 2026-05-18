@@ -138,8 +138,10 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
       let uploadFailed = false
       if (file) {
         try {
+          const uploadSlug = agentSlug ?? 'analyse'
           const form = new FormData()
           form.append('file', file)
+          form.append('agentSlug', uploadSlug)
           const uploadRes = await fetch('/api/upload', { method: 'POST', body: form })
           if (uploadRes.ok) {
             const uploadData = await uploadRes.json()
