@@ -157,26 +157,6 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
         <div className="flex items-center gap-2">
           {/* Desktop nav links — hidden on mobile */}
           <div className="hidden sm:flex items-center gap-2">
-            {(userRole === 'EC' || userRole === 'ADMIN') && (
-              <>
-                <a
-                  href="/spaces"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[#5A5A5A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
-                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
-                  FICHIERS
-                </a>
-                <a
-                  href="/sessions"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[#5A5A5A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
-                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-                  ACTIVITÉS IA
-                </a>
-              </>
-            )}
             {userRole === 'ADMIN' && (
               <a
                 href="/admin"
@@ -279,28 +259,6 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
           <div className="fixed inset-0 z-40 sm:hidden" onClick={() => setMobileMenuOpen(false)} />
           <nav ref={mobileMenuRef} role="dialog" aria-label="Menu principal" className="fixed top-[var(--header-h)] left-0 right-0 z-40 bg-white border-b border-[#D8D8D8] shadow-lg sm:hidden">
             <div className="flex flex-col p-3 gap-1">
-              {(userRole === 'EC' || userRole === 'ADMIN') && (
-                <>
-                  <a
-                    href="/spaces"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-3 rounded-lg text-[#3A3A3A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
-                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
-                    Fichiers
-                  </a>
-                  <a
-                    href="/sessions"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-3 rounded-lg text-[#3A3A3A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all"
-                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.04em' }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-                    Séances
-                  </a>
-                </>
-              )}
               {userRole === 'ADMIN' && (
                 <a
                   href="/admin"
