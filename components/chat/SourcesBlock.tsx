@@ -13,12 +13,22 @@ interface Source {
 
 interface SourcesBlockProps {
   sources: Source[]
+  hasProcessedFile?: boolean
 }
 
-export default function SourcesBlock({ sources }: SourcesBlockProps) {
+export default function SourcesBlock({ sources, hasProcessedFile }: SourcesBlockProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   if (!sources || sources.length === 0) {
+    if (hasProcessedFile) {
+      return (
+        <div className="mt-3 pt-3 border-t border-[#D8D8D8]">
+          <p className="text-[#8A8A8A] italic" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)' }}>
+            📄 Réponse basée sur le document fourni
+          </p>
+        </div>
+      )
+    }
     return (
       <div className="mt-3 pt-3 border-t border-[#D8D8D8]">
         <p className="text-[#8A8A8A] italic" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)' }}>

@@ -21,6 +21,7 @@ export interface MessageData {
   agentUsed?: string
   agentLabel?: string
   sources?: Source[]
+  hasProcessedFile?: boolean
   createdAt?: Date
   isStreaming?: boolean
   feedback?: 'positive' | 'negative' | null
@@ -177,7 +178,7 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
         )}
 
         {/* Sources */}
-        {!message.isStreaming && <SourcesBlock sources={message.sources || []} />}
+        {!message.isStreaming && <SourcesBlock sources={message.sources || []} hasProcessedFile={message.hasProcessedFile} />}
 
         {/* Disclaimer */}
         {!message.isStreaming && message.content && (

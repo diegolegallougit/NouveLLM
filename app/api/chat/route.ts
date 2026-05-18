@@ -369,6 +369,7 @@ export async function POST(req: NextRequest) {
               messageId: savedMsgId,
               sources,
               agentLabel,
+              hasProcessedFile: !!uploadedFileId,
             })}\n\n`
           )
         )
