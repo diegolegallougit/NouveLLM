@@ -40,6 +40,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig | null>(null)
   const [selectedSources, setSelectedSources] = useState<string[]>([])
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [agentAutoSelected, setAgentAutoSelected] = useState(false)
   const [showFormModal, setShowFormModal] = useState(false)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [metaPromptsData, setMetaPromptsData] = useState<MetaPromptsData | null>(null)
@@ -94,6 +95,20 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
     document.addEventListener('mousedown', onClickOutside)
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [popoverOpen])
+
+  // Auto-select 'analyse' agent when a file is attached; deselect when file is removed
+  useEffect(() => {
+    if (selectedFile && !selectedAgent) {
+      const analyseAgent = agents.find(a => a.slug === 'analyse')
+      if (analyseAgent) {
+        setSelectedAgent(analyseAgent) // eslint-disable-line react-hooks/set-state-in-effect
+        setAgentAutoSelected(true) // eslint-disable-line react-hooks/set-state-in-effect
+      }
+    } else if (!selectedFile && agentAutoSelected) {
+      setSelectedAgent(null) // eslint-disable-line react-hooks/set-state-in-effect
+      setAgentAutoSelected(false) // eslint-disable-line react-hooks/set-state-in-effect
+    }
+  }, [selectedFile]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load meta-prompts list when popover opens
   useEffect(() => {
@@ -184,6 +199,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
 
   function handleRemoveAgent() {
     setSelectedAgent(null)
+    setAgentAutoSelected(false)
   }
 
   function handleRemoveSource(slug: string) {

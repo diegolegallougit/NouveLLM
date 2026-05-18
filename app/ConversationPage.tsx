@@ -152,6 +152,8 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         }
       }
 
+      const effectiveAgentSlug = agentSlug ?? (uploadedFileId ? 'analyse' : undefined)
+
       const userMsg: MessageData = {
         id: `user-${Date.now()}`,
         role: 'user',
@@ -164,7 +166,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         id: streamingId,
         role: 'assistant',
         content: '',
-        agentUsed: agentSlug,
+        agentUsed: effectiveAgentSlug,
         isStreaming: true,
         createdAt: new Date(),
       }
@@ -203,7 +205,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message,
-            agentSlug,
+            agentSlug: effectiveAgentSlug,
             sourceSlugs,
             conversationId,
             uploadedFileId,
