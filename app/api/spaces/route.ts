@@ -25,7 +25,7 @@ export async function GET() {
         },
         where: { parentId: null },
       },
-      _count: { select: { documents: true } },
+      _count: { select: { documents: true, userMembers: true, groupMembers: true } },
     },
   })
 

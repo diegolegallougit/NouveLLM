@@ -117,6 +117,9 @@ const FolderTree = memo(function FolderTree({
               <span className="flex-1 min-w-0 truncate" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: selectedSpaceId === space.id ? '#00068D' : '#0D0D0D' }}>
                 {space.name}
               </span>
+              {((space._count.userMembers ?? 0) + (space._count.groupMembers ?? 0)) > 0 && (
+                <span className="flex-shrink-0 opacity-50 group-hover:opacity-80 transition-opacity" style={{ fontSize: '0.65rem' }} title="Espace partagé">👥</span>
+              )}
               <button
                 onClick={e => openContextMenu(e, space.id)}
                 className="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded text-[#8A8A8A] hover:bg-[#D8D8D8] transition-all flex-shrink-0"

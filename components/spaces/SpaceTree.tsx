@@ -33,7 +33,7 @@ export interface SpaceData {
   enrichmentGroups: string
   difyDatasetId: string | null
   folders: SpaceFolder[]
-  _count: { documents: number }
+  _count: { documents: number; userMembers?: number; groupMembers?: number }
 }
 
 interface SpaceTreeProps {

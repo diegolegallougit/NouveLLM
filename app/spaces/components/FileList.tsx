@@ -40,6 +40,7 @@ interface FileListProps {
   onToggleDocVisibility: (docId: string, current: boolean | undefined) => Promise<void>
   onSaveDocDates: (docId: string, from: string, until: string) => Promise<void>
   onBatchVisibility: (action: string, from?: string, until?: string) => Promise<void>
+  onOpenMembers: () => void
   onOpenSettings: () => void
   onCloseSettings: () => void
   onSettingsNameChange: (v: string) => void
@@ -58,7 +59,7 @@ const FileList = memo(function FileList({
   settingsOpen, settingsName, settingsDesc, settingsAudience, settingsSaving, canSetAudience,
   onSetActiveTab, onSetSelectedFolderId, onSetSelectedDocIds,
   onUploadFiles, onRenameDoc, onDeleteDoc, onCreateFolder, onDeleteFolder,
-  onToggleDocVisibility, onSaveDocDates, onBatchVisibility, onOpenSettings,
+  onToggleDocVisibility, onSaveDocDates, onBatchVisibility, onOpenMembers, onOpenSettings,
   onCloseSettings, onSettingsNameChange, onSettingsDescChange, onSettingsAudienceChange,
   onSaveSettings, onInitiateDeleteFromSettings,
   hasAnySpace = true, onCreateSpace,
@@ -235,14 +236,24 @@ const FileList = memo(function FileList({
               </p>
             </div>
           </div>
-          <button
-            onClick={onOpenSettings}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-[#8A8A8A] hover:border-[#00068D] hover:text-[#00068D] transition-all flex-shrink-0"
-            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
-          >
-            <IconSettings />
-            Paramètres
-          </button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={onOpenMembers}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-[#8A8A8A] hover:border-[#2B2EB8] hover:text-[#2B2EB8] transition-all"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', minHeight: '44px' }}
+            >
+              <span style={{ fontSize: '0.85rem' }}>👥</span>
+              Membres
+            </button>
+            <button
+              onClick={onOpenSettings}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-[#8A8A8A] hover:border-[#00068D] hover:text-[#00068D] transition-all"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', minHeight: '44px' }}
+            >
+              <IconSettings />
+              Paramètres
+            </button>
+          </div>
         </div>
 
         {/* Tab bar */}

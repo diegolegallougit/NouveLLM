@@ -8,6 +8,7 @@ import { IconNouveLLM, IconBack } from './components/icons'
 import PanelToggle from './components/PanelToggle'
 import FolderTree, { SharedSpace } from './components/FolderTree'
 import FileList from './components/FileList'
+import SpaceMembersDialog from './components/SpaceMembersDialog'
 
 type JournalEntry = { id: string; action: string; entityName: string; createdAt: string; user: { name: string | null; email: string } }
 
@@ -37,6 +38,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
   const [uploading, setUploading] = useState(false)
   const [uploadMsg, setUploadMsg] = useState('')
   const [uploadError, setUploadError] = useState('')
+  const [membersOpen, setMembersOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsName, setSettingsName] = useState('')
   const [settingsDesc, setSettingsDesc] = useState('')
@@ -255,6 +257,11 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
     setSelectedDocIds(new Set())
   }, [selectedSpaceId, selectedDocIds])
 
+  const openMembers = useCallback(() => {
+    if (!selectedSpace) return
+    setMembersOpen(true)
+  }, [selectedSpace])
+
   const openSettings = useCallback(() => {
     if (!selectedSpace) return
     setSettingsName(selectedSpace.name)
@@ -358,6 +365,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
             onToggleDocVisibility={toggleDocVisibility}
             onSaveDocDates={saveDocDates}
             onBatchVisibility={batchVisibility}
+            onOpenMembers={openMembers}
             onOpenSettings={openSettings}
             onCloseSettings={() => setSettingsOpen(false)}
             onSettingsNameChange={setSettingsName}
@@ -368,6 +376,15 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
           />
         </div>
       </div>
+
+      {membersOpen && selectedSpace && (
+        <SpaceMembersDialog
+          spaceId={selectedSpace.id}
+          spaceName={selectedSpace.name}
+          userRole={userRole}
+          onClose={() => setMembersOpen(false)}
+        />
+      )}
 
       {dragOver && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00068D]/10 backdrop-blur-[2px]">

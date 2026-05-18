@@ -13,7 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!access) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   if (!hasMinimumRole(access.role, 'MANAGER')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const [userMembers, groupMembers] = await Promise.all([
+  const [userMembers, groupMembers, owner] = await Promise.all([
     prisma.spaceUserMember.findMany({
       where: { spaceId },
       include: { user: { select: { id: true, name: true, email: true, role: true } } },
@@ -24,9 +24,13 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       include: { group: { select: { id: true, slug: true, label: true, type: true } } },
       orderBy: { addedAt: 'asc' },
     }),
+    prisma.user.findUnique({
+      where: { id: access.space.ownerId },
+      select: { id: true, name: true, email: true },
+    }),
   ])
 
-  return NextResponse.json({ userMembers, groupMembers })
+  return NextResponse.json({ owner, userMembers, groupMembers })
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
