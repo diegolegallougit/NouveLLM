@@ -18,7 +18,7 @@ type GroupMember = {
 
 type Owner = { id: string; name: string | null; email: string }
 type SearchUser = { id: string; name: string | null; email: string }
-type Group = { id: string; slug: string; label: string; type: string }
+type Group = { id: string; slug: string; label: string; type: string; memberCount: number }
 
 const ROLE_LABELS: Record<string, string> = {
   READER: 'Lecteur',
@@ -335,8 +335,8 @@ export default function SpaceMembersDialog({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[#D8D8D8] flex-shrink-0">
-            <div>
+          <div className="flex items-start justify-between px-6 py-4 border-b border-[#D8D8D8] flex-shrink-0">
+            <div className="flex-1 min-w-0 pr-4">
               <h2
                 style={{
                   fontFamily: 'Gilroy, sans-serif',
@@ -357,10 +357,24 @@ export default function SpaceMembersDialog({
               >
                 {spaceName}
               </p>
+              <p
+                style={{
+                  fontFamily: 'Source Serif Pro, Georgia, serif',
+                  fontSize: '0.8rem',
+                  color: '#8A8A8A',
+                  marginTop: '0.6rem',
+                  lineHeight: 1.55,
+                }}
+              >
+                Les membres invités accèdent à cet espace depuis leur page Mes dossiers.{' '}
+                <span style={{ fontStyle: 'italic' }}>Lecteur</span> : consultation uniquement.{' '}
+                <span style={{ fontStyle: 'italic' }}>Contributeur</span> : peut déposer des fichiers.{' '}
+                <span style={{ fontStyle: 'italic' }}>Gestionnaire</span> : peut inviter d&apos;autres membres.
+              </p>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#F2F2F2] transition-colors"
+              className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#F2F2F2] transition-colors"
               style={{ fontSize: '1rem' }}
               aria-label="Fermer"
             >
@@ -557,6 +571,7 @@ export default function SpaceMembersDialog({
                         <EmptyHint>Aucun groupe pour le moment</EmptyHint>
                       </div>
                     )}
+                    <div className="space-y-1.5">
                     <div className="flex gap-2">
                       <select
                         value={selectedGroupId}
@@ -569,11 +584,13 @@ export default function SpaceMembersDialog({
                         }}
                       >
                         <option value="">Sélectionner un groupe…</option>
-                        {groups.map((g) => (
-                          <option key={g.id} value={g.id}>
-                            {g.label}
-                          </option>
-                        ))}
+                        {groups
+                          .filter((g) => g.type === 'DIPLOME' || g.type === 'PROJET')
+                          .map((g) => (
+                            <option key={g.id} value={g.id}>
+                              {g.label}
+                            </option>
+                          ))}
                       </select>
                       <select
                         value={groupRole}
@@ -607,6 +624,19 @@ export default function SpaceMembersDialog({
                       >
                         {addingGroup ? '…' : '+ Groupe'}
                       </button>
+                    </div>
+                    <p
+                      style={{
+                        fontFamily: 'Source Serif Pro, Georgia, serif',
+                        fontSize: '0.8rem',
+                        color: '#8A8A8A',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      {selectedGroupId
+                        ? `Ce groupe contient ${groups.find((g) => g.id === selectedGroupId)?.memberCount ?? '…'} membres`
+                        : 'Seuls les groupes Diplôme et Projet sont disponibles pour le partage.'}
+                    </p>
                     </div>
                   </div>
                 )}
