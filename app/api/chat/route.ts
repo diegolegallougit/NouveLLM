@@ -198,6 +198,9 @@ export async function POST(req: NextRequest) {
     dbConvId = newConv.id
   }
 
+  // For Chatflow continuation, Dify holds session vars from the first turn
+  if (difyConvId) inputs = {}
+
   // Save user message
   await prisma.message.create({
     data: {
