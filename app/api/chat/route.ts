@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
   // Resolve agent API key and inputs
   let apiKey = process.env.DIFY_IIIAAS_API_KEY || ''
   let agentLabel: string | undefined
-  let inputs: Record<string, string> = {}
+  let inputs: Record<string, unknown> = {}
 
   if (agentSlug) {
     const agent = await prisma.agent.findUnique({ where: { slug: agentSlug } })
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
         inputs = prebuiltInputs
       } else {
         const inputBuilder = AGENT_INPUTS[agentSlug]
-        if (inputBuilder) inputs = inputBuilder(message)
+        if (inputBuilder) inputs = inputBuilder(message, uploadedFileId)
       }
     }
   }

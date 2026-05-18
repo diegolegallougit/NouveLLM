@@ -26,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
 
   let apiKey = process.env.DIFY_IIIAAS_API_KEY || ''
   let agentLabel: string | undefined
-  let inputs: Record<string, string> = {}
+  let inputs: Record<string, unknown> = {}
 
   if (agentSlug) {
     const agentRel = courseSession.agents.find(a => a.agent.slug === agentSlug)

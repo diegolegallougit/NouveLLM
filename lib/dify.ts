@@ -20,7 +20,7 @@ export interface ParsedSource {
   difyDocumentId?: string
 }
 
-export const AGENT_INPUTS: Record<string, (message: string) => Record<string, string>> = {
+export const AGENT_INPUTS: Record<string, (message: string, uploadedFileId?: string) => Record<string, unknown>> = {
   bibliographie: (msg) => ({
     sujet: msg,
     discipline: 'Sciences Humaines et Sociales',
@@ -52,8 +52,9 @@ export const AGENT_INPUTS: Record<string, (message: string) => Record<string, st
     contexte: msg,
     sujet: msg,
   }),
-  analyse: (msg) => ({
+  analyse: (msg, uploadedFileId?) => ({
     questions: msg,
+    ...(uploadedFileId ? { document: { transfer_method: 'local_file', upload_file_id: uploadedFileId } } : {}),
   }),
   'fiche-cours': (msg) => ({
     titre: msg,
@@ -80,12 +81,12 @@ export async function streamDifyChat({
   query: string
   conversationId?: string
   userId: string
-  inputs?: Record<string, string>
+  inputs?: Record<string, unknown>
   uploadedFileId?: string
   datasetIds?: string[]
   signal?: AbortSignal
 }): Promise<Response> {
-  const mergedInputs: Record<string, string> = { ...inputs }
+  const mergedInputs: Record<string, unknown> = { ...inputs }
   if (datasetIds && datasetIds.length > 0) {
     mergedInputs.dataset_ids = datasetIds.join(',')
   }
