@@ -175,21 +175,21 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
 
       {/* Footer — tool links */}
       {showTools && (
-        <div className="border-t border-[#D8D8D8] flex-shrink-0">
+        <div className="border-t border-[#C8C8C8] flex-shrink-0">
           <a
             href="/spaces"
-            className="flex items-center gap-2.5 px-3 min-h-[44px] text-[#8A8A8A] hover:text-[#00068D] hover:bg-[#F0F1FB] transition-all"
-            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)' }}
+            className="flex items-center gap-2.5 px-3 py-3 min-h-[44px] text-[#3A3A3A] hover:text-[#00068D] hover:bg-[#E8E9F8] transition-all"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
             Mes dossiers
           </a>
           <a
             href="/sessions"
-            className="flex items-center gap-2.5 px-3 min-h-[44px] text-[#8A8A8A] hover:text-[#00068D] hover:bg-[#F0F1FB] transition-all"
-            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)' }}
+            className="flex items-center gap-2.5 px-3 py-3 min-h-[44px] text-[#3A3A3A] hover:text-[#00068D] hover:bg-[#E8E9F8] transition-all"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
             Séances
           </a>
         </div>
