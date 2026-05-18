@@ -11,6 +11,7 @@ export interface Source {
   url?: string
   icon: string
   tag?: string
+  excerpt?: string
 }
 
 export interface MessageData {
@@ -248,6 +249,9 @@ function formatContent(text: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+    // Inline citation markers [N] → anchor link (future-proof for UX-013C)
+    // Negative lookahead (?!\]) avoids matching [[N]] or [HIL_SUGGESTION:...]
+    .replace(/\[(\d{1,2})\](?!\])/g, (_, n) => `<a href="#source-${n}" class="nl-cite">[${n}]</a>`)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')

@@ -16,6 +16,7 @@ export interface ParsedSource {
   url?: string
   icon: string
   tag?: string
+  excerpt?: string
 }
 
 export const AGENT_INPUTS: Record<string, (message: string) => Record<string, string>> = {
@@ -143,7 +144,8 @@ export function parseDifySources(retrieverResources: DifySource[]): ParsedSource
       let icon = '📄'
       let tag: string | undefined
       let domain = 'sorbonne-nouvelle.fr'
-      const url: string | undefined = undefined
+      // Use document_name as URL if it's a web-crawled document
+      const url: string | undefined = /^https?:\/\//i.test(name) ? name : undefined
 
       if (dataset.toLowerCase().includes('formation')) {
         icon = '🎓'; domain = 'sorbonne-nouvelle.fr'
@@ -158,6 +160,10 @@ export function parseDifySources(retrieverResources: DifySource[]): ParsedSource
         icon = '🔬'; domain = 'integria-anr.fr'
       }
 
-      return { title: name, domain, url, icon, tag }
+      if (url) { icon = '🌐' }
+
+      const excerpt = r.content ? r.content.replace(/\s+/g, ' ').trim().slice(0, 220) : undefined
+
+      return { title: name, domain, url, icon, tag, excerpt }
     })
 }
