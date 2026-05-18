@@ -92,8 +92,8 @@ const FolderTree = memo(function FolderTree({
                 className="flex-1 min-w-0 px-1.5 py-0.5 rounded border border-[#2B2EB8] focus:outline-none text-sm"
                 style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
               />
-              <button aria-label="Valider le renommage" onClick={() => { onRenameSpace(space.id, renameSpaceVal); setRenamingSpaceId(null) }} className="text-[#00068D] hover:text-[#2B2EB8]" style={{ fontSize: '0.7rem' }}>✓</button>
-              <button aria-label="Annuler le renommage" onClick={() => setRenamingSpaceId(null)} className="text-[#8A8A8A] hover:text-red-500" style={{ fontSize: '0.7rem' }}>✕</button>
+              <button aria-label="Valider le renommage" onClick={() => { onRenameSpace(space.id, renameSpaceVal); setRenamingSpaceId(null) }} className="flex items-center justify-center flex-shrink-0 min-w-[44px] min-h-[44px] px-3 py-2 rounded text-[#00068D] hover:bg-[#E8E9F8] transition-colors" style={{ fontSize: '18px' }}>✓</button>
+              <button aria-label="Annuler le renommage" onClick={() => setRenamingSpaceId(null)} className="flex items-center justify-center flex-shrink-0 min-w-[44px] min-h-[44px] px-3 py-2 rounded text-[#8A8A8A] hover:text-[#EF4444] hover:bg-red-50 transition-colors" style={{ fontSize: '18px' }}>✕</button>
             </div>
           ) : deleteConfirmId === space.id ? (
             <div className="px-3 py-2 bg-red-50">
@@ -182,8 +182,8 @@ const FolderTree = memo(function FolderTree({
             className="flex-1 min-w-0 px-1.5 py-0.5 rounded border border-[#2B2EB8] focus:outline-none text-sm"
             style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
           />
-          <button aria-label="Créer l'espace" onClick={handleCreateSpace} className="text-[#00068D] hover:text-[#2B2EB8] flex-shrink-0" style={{ fontSize: '0.7rem' }}>✓</button>
-          <button aria-label="Annuler la création" onClick={() => { setCreatingSpace(false); setNewSpaceName('') }} className="text-[#8A8A8A] hover:text-red-500 flex-shrink-0" style={{ fontSize: '0.7rem' }}>✕</button>
+          <button aria-label="Créer l'espace" onClick={handleCreateSpace} className="flex items-center justify-center flex-shrink-0 min-w-[44px] min-h-[44px] px-3 py-2 rounded text-[#00068D] hover:bg-[#E8E9F8] transition-colors" style={{ fontSize: '18px' }}>✓</button>
+          <button aria-label="Annuler la création" onClick={() => { setCreatingSpace(false); setNewSpaceName('') }} className="flex items-center justify-center flex-shrink-0 min-w-[44px] min-h-[44px] px-3 py-2 rounded text-[#8A8A8A] hover:text-[#EF4444] hover:bg-red-50 transition-colors" style={{ fontSize: '18px' }}>✕</button>
         </div>
       )}
 
