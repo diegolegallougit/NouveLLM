@@ -355,13 +355,13 @@ export default function MetaPromptsPanel() {
             </div>
           </div>
         </div>
-      ) : (
+      ) : data.personal.length > 0 ? (
         <button onClick={() => { setCreating(true); setEditingId(null); setForm({ title: '', description: '', content: '', isPublic: false }) }}
           className="w-full mt-2 py-2 rounded-xl border-2 border-dashed border-[#D8D8D8] text-xs text-[#8A8A8A] hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
           style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
           + Créer un méta-prompt
         </button>
-      )}
+      ) : null}
     </div>
   )
 }
