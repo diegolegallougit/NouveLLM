@@ -47,6 +47,8 @@ interface FileListProps {
   onSettingsAudienceChange: (v: string) => void
   onSaveSettings: () => Promise<void>
   onInitiateDeleteFromSettings: () => void
+  hasAnySpace?: boolean
+  onCreateSpace?: (name: string) => Promise<void>
 }
 
 const FileList = memo(function FileList({
@@ -59,6 +61,7 @@ const FileList = memo(function FileList({
   onToggleDocVisibility, onSaveDocDates, onBatchVisibility, onOpenSettings,
   onCloseSettings, onSettingsNameChange, onSettingsDescChange, onSettingsAudienceChange,
   onSaveSettings, onInitiateDeleteFromSettings,
+  hasAnySpace = true, onCreateSpace,
 }: FileListProps) {
   const [hoveredDocId, setHoveredDocId] = useState<string | null>(null)
   const [renamingDocId, setRenamingDocId] = useState<string | null>(null)
@@ -72,9 +75,12 @@ const FileList = memo(function FileList({
   const [pendingFiles, setPendingFiles] = useState<File[] | null>(null)
   const [sourceUrlInput, setSourceUrlInput] = useState('')
   const [sourceUrlError, setSourceUrlError] = useState('')
+  const [showCreateInput, setShowCreateInput] = useState(false)
+  const [createSpaceName, setCreateSpaceName] = useState('')
   const newFolderRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const sourceUrlRef = useRef<HTMLInputElement>(null)
+  const createSpaceInputRef = useRef<HTMLInputElement>(null)
 
   function handleFilesSelected(files: File[]) {
     if (!files.length) return
@@ -128,6 +134,75 @@ const FileList = memo(function FileList({
   }, [newFolderName, onCreateFolder])
 
   if (!selectedSpace) {
+    if (!hasAnySpace) {
+      const handleConfirmCreate = async () => {
+        if (!createSpaceName.trim()) return
+        await onCreateSpace?.(createSpaceName.trim())
+        setCreateSpaceName('')
+        setShowCreateInput(false)
+      }
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-center px-8 py-12">
+          <div className="flex justify-center mb-6">
+            <svg width="88" height="72" viewBox="0 0 88 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 28 L6 62 Q6 66 10 66 L78 66 Q82 66 82 62 L82 28 Q82 24 78 24 L46 24 L42 18 Q40 14 36 14 L10 14 Q6 14 6 18 Z" fill="#E8E9F8" stroke="#00068D" strokeWidth="2"/>
+              <path d="M6 34 L82 34" stroke="#00068D" strokeWidth="1" opacity="0.25"/>
+              <g transform="rotate(-10 44 24)">
+                <rect x="28" y="6" width="24" height="30" rx="2" fill="white" stroke="#00068D" strokeWidth="1.5"/>
+                <rect x="33" y="13" width="14" height="2.5" rx="1.25" fill="#E8E9F8"/>
+                <rect x="33" y="19" width="10" height="2.5" rx="1.25" fill="#E8E9F8"/>
+                <rect x="33" y="25" width="12" height="2.5" rx="1.25" fill="#E8E9F8"/>
+              </g>
+            </svg>
+          </div>
+          <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.15rem', color: '#0D0D0D', marginBottom: '0.6rem' }}>
+            Vos documents, au service de vos échanges
+          </h2>
+          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.88rem', color: '#5A5A5A', maxWidth: '28rem', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
+            Importez vos cours, articles ou ressources. NouveLLM les indexe pour que vos agents puissent s&apos;en servir dans vos conversations.
+          </p>
+          {!showCreateInput ? (
+            <button
+              onClick={() => { setShowCreateInput(true); setTimeout(() => createSpaceInputRef.current?.focus(), 50) }}
+              className="inline-flex items-center gap-2 px-5 py-3 min-h-[44px] rounded-xl transition-all hover:opacity-90"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Créer un espace
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 mt-2 w-full max-w-xs">
+              <input
+                ref={createSpaceInputRef}
+                value={createSpaceName}
+                onChange={e => setCreateSpaceName(e.target.value)}
+                onKeyDown={async e => {
+                  if (e.key === 'Enter') await handleConfirmCreate()
+                  if (e.key === 'Escape') { setShowCreateInput(false); setCreateSpaceName('') }
+                }}
+                placeholder="Nom de l'espace…"
+                className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-[#2B2EB8] focus:outline-none text-sm"
+                style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
+              />
+              <button
+                onClick={handleConfirmCreate}
+                className="px-4 py-2 rounded-xl min-h-[44px] transition-all hover:opacity-90"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.82rem', background: '#00068D', color: '#fff' }}
+              >
+                Créer
+              </button>
+              <button
+                onClick={() => { setShowCreateInput(false); setCreateSpaceName('') }}
+                className="px-3 py-2 rounded-xl min-h-[44px] border border-[#D8D8D8] text-[#8A8A8A] hover:bg-[#F2F2F2] transition-colors"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.82rem' }}
+              >
+                Annuler
+              </button>
+            </div>
+          )}
+        </div>
+      )
+    }
     return (
       <div className="flex flex-col items-center justify-center h-full text-center px-8">
         <span className="text-5xl mb-4">📂</span>

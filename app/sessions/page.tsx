@@ -110,16 +110,45 @@ export default function SessionsPage() {
         </div>
 
         {sessions.length === 0 && (
-          <div className="bg-white rounded-xl border border-[#D8D8D8] p-12 text-center">
-            <div className="w-12 h-12 rounded-full bg-[#F2F2F2] flex items-center justify-center mx-auto mb-4">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C8C8C8" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+          <div className="bg-white rounded-xl border border-[#D8D8D8] px-8 py-14 text-center">
+            <div className="flex justify-center mb-6">
+              <svg width="88" height="72" viewBox="0 0 88 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="80" height="40" rx="4" fill="#E8E9F8" stroke="#00068D" strokeWidth="2"/>
+                <rect x="14" y="14" width="36" height="3" rx="1.5" fill="#00068D"/>
+                <rect x="14" y="22" width="52" height="2" rx="1" fill="#2B2EB8" opacity="0.5"/>
+                <rect x="14" y="28" width="40" height="2" rx="1" fill="#2B2EB8" opacity="0.35"/>
+                <rect x="14" y="34" width="28" height="2" rx="1" fill="#2B2EB8" opacity="0.25"/>
+                <line x1="44" y1="44" x2="44" y2="53" stroke="#D8D8D8" strokeWidth="2"/>
+                <line x1="30" y1="53" x2="58" y2="53" stroke="#D8D8D8" strokeWidth="2" strokeLinecap="round"/>
+                <circle cx="20" cy="63" r="5.5" fill="#E8E9F8" stroke="#00068D" strokeWidth="1.5"/>
+                <path d="M11 71 C11 67 15 65 20 65 C25 65 29 67 29 71" fill="#E8E9F8" stroke="#00068D" strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx="68" cy="63" r="5.5" fill="#E8E9F8" stroke="#00068D" strokeWidth="1.5"/>
+                <path d="M59 71 C59 67 63 65 68 65 C73 65 77 67 77 71" fill="#E8E9F8" stroke="#00068D" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
             </div>
-            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#5A5A5A' }}>
-              Aucune activité créée
+            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.15rem', color: '#0D0D0D', marginBottom: '0.6rem' }}>
+              Créez votre première Séance IA
+            </h2>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.88rem', color: '#5A5A5A', maxWidth: '28rem', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
+              Une Séance IA permet de partager un agent configuré avec vos étudiants via un lien. Les échanges sont tracés et exportables.
             </p>
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.8rem', color: '#C8C8C8', marginTop: '0.25rem' }}>
-              Créez votre première Activité IA pour partager des agents avec vos étudiants
-            </p>
+            <button
+              onClick={() => router.push('/sessions/new')}
+              className="inline-flex items-center gap-2 px-5 py-3 min-h-[44px] rounded-xl transition-all hover:opacity-90"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Nouvelle Séance
+            </button>
+            <div className="mt-3">
+              <Link
+                href="/sessions/new"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.78rem', color: '#2B2EB8' }}
+                className="hover:underline"
+              >
+                Voir les scénarios disponibles →
+              </Link>
+            </div>
           </div>
         )}
 

@@ -325,6 +325,8 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
         </div>
         <div className={`${mobilePanelView === 'documents' ? 'flex' : 'hidden'} md:flex flex-col flex-1 overflow-y-auto nl-scroll transition-opacity ${isRenamePending || isDeletePending ? 'opacity-60' : ''}`}>
           <FileList
+            hasAnySpace={spaces.length > 0}
+            onCreateSpace={createSpace}
             selectedSpace={selectedSpace}
             selectedSpaceId={selectedSpaceId}
             docs={docs}

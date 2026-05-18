@@ -280,10 +280,10 @@ export default function MetaPromptsPanel() {
 
       {/* Institutional */}
       {data.institutional.length > 0 && (
-        <>
+        <div id="meta-institutional">
           <SectionHeader label="─── Bibliothèque institutionnelle ───" />
           {data.institutional.map(mp => <MPRow key={mp.id} mp={mp} canEdit={false} canDuplicate {...rowProps} />)}
-        </>
+        </div>
       )}
 
       {/* Shared */}
@@ -297,10 +297,28 @@ export default function MetaPromptsPanel() {
       {/* Personal */}
       <SectionHeader label="─── Mes méta-prompts ───" />
       {data.personal.length === 0 && !creating && (
-        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#C8C8C8', fontStyle: 'italic' }}
-          className="px-1">
-          Aucun méta-prompt personnel — créez-en un ci-dessous.
-        </p>
+        <div className="rounded-xl px-3 py-3 space-y-2.5 mt-1" style={{ background: '#F2F2F2' }}>
+          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#5A5A5A', lineHeight: 1.55 }}>
+            Un méta-prompt est une posture permanente que vous activez pour adapter le ton et le style de l&apos;assistant. Exemple : <em>Rédaction académique SHS</em>, <em>Ton institutionnel Sorbonne Nouvelle</em>.
+          </p>
+          {data.institutional.length > 0 && (
+            <button
+              onClick={() => document.getElementById('meta-institutional')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="block text-left hover:underline"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.75rem', color: '#2B2EB8', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
+              Voir les méta-prompts institutionnels disponibles →
+            </button>
+          )}
+          <button
+            onClick={() => { setCreating(true); setEditingId(null); setForm({ title: '', description: '', content: '', isPublic: false }) }}
+            className="flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl border transition-all hover:bg-[#E8E9F8] w-full justify-center"
+            style={{ borderColor: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.78rem', color: '#00068D', letterSpacing: '0.04em' }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Créer un méta-prompt
+          </button>
+        </div>
       )}
       {data.personal.map(mp => <MPRow key={mp.id} mp={mp} canEdit canDuplicate={false} {...rowProps} />)}
 
