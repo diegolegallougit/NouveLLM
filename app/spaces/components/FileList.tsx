@@ -32,7 +32,7 @@ interface FileListProps {
   onSetActiveTab: (tab: 'files' | 'journal') => void
   onSetSelectedFolderId: (id: string | null) => void
   onSetSelectedDocIds: React.Dispatch<React.SetStateAction<Set<string>>>
-  onUploadFiles: (files: File[]) => Promise<void>
+  onUploadFiles: (files: File[], sourceUrl?: string) => Promise<void>
   onRenameDoc: (docId: string, name: string) => void
   onDeleteDoc: (docId: string) => Promise<void>
   onCreateFolder: (name: string) => Promise<void>
@@ -69,8 +69,41 @@ const FileList = memo(function FileList({
   const [creatingFolder, setCreatingFolder] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
   const [editVisibilityDocId, setEditVisibilityDocId] = useState<string | null>(null)
+  const [pendingFiles, setPendingFiles] = useState<File[] | null>(null)
+  const [sourceUrlInput, setSourceUrlInput] = useState('')
+  const [sourceUrlError, setSourceUrlError] = useState('')
   const newFolderRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const sourceUrlRef = useRef<HTMLInputElement>(null)
+
+  function handleFilesSelected(files: File[]) {
+    if (!files.length) return
+    setPendingFiles(files)
+    setSourceUrlInput('')
+    setSourceUrlError('')
+    setTimeout(() => sourceUrlRef.current?.focus(), 50)
+  }
+
+  function handleUploadConfirm() {
+    if (!pendingFiles) return
+    const url = sourceUrlInput.trim()
+    if (url) {
+      try { new URL(url) } catch {
+        setSourceUrlError('URL invalide — ex : https://hal.science/...')
+        return
+      }
+    }
+    onUploadFiles(pendingFiles, url || undefined)
+    setPendingFiles(null)
+    setSourceUrlInput('')
+    setSourceUrlError('')
+  }
+
+  function handleUploadCancel() {
+    setPendingFiles(null)
+    setSourceUrlInput('')
+    setSourceUrlError('')
+  }
 
   const isShared = useMemo(() => selectedSpace != null && selectedSpace.enrichmentGroups !== '[]', [selectedSpace])
 
@@ -201,7 +234,7 @@ const FileList = memo(function FileList({
               multiple
               className="hidden"
               accept=".pdf,.docx,.doc,.txt,.md,.pptx,.xlsx,.csv,.json"
-              onChange={e => { const files = Array.from(e.target.files ?? []); if (files.length) onUploadFiles(files); e.target.value = '' }}
+              onChange={e => { const files = Array.from(e.target.files ?? []); if (files.length) handleFilesSelected(files); e.target.value = '' }}
             />
             {(uploading || uploadMsg) && (
               <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', fontStyle: 'italic' }}>
@@ -213,6 +246,67 @@ const FileList = memo(function FileList({
                 {uploadError}
               </span>
             )}
+          </div>
+        )}
+
+        {/* Source URL modal — shown after file selection, before upload */}
+        {activeTab === 'files' && pendingFiles && (
+          <div className="rounded-xl border border-[#2B2EB8] bg-[#F8F8FF] p-4 space-y-3">
+            <div>
+              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#00068D', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                {pendingFiles.length === 1 ? pendingFiles[0].name : `${pendingFiles.length} fichiers sélectionnés`}
+              </p>
+              {pendingFiles.length > 1 && (
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', marginTop: '0.2rem' }}>
+                  {pendingFiles.map(f => f.name).join(', ')}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#5A5A5A', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                URL source <span style={{ fontWeight: 300, textTransform: 'none' }}>(optionnel)</span>
+              </label>
+              <input
+                ref={sourceUrlRef}
+                type="url"
+                value={sourceUrlInput}
+                onChange={e => { setSourceUrlInput(e.target.value); setSourceUrlError('') }}
+                onKeyDown={e => { if (e.key === 'Enter') handleUploadConfirm(); if (e.key === 'Escape') handleUploadCancel() }}
+                placeholder="https://hal.science/hal-... ou https://www.univ-paris3.fr/..."
+                className="w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-1 transition-all"
+                style={{
+                  fontFamily: 'Source Serif Pro, Georgia, serif',
+                  fontSize: 'var(--text-sm)',
+                  borderColor: sourceUrlError ? '#EF4444' : '#D8D8D8',
+                  ['--tw-ring-color' as string]: '#2B2EB8',
+                }}
+              />
+              {sourceUrlError ? (
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#EF4444' }}>{sourceUrlError}</p>
+              ) : (
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', fontStyle: 'italic' }}>
+                  Si ce document est disponible en ligne, l&apos;URL permettra d&apos;y accéder directement depuis les sources citées.
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleUploadConfirm}
+                disabled={uploading}
+                className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] rounded-lg text-white disabled:opacity-50 transition-all"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', background: '#00068D' }}
+              >
+                <IconUpload />
+                {uploading ? 'Importation…' : 'IMPORTER'}
+              </button>
+              <button
+                onClick={handleUploadCancel}
+                className="px-4 py-2 min-h-[44px] rounded-lg border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2] transition-all"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
+              >
+                Annuler
+              </button>
+            </div>
           </div>
         )}
 

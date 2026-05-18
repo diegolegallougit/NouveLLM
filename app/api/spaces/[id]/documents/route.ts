@@ -72,9 +72,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const formData = await req.formData()
   const file = formData.get('file') as File | null
 
-  const fieldsParsed = UploadDocumentSchema.safeParse({ folderId: formData.get('folderId') ?? null })
+  const fieldsParsed = UploadDocumentSchema.safeParse({
+    folderId: formData.get('folderId') ?? null,
+    sourceUrl: formData.get('source_url') ?? undefined,
+  })
   if (!fieldsParsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   const folderId = fieldsParsed.data.folderId ?? null
+  const sourceUrl = fieldsParsed.data.sourceUrl ?? null
 
   if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   if (file.size > 20 * 1024 * 1024) return NextResponse.json({ error: 'File too large (max 20 MB)' }, { status: 413 })
@@ -170,6 +174,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     is_visible: true,
     original_filename: file.name,
     processing_method: pipeline.method,
+    ...(sourceUrl && { source_url: sourceUrl }),
   }
 
   // ── Scanned PDF (no text) — archive to Dify files, no KB indexing ────────────
@@ -195,7 +200,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           uploadedById: session.user.id, size: file.size, mimeType: file.type || null,
           visibleFrom: new Date(), visibleUntil: defaultVisibleUntil(), isVisible: true,
           diplomeSlug: spaceGroup.diplomeRef?.slug ?? null, anneeUniv: currentAnneeUniv(),
-          metadata: JSON.stringify({ hasText: false, method: pipeline.method, targetDatasetId: null }),
+          metadata: JSON.stringify({ hasText: false, method: pipeline.method, targetDatasetId: null, ...(sourceUrl && { source_url: sourceUrl }) }),
           indexingStatus: 'no_index',
         },
         include: { folder: true },
@@ -272,6 +277,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           hasText: true,
           method: pipeline.method,
           targetDatasetId: targetDatasetId || null,
+          ...(sourceUrl && { source_url: sourceUrl }),
         }),
         indexingStatus,
       },

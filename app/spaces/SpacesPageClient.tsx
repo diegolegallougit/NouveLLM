@@ -124,7 +124,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
     })
   }, [startSpacesTransition])
 
-  const uploadFiles = useCallback(async (files: File[]) => {
+  const uploadFiles = useCallback(async (files: File[], sourceUrl?: string) => {
     if (!selectedSpaceId || uploading) return
     setUploadError('')
     const rejected = files.filter(f => !ALLOWED_EXTS.has('.' + (f.name.split('.').pop()?.toLowerCase() ?? '')))
@@ -140,6 +140,7 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
       const form = new FormData()
       form.append('file', file)
       if (selectedFolderId) form.append('folderId', selectedFolderId)
+      if (sourceUrl) form.append('source_url', sourceUrl)
       try {
         const r = await fetch(`/api/spaces/${selectedSpaceId}/documents`, { method: 'POST', body: form })
         if (r.ok) {

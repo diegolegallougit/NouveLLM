@@ -17,6 +17,7 @@ export interface ParsedSource {
   icon: string
   tag?: string
   excerpt?: string
+  difyDocumentId?: string
 }
 
 export const AGENT_INPUTS: Record<string, (message: string) => Record<string, string>> = {
@@ -164,6 +165,6 @@ export function parseDifySources(retrieverResources: DifySource[]): ParsedSource
 
       const excerpt = r.content ? r.content.replace(/\s+/g, ' ').trim().slice(0, 220) : undefined
 
-      return { title: name, domain, url, icon, tag, excerpt }
+      return { title: name, domain, url, icon, tag, excerpt, difyDocumentId: r.document_id }
     })
 }

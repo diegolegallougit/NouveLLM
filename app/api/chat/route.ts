@@ -309,6 +309,33 @@ export async function POST(req: NextRequest) {
 
       const sources = parseDifySources(retrieverResources)
 
+      // Enrich sources with source_url stored in NouveLLM DB (Dify doesn't expose doc metadata in retriever_resources)
+      const difyDocIds = sources.map(s => s.difyDocumentId).filter((id): id is string => !!id)
+      if (difyDocIds.length > 0) {
+        try {
+          const dbDocs = await prisma.spaceDocument.findMany({
+            where: { difyFileId: { in: difyDocIds } },
+            select: { difyFileId: true, metadata: true },
+          })
+          const urlMap = new Map<string, string>()
+          for (const d of dbDocs) {
+            if (!d.difyFileId || !d.metadata) continue
+            try {
+              const meta = JSON.parse(d.metadata) as Record<string, unknown>
+              if (typeof meta.source_url === 'string' && meta.source_url) {
+                urlMap.set(d.difyFileId, meta.source_url)
+              }
+            } catch { /* metadata malformé */ }
+          }
+          for (const s of sources) {
+            if (s.difyDocumentId && urlMap.has(s.difyDocumentId)) {
+              s.url = urlMap.get(s.difyDocumentId)
+              s.icon = '🌐'
+            }
+          }
+        } catch { /* non-bloquant */ }
+      }
+
       let savedMsgId: string | undefined
       if (fullText.length > 0) {
         const savedMsg = await prisma.message.create({

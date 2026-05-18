@@ -3,6 +3,10 @@ import { z } from 'zod'
 // FormData fields for document upload (file itself is validated natively — size, extension)
 export const UploadDocumentSchema = z.object({
   folderId: z.string().max(200).nullable().optional(),
+  sourceUrl: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() ? v.trim() : undefined),
+    z.string().url().max(2048).optional()
+  ),
 })
 
 export type UploadDocument = z.infer<typeof UploadDocumentSchema>
