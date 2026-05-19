@@ -34,6 +34,17 @@ function formatRelativeDate(dateStr: string) {
   return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
 }
 
+const AGENT_BADGE_COLORS: Record<string, { bg: string; color: string }> = {
+  analyse:      { bg: '#E8E9F8', color: '#00068D' },
+  redaction:    { bg: '#E8F5E9', color: '#2E7D32' },
+  traduction:   { bg: '#FFF8E1', color: '#F57F17' },
+  bibliographie:{ bg: '#F3E5F5', color: '#7B1FA2' },
+  examen:       { bg: '#FBE9E7', color: '#BF360C' },
+}
+function agentBadgeStyle(slug: string) {
+  return AGENT_BADGE_COLORS[slug] ?? { bg: '#E8E9F8', color: '#00068D' }
+}
+
 export default function Sidebar({ onSelectConversation, activeConversationId, onNewConversation, refreshKey, userRole }: SidebarProps) {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(false)
@@ -129,7 +140,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                   tabIndex={0}
                   onClick={() => onSelectConversation(conv.id)}
                   onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onSelectConversation(conv.id) }}
-                  className={`w-full flex flex-col items-start gap-1 px-3 py-2.5 text-left transition-all border-l-2 cursor-pointer ${
+                  className={`w-full flex flex-col items-start gap-1 px-3 py-3 text-left transition-all border-l-2 cursor-pointer ${
                     activeConversationId === conv.id
                       ? 'bg-[#E8E9F8] border-l-[#00068D]'
                       : 'border-l-transparent hover:bg-[#F2F2F2] hover:border-l-[#D8D8D8]'
@@ -138,7 +149,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                   <div className="flex items-start justify-between w-full gap-1">
                     <span
                       className="text-[#0D0D0D] line-clamp-2 leading-relaxed flex-1"
-                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
+                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '15px' }}
                     >
                       {conv.title || 'Conversation sans titre'}
                     </span>
@@ -154,11 +165,14 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                     )}
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    {conv.agentSlug && (
-                      <span className="nl-token-agent">
-                        @{conv.agentSlug}
-                      </span>
-                    )}
+                    {conv.agentSlug && (() => {
+                      const { bg, color } = agentBadgeStyle(conv.agentSlug)
+                      return (
+                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', background: bg, color, borderRadius: 3, padding: '1px 5px' }}>
+                          @{conv.agentSlug}
+                        </span>
+                      )
+                    })()}
                     <span
                       className="text-[#8A8A8A]"
                       style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}
@@ -175,21 +189,21 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
 
       {/* Footer — tool links */}
       {showTools && (
-        <div className="border-t border-[#C8C8C8] flex-shrink-0">
+        <div className="border-t border-[#C8C8C8] flex-shrink-0 px-2 py-2 flex flex-col gap-1">
           <a
             href="/spaces"
-            className="flex items-center gap-2.5 px-3 py-3 min-h-[44px] text-[#3A3A3A] hover:text-[#00068D] hover:bg-[#E8E9F8] transition-all"
-            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
+            className="flex items-center gap-2.5 px-3 rounded-lg transition-all bg-[#E8E9F8] text-[#00068D] hover:bg-[#00068D] hover:text-white"
+            style={{ minHeight: 52, fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
             Mes dossiers
           </a>
           <a
             href="/sessions"
-            className="flex items-center gap-2.5 px-3 py-3 min-h-[44px] text-[#3A3A3A] hover:text-[#00068D] hover:bg-[#E8E9F8] transition-all"
-            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
+            className="flex items-center gap-2.5 px-3 rounded-lg transition-all bg-[#E8E9F8] text-[#00068D] hover:bg-[#00068D] hover:text-white"
+            style={{ minHeight: 52, fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
             Séances
           </a>
         </div>
