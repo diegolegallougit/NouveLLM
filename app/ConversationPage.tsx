@@ -384,7 +384,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         )}
 
         {/* Zone principale */}
-        <div className="flex flex-col flex-1 min-w-0 pb-14 md:pb-0">
+        <div className="flex flex-col-reverse md:flex-col flex-1 min-w-0 pb-14 md:pb-0">
           <div className="flex-1 overflow-y-auto nl-scroll" style={{ background: '#ffffff' }}>
             {messages.length === 0 ? (
               expertMode ? (
@@ -423,20 +423,22 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
             )}
           </div>
 
-          <ChatInput
-            agents={agents}
-            sources={sources}
-            onSend={(msg, agent, srcs, file) => {
-              setPendingAgent(undefined)
-              handleSend(msg, agent, srcs, file)
-            }}
-            disabled={isStreaming}
-            preselectedAgent={pendingAgent ?? undefined}
-            activeMetaPrompt={activeMetaPrompt}
-            onDeactivateMetaPrompt={handleDeactivateMetaPrompt}
-            onActivateMetaPrompt={handleActivateMetaPrompt}
-            onAbort={() => abortRef.current?.abort()}
-          />
+          <div className="flex-shrink-0 border-b border-[#D8D8D8] md:border-b-0">
+            <ChatInput
+              agents={agents}
+              sources={sources}
+              onSend={(msg, agent, srcs, file) => {
+                setPendingAgent(undefined)
+                handleSend(msg, agent, srcs, file)
+              }}
+              disabled={isStreaming}
+              preselectedAgent={pendingAgent ?? undefined}
+              activeMetaPrompt={activeMetaPrompt}
+              onDeactivateMetaPrompt={handleDeactivateMetaPrompt}
+              onActivateMetaPrompt={handleActivateMetaPrompt}
+              onAbort={() => abortRef.current?.abort()}
+            />
+          </div>
         </div>
       </div>
 
