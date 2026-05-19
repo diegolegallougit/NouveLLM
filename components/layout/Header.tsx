@@ -285,6 +285,18 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
         <div className={mobileConversationMode ? 'hidden md:flex items-center justify-between px-6 h-full w-full' : 'contents'}>
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-3">
+              {/* Hamburger — home screen mobile only */}
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="md:hidden w-10 h-10 -ml-2 flex items-center justify-center rounded-lg text-[#0D0D0D] hover:bg-[#F2F2F2] transition-all"
+                  aria-label="Menu"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M3 12h18M3 6h18M3 18h18" />
+                  </svg>
+                </button>
+              )}
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#00068D]">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M12 3v18M3 12h18" />

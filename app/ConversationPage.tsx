@@ -37,6 +37,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const [activeMetaPrompt, setActiveMetaPrompt] = useState<{ id: string; title: string } | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const touchStartX = useRef<number | null>(null)
 
   const isStudent = userRole === 'STUDENT'
   const showSidebar = !isStudent
@@ -130,6 +131,15 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
     } catch (err) {
       console.error('Failed to load conversation:', err)
     }
+  }
+
+  function handleDrawerTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX
+  }
+  function handleDrawerTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null) return
+    if (touchStartX.current - e.changedTouches[0].clientX > 60) setDrawerOpen(false)
+    touchStartX.current = null
   }
 
   function handleNewConversation() {
@@ -368,42 +378,42 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
           </div>
         )}
 
-        {/* Sidebar drawer mobile */}
-        {showSidebar && (
-          <>
-            {/* Overlay */}
-            <div
-              className={`fixed left-0 right-0 z-30 md:hidden transition-opacity duration-200 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-              style={{ top: mobileConversationMode ? 44 : 'var(--header-h)', bottom: 0, background: 'rgba(0,0,0,0.4)' }}
-              onClick={() => setDrawerOpen(false)}
-            />
-            {/* Drawer */}
-            <div
-              className="fixed left-0 z-40 md:hidden bg-[#FAFAFA] border-r border-[#D8D8D8]"
-              style={{
-                top: mobileConversationMode ? 44 : 'var(--header-h)',
-                bottom: 0,
-                width: 'var(--sidebar-w)',
-                transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
-                transition: 'transform 200ms ease',
+        {/* Sidebar drawer mobile — all users */}
+        <>
+          {/* Overlay — instant close, no transition */}
+          <div
+            className={`fixed left-0 right-0 z-30 md:hidden ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+            style={{ top: mobileConversationMode ? 44 : 'var(--header-h)', bottom: 0, background: 'rgba(0,0,0,0.35)' }}
+            onClick={() => setDrawerOpen(false)}
+          />
+          {/* Drawer */}
+          <div
+            className="fixed left-0 z-40 md:hidden bg-[#FAFAFA] border-r border-[#D8D8D8]"
+            style={{
+              top: mobileConversationMode ? 44 : 'var(--header-h)',
+              bottom: 0,
+              width: 280,
+              transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
+              transition: drawerOpen ? 'transform 180ms cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+            }}
+            onTouchStart={handleDrawerTouchStart}
+            onTouchEnd={handleDrawerTouchEnd}
+          >
+            <Sidebar
+              onSelectConversation={(id) => { loadConversation(id); setDrawerOpen(false) }}
+              activeConversationId={conversationId}
+              onNewConversation={() => { handleNewConversation(); setDrawerOpen(false) }}
+              refreshKey={sidebarRefreshKey}
+              userRole={userRole}
+              inDrawer
+              onClose={() => setDrawerOpen(false)}
+              onFolderToken={(token) => {
+                window.dispatchEvent(new CustomEvent('chat:insert-source', { detail: { token } }))
+                setDrawerOpen(false)
               }}
-            >
-              <Sidebar
-                onSelectConversation={(id) => { loadConversation(id); setDrawerOpen(false) }}
-                activeConversationId={conversationId}
-                onNewConversation={() => { handleNewConversation(); setDrawerOpen(false) }}
-                refreshKey={sidebarRefreshKey}
-                userRole={userRole}
-                inDrawer
-                onClose={() => setDrawerOpen(false)}
-                onFolderToken={(token) => {
-                  window.dispatchEvent(new CustomEvent('chat:insert-source', { detail: { token } }))
-                  setDrawerOpen(false)
-                }}
-              />
-            </div>
-          </>
-        )}
+            />
+          </div>
+        </>
 
         {/* Zone principale */}
         <div className={`flex ${messages.length === 0 ? 'flex-col-reverse' : 'flex-col'} md:flex-col flex-1 min-w-0`}>
