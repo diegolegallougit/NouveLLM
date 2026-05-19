@@ -140,13 +140,16 @@ export default function OnboardingFlow({ onComplete, userName }: OnboardingFlowP
   async function handleComplete() {
     setCompleting(true)
     try {
-      await fetch('/api/onboarding/complete', { method: 'POST' })
-    } catch {}
-    onComplete()
+      const r = await fetch('/api/onboarding/complete', { method: 'POST' })
+      if (!r.ok) throw new Error('server_error')
+      onComplete()
+    } catch {
+      setCompleting(false)
+    }
   }
 
   async function handleSkipAll() {
-    fetch('/api/onboarding/complete', { method: 'POST' }).catch(() => {})
+    try { await fetch('/api/onboarding/complete', { method: 'POST' }) } catch {}
     onComplete()
   }
 
