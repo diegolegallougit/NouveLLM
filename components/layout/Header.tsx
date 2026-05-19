@@ -8,10 +8,15 @@ interface HeaderProps {
   userName?: string
   userRole?: string
   userInitials?: string
+  mobileConversationMode?: boolean
+  activeAgent?: string | null
+  agentLabel?: string | null
+  onBack?: () => void
 }
 
-export default function Header({ userName = 'Utilisateur', userRole = 'EC', userInitials = 'U' }: HeaderProps) {
+export default function Header({ userName = 'Utilisateur', userRole = 'EC', userInitials = 'U', mobileConversationMode = false, activeAgent, agentLabel, onBack }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [mobileCtxOpen, setMobileCtxOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsTab, setSettingsTab] = useState<'profile' | 'meta-prompts' | 'sources' | 'data'>('meta-prompts')
 
@@ -205,94 +210,163 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
   return (
     <>
       <header
-        className="flex items-center justify-between px-6 bg-white border-b border-[#D8D8D8] z-10 flex-shrink-0"
-        style={{ height: 'var(--header-h)' }}
+        className={`bg-white border-b border-[#D8D8D8] z-10 flex-shrink-0 ${
+          mobileConversationMode ? 'h-[44px] md:h-[60px]' : 'flex items-center justify-between px-6'
+        }`}
+        style={mobileConversationMode ? undefined : { height: 'var(--header-h)' }}
       >
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#00068D]">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M12 3v18M3 12h18" />
-                <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
-              </svg>
-            </div>
-            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', letterSpacing: '-0.02em', color: '#00068D' }}>
-              NouveLLM
-            </span>
-            <span className="hidden md:block w-px h-4 bg-[#D8D8D8]" />
-            <span className="hidden md:inline" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.08em', color: '#8A8A8A', textTransform: 'uppercase' }}>
-              Université Sorbonne Nouvelle
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Desktop nav links — hidden on mobile */}
-          <div className="hidden md:flex items-center gap-2">
-            {userRole === 'ADMIN' && (
-              <a
-                href="/admin"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white transition-all"
-                style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.06em' }}
-                title="Panel d'administration"
-              >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
-                ADMIN
-              </a>
-            )}
-          </div>
-
-          {/* User chip */}
-          <div className="relative">
+        {/* Immersive mobile bar — conversation mode only */}
+        {mobileConversationMode && (
+          <div className="md:hidden flex items-center justify-between px-4 h-full">
+            {/* ☰ drawer toggle */}
             <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-[#F2F2F2] border border-[#D8D8D8] hover:bg-[#E8E9F8] transition-all text-left"
+              onClick={onBack}
+              className="w-10 h-10 -ml-2 flex items-center justify-center rounded-lg text-[#0D0D0D] hover:bg-[#F2F2F2] transition-all"
+              aria-label="Menu"
             >
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-white flex-shrink-0"
-                style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em' }}
-              >
-                {userInitials}
-              </div>
-              <div className="flex flex-col items-start leading-tight">
-                <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 600, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
-                  {userName}
-                </span>
-                <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#8A8A8A' }}>
-                  {roleLabel}
-                </span>
-              </div>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M6 9l6 6 6-6" />
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M3 12h18M3 6h18M3 18h18" />
               </svg>
             </button>
 
-            {menuOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                <div className="absolute right-0 top-full mt-1 w-52 bg-white rounded-lg shadow-lg border border-[#D8D8D8] py-1 z-50">
-                  <div className="px-3 py-2 border-b border-[#D8D8D8]">
-                    <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 600, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>{userName}</p>
-                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>{roleLabel}</p>
-                  </div>
-                  <button
-                    onClick={() => { setMenuOpen(false); setSettingsOpen(true) }}
-                    className="w-full text-left px-3 py-2 text-[#3A3A3A] hover:bg-[#F2F2F2] transition-colors flex items-center gap-2"
-                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
-                    Paramètres & données
-                  </button>
-                  <button
-                    onClick={() => signOut({ callbackUrl: '/login' })}
-                    className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 transition-colors"
-                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
-                  >
-                    Se déconnecter
-                  </button>
+            {/* Center: agent badge or brand */}
+            <div className="flex-1 flex items-center justify-center">
+              {(activeAgent || agentLabel) ? (
+                <div
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                  style={{ background: '#E8E9F8', border: '0.5px solid #C5C7F0' }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00068D" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M12 3v18M3 12h18" />
+                    <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
+                  </svg>
+                  <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#00068D', letterSpacing: '0.04em' }}>
+                    {agentLabel || `@${activeAgent}`}
+                  </span>
                 </div>
-              </>
-            )}
+              ) : (
+                <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#00068D', letterSpacing: '-0.01em' }}>
+                  NouveLLM
+                </span>
+              )}
+            </div>
+
+            {/* ··· settings */}
+            <div className="relative">
+              <button
+                onClick={() => setMobileCtxOpen(v => !v)}
+                className="w-10 h-10 -mr-2 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#F2F2F2] transition-all"
+                aria-label="Options"
+              >
+                <svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor">
+                  <circle cx="2" cy="2" r="2" /><circle cx="2" cy="8" r="2" /><circle cx="2" cy="14" r="2" />
+                </svg>
+              </button>
+              {mobileCtxOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setMobileCtxOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-[#D8D8D8] py-1 z-50">
+                    <button
+                      onClick={() => { setMobileCtxOpen(false); setSettingsOpen(true) }}
+                      className="w-full text-left px-3 py-2 text-[#3A3A3A] hover:bg-[#F2F2F2] transition-colors flex items-center gap-2"
+                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                      Paramètres
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Standard header content — always on desktop, hidden on mobile in conv mode */}
+        <div className={mobileConversationMode ? 'hidden md:flex items-center justify-between px-6 h-full w-full' : 'contents'}>
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#00068D]">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M12 3v18M3 12h18" />
+                  <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
+                </svg>
+              </div>
+              <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', letterSpacing: '-0.02em', color: '#00068D' }}>
+                NouveLLM
+              </span>
+              <span className="hidden md:block w-px h-4 bg-[#D8D8D8]" />
+              <span className="hidden md:inline" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.08em', color: '#8A8A8A', textTransform: 'uppercase' }}>
+                Université Sorbonne Nouvelle
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
+              {userRole === 'ADMIN' && (
+                <a
+                  href="/admin"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white transition-all"
+                  style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', letterSpacing: '0.06em' }}
+                  title="Panel d'administration"
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                  ADMIN
+                </a>
+              )}
+            </div>
+
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-[#F2F2F2] border border-[#D8D8D8] hover:bg-[#E8E9F8] transition-all text-left"
+              >
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-white flex-shrink-0"
+                  style={{ background: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em' }}
+                >
+                  {userInitials}
+                </div>
+                <div className="flex flex-col items-start leading-tight">
+                  <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 600, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
+                    {userName}
+                  </span>
+                  <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#8A8A8A' }}>
+                    {roleLabel}
+                  </span>
+                </div>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+
+              {menuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1 w-52 bg-white rounded-lg shadow-lg border border-[#D8D8D8] py-1 z-50">
+                    <div className="px-3 py-2 border-b border-[#D8D8D8]">
+                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 600, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>{userName}</p>
+                      <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>{roleLabel}</p>
+                    </div>
+                    <button
+                      onClick={() => { setMenuOpen(false); setSettingsOpen(true) }}
+                      className="w-full text-left px-3 py-2 text-[#3A3A3A] hover:bg-[#F2F2F2] transition-colors flex items-center gap-2"
+                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                      Paramètres & données
+                    </button>
+                    <button
+                      onClick={() => signOut({ callbackUrl: '/login' })}
+                      className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
+                    >
+                      Se déconnecter
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>

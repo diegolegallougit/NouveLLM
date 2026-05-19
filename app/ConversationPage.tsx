@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
-import BottomNav from '@/components/layout/BottomNav'
 import Message, { MessageData, Source } from '@/components/chat/Message'
 import ChatInput from '@/components/input/ChatInput'
 import Sidebar from '@/components/sidebar/Sidebar'
@@ -42,6 +41,11 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const isStudent = userRole === 'STUDENT'
   const showSidebar = !isStudent
   const showOnboarding = needsOnboarding && !onboardingDone
+
+  const mobileConversationMode = messages.length > 0
+  const lastAssistantMsg = [...messages].reverse().find(m => m.role === 'assistant')
+  const activeAgent = mobileConversationMode ? (lastAssistantMsg?.agentUsed ?? null) : null
+  const activeAgentLabel = mobileConversationMode ? (lastAssistantMsg?.agentLabel ?? null) : null
 
   useEffect(() => {
     async function loadConfig() {
@@ -337,7 +341,15 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         <OnboardingFlow onComplete={() => setOnboardingDone(true)} userName={userName} />
       )}
 
-      <Header userName={userName} userRole={userRole} userInitials={userInitials} />
+      <Header
+        userName={userName}
+        userRole={userRole}
+        userInitials={userInitials}
+        mobileConversationMode={mobileConversationMode}
+        activeAgent={activeAgent}
+        agentLabel={activeAgentLabel}
+        onBack={() => setDrawerOpen(v => !v)}
+      />
 
       <div className="flex flex-1 min-h-0">
         {/* Sidebar desktop — EC/Admin uniquement */}
@@ -362,15 +374,15 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
             {/* Overlay */}
             <div
               className={`fixed left-0 right-0 z-30 md:hidden transition-opacity duration-200 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-              style={{ top: 'var(--header-h)', bottom: 56, background: 'rgba(0,0,0,0.4)' }}
+              style={{ top: mobileConversationMode ? 44 : 'var(--header-h)', bottom: 0, background: 'rgba(0,0,0,0.4)' }}
               onClick={() => setDrawerOpen(false)}
             />
             {/* Drawer */}
             <div
               className="fixed left-0 z-40 md:hidden bg-[#FAFAFA] border-r border-[#D8D8D8]"
               style={{
-                top: 'var(--header-h)',
-                bottom: 56,
+                top: mobileConversationMode ? 44 : 'var(--header-h)',
+                bottom: 0,
                 width: 'var(--sidebar-w)',
                 transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
                 transition: 'transform 200ms ease',
@@ -394,7 +406,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         )}
 
         {/* Zone principale */}
-        <div className="flex flex-col-reverse md:flex-col flex-1 min-w-0 pb-14 md:pb-0">
+        <div className={`flex ${messages.length === 0 ? 'flex-col-reverse' : 'flex-col'} md:flex-col flex-1 min-w-0`}>
           <div className="flex-1 overflow-y-auto nl-scroll" style={{ background: '#ffffff' }}>
             {messages.length === 0 ? (
               expertMode ? (
@@ -431,7 +443,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
                 </>
               )
             ) : (
-              <div className="max-w-[760px] mx-auto px-4 md:px-8 py-8 space-y-7">
+              <div className="max-w-[760px] mx-auto px-4 md:px-8 py-4 md:py-8 space-y-4 md:space-y-7">
                 {messages.map((msg, i) => (
                   <Message
                     key={msg.id}
@@ -473,13 +485,6 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
       </div>
 
       <Footer userRole={userRole} />
-
-      <BottomNav
-        userRole={userRole}
-        drawerOpen={drawerOpen}
-        onToggleDrawer={() => setDrawerOpen((v) => !v)}
-        onOpenSettings={() => window.dispatchEvent(new CustomEvent('nl:open-settings'))}
-      />
     </div>
   )
 }

@@ -242,7 +242,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   const hasContent = text.trim().length > 0 || selectedAgent !== null || selectedSources.length > 0 || selectedFile !== null
 
   return (
-    <div className="relative px-6 pb-4 bg-white border-t border-[#D8D8D8] flex-shrink-0">
+    <div className="relative px-4 pb-3 md:px-6 md:pb-4 bg-white border-t border-[#D8D8D8] flex-shrink-0">
       {/* Agent form modal */}
       {showFormModal && selectedAgent?.inputSchema && (
         <AgentFormModal
@@ -446,7 +446,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       )}
 
       {/* Input box */}
-      <div className="mt-3 flex flex-col rounded-xl border border-[#D8D8D8] bg-white focus-within:ring-2 focus-within:ring-[#2B2EB8] focus-within:border-transparent transition-all overflow-hidden">
+      <div className="mt-3 flex flex-col rounded-xl border border-[#D8D8D8] bg-white md:focus-within:ring-2 md:focus-within:ring-[#2B2EB8] md:focus-within:border-transparent transition-all overflow-hidden">
         <textarea
           ref={textareaRef}
           value={text}
@@ -465,7 +465,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
             {/* 📎 file */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#FFF8E1] hover:text-[#F57F17] transition-all"
+              className="w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#FFF8E1] hover:text-[#F57F17] transition-all"
               title="Joindre un document"
               aria-label="Joindre un document"
             >
@@ -531,7 +531,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
             <button
               type="button"
               onClick={() => onAbort?.()}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white transition-all"
+              className="flex items-center justify-center gap-2 w-9 h-9 md:w-auto md:h-auto md:px-4 md:py-2 rounded-lg text-white transition-all"
               style={{
                 background: '#EF4444',
                 fontFamily: 'Gilroy, sans-serif',
@@ -543,13 +543,13 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
               <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
                 <rect width="10" height="10" rx="1.5" />
               </svg>
-              ARRÊTER
+              <span className="hidden md:inline">ARRÊTER</span>
             </button>
           ) : (
             <button
               onClick={handleSend}
               disabled={!hasContent}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 w-9 h-9 md:w-auto md:h-auto md:px-4 md:py-2 rounded-lg text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               style={{
                 background: hasContent ? '#00068D' : '#D8D8D8',
                 fontFamily: 'Gilroy, sans-serif',
@@ -558,7 +558,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                 letterSpacing: '0.04em',
               }}
             >
-              ENVOYER
+              <span className="hidden md:inline">ENVOYER</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
