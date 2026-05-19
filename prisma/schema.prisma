@@ -629,3 +629,19 @@ model SpaceGroupMember {
 
   @@id([spaceId, groupId])
 }
+
+enum IntegrationType {
+  CONNECTOR
+  ACADEMIC_SOURCE
+}
+
+model Integration {
+  id        String          @id @default(cuid())
+  slug      String          @unique
+  type      IntegrationType
+  enabled   Boolean         @default(false)
+  config    String?
+  visibleTo String          @default("EC,ADMIN")
+  updatedAt DateTime        @updatedAt
+  updatedBy String?
+}

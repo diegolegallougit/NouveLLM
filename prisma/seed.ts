@@ -1058,6 +1058,42 @@ En fin de session, sors du rôle et propose un débriefing des moments clés.`,
     })
   }
 
+  // ── Integrations ──────────────────────────────────────────────────────────
+  const INTEGRATIONS: {
+    slug: string
+    type: 'CONNECTOR' | 'ACADEMIC_SOURCE'
+    enabled: boolean
+    config?: string
+    visibleTo?: string
+  }[] = [
+    // Connectors
+    { slug: 'gdrive',         type: 'CONNECTOR',       enabled: false, visibleTo: 'EC,ADMIN,RESPONSABLE' },
+    { slug: 'notion',         type: 'CONNECTOR',       enabled: false, visibleTo: 'EC,ADMIN,RESPONSABLE' },
+    { slug: 'nextcloud',      type: 'CONNECTOR',       enabled: false, config: JSON.stringify({ status: 'coming_soon' }) },
+    { slug: 'onedrive',       type: 'CONNECTOR',       enabled: false, config: JSON.stringify({ status: 'coming_soon' }) },
+    // Academic sources — active
+    { slug: 'openalex',       type: 'ACADEMIC_SOURCE', enabled: true,  visibleTo: 'EC,ADMIN,RESPONSABLE' },
+    { slug: 'semantic-scholar', type: 'ACADEMIC_SOURCE', enabled: true, visibleTo: 'EC,ADMIN,RESPONSABLE' },
+    { slug: 'arxiv',          type: 'ACADEMIC_SOURCE', enabled: true,  visibleTo: 'EC,ADMIN,RESPONSABLE,STUDENT,BIATSS' },
+    // Academic sources — coming soon
+    { slug: 'hal',            type: 'ACADEMIC_SOURCE', enabled: false, config: JSON.stringify({ status: 'coming_soon' }) },
+    { slug: 'cairn',          type: 'ACADEMIC_SOURCE', enabled: false, config: JSON.stringify({ status: 'coming_soon' }) },
+    { slug: 'openedition',    type: 'ACADEMIC_SOURCE', enabled: false, config: JSON.stringify({ status: 'coming_soon' }) },
+    { slug: 'jstor',          type: 'ACADEMIC_SOURCE', enabled: false, config: JSON.stringify({ status: 'coming_soon' }) },
+    { slug: 'pubmed',         type: 'ACADEMIC_SOURCE', enabled: false, config: JSON.stringify({ status: 'coming_soon' }) },
+    { slug: 'llba',           type: 'ACADEMIC_SOURCE', enabled: false, config: JSON.stringify({ status: 'coming_soon' }) },
+    { slug: 'fiaf',           type: 'ACADEMIC_SOURCE', enabled: false, config: JSON.stringify({ status: 'coming_soon' }) },
+    { slug: 'mla',            type: 'ACADEMIC_SOURCE', enabled: false, config: JSON.stringify({ status: 'coming_soon' }) },
+  ]
+
+  for (const integ of INTEGRATIONS) {
+    await prisma.integration.upsert({
+      where: { slug: integ.slug },
+      update: { type: integ.type, enabled: integ.enabled, ...(integ.config !== undefined && { config: integ.config }), ...(integ.visibleTo && { visibleTo: integ.visibleTo }) },
+      create: { slug: integ.slug, type: integ.type, enabled: integ.enabled, config: integ.config ?? null, visibleTo: integ.visibleTo ?? 'EC,ADMIN' },
+    })
+  }
+
   console.log('Seed complete.')
   console.log('Demo EC:    camille.daniaux@sorbonne-nouvelle.fr / demo1234')
   console.log('Admin:      transvers.art@gmail.com / demo1234')

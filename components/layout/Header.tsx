@@ -23,7 +23,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
     return () => document.removeEventListener('keydown', onKey)
   }, [mobileMenuOpen])
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [settingsTab, setSettingsTab] = useState<'profile' | 'meta-prompts' | 'data'>('meta-prompts')
+  const [settingsTab, setSettingsTab] = useState<'profile' | 'meta-prompts' | 'sources' | 'data'>('meta-prompts')
   const [deleteConvsConfirm, setDeleteConvsConfirm] = useState(false)
   const [deleteAccountConfirm, setDeleteAccountConfirm] = useState(false)
   const [working, setWorking] = useState(false)
@@ -40,6 +40,18 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
   const [niveaux, setNiveaux] = useState<string[]>([])
   const [langues, setLangues] = useState<string[]>([])
   const [sources, setSources] = useState<string[]>([])
+
+  // MES SOURCES tab state
+  type AcademicSourceItem = { slug: string; label: string; description: string; icon: string }
+  type ConnectorItem = { slug: string; label: string; description: string; icon: string; connected: boolean }
+  const [sourcesTabLoading, setSourcesTabLoading] = useState(false)
+  const [availableSources, setAvailableSources] = useState<AcademicSourceItem[]>([])
+  const [availableConnectors, setAvailableConnectors] = useState<ConnectorItem[]>([])
+  const [sourcesSaving, setSourcesSaving] = useState(false)
+  const [sourcesSaved, setSourcesSaved] = useState(false)
+  const [notionToken, setNotionToken] = useState('')
+  const [notionConnecting, setNotionConnecting] = useState(false)
+  const [notionError, setNotionError] = useState('')
 
   const NIVEAUX_OPTIONS = ['L1', 'L2', 'L3', 'M1', 'M2', 'M2-pro', 'Doctorat']
   const LANGUES_OPTIONS = ['fr', 'en', 'ar', 'es', 'it', 'de', 'pt']
@@ -73,6 +85,68 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
       .finally(() => setProfileLoading(false))
   }, [settingsTab, settingsOpen])
 
+  useEffect(() => {
+    if (settingsTab !== 'sources' || !settingsOpen) return
+    setSourcesTabLoading(true)
+    Promise.all([
+      fetch('/api/integrations/sources').then((r) => r.json()),
+      fetch('/api/users/profile').then((r) => r.json()),
+    ])
+      .then(([intData, profileData]) => {
+        setAvailableSources(intData.academicSources ?? [])
+        setAvailableConnectors(intData.connectors ?? [])
+        setSources(profileData.sourcesAcademiques ? profileData.sourcesAcademiques.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
+      })
+      .catch(() => {})
+      .finally(() => setSourcesTabLoading(false))
+  }, [settingsTab, settingsOpen])
+
+  async function handleSourcesSave() {
+    setSourcesSaving(true)
+    setSourcesSaved(false)
+    try {
+      await fetch('/api/users/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourcesAcademiques: sources.length > 0 ? sources.join(',') : undefined }),
+      })
+      setSourcesSaved(true)
+      setTimeout(() => setSourcesSaved(false), 2500)
+    } finally {
+      setSourcesSaving(false)
+    }
+  }
+
+  async function handleNotionConnect() {
+    if (!notionToken.trim()) return
+    setNotionConnecting(true)
+    setNotionError('')
+    try {
+      const r = await fetch('/api/connectors/notion/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: notionToken.trim() }),
+      })
+      if (r.ok) {
+        setNotionToken('')
+        // refresh connectors
+        const intData = await fetch('/api/integrations/sources').then((res) => res.json())
+        setAvailableConnectors(intData.connectors ?? [])
+      } else {
+        const d = await r.json()
+        setNotionError(d.error ?? 'Token invalide')
+      }
+    } finally {
+      setNotionConnecting(false)
+    }
+  }
+
+  async function handleNotionDisconnect() {
+    await fetch('/api/connectors/notion/connect', { method: 'DELETE' })
+    const intData = await fetch('/api/integrations/sources').then((res) => res.json())
+    setAvailableConnectors(intData.connectors ?? [])
+  }
+
   async function handleProfileSave() {
     setProfileSaving(true)
     setProfileError('')
@@ -87,7 +161,6 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
           ufr: ufr || undefined,
           niveauxEnseignement: niveaux.length > 0 ? niveaux.join(',') : undefined,
           languesTravail: langues.length > 0 ? langues.join(',') : undefined,
-          sourcesAcademiques: sources.length > 0 ? sources.join(',') : undefined,
         }),
       })
       if (!r.ok) throw new Error()
@@ -319,6 +392,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
               {([
                 { id: 'meta-prompts', label: 'MÉTA-PROMPTS' },
                 { id: 'profile',      label: 'MON PROFIL' },
+                { id: 'sources',      label: 'MES SOURCES' },
                 { id: 'data',         label: 'MES DONNÉES' },
               ] as const).map(({ id, label }) => (
                 <button
@@ -481,76 +555,6 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                         </div>
                       </div>
 
-                      {/* Sources académiques */}
-                      <div>
-                        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }} className="mb-2">
-                          Mes sources académiques
-                        </p>
-                        <div className="grid grid-cols-2 gap-2">
-                          {[
-                            { key: 'openalex',         label: 'OpenAlex',         desc: 'Publications ouvertes',     active: true },
-                            { key: 'semantic-scholar',  label: 'Semantic Scholar', desc: 'IA et sciences',            active: true },
-                            { key: 'arxiv',             label: 'ArXiv',            desc: 'Prépublications',           active: true },
-                            { key: 'hal',               label: 'HAL',              desc: 'Archives ouvertes FR',      active: false },
-                            { key: 'cairn',             label: 'Cairn.info',       desc: 'SHS francophones',          active: false },
-                            { key: 'jstor',             label: 'JSTOR',            desc: 'SHS anglophones',           active: false },
-                            { key: 'llba',              label: 'LLBA',             desc: 'Linguistique et langues',   active: false },
-                            { key: 'fiaf',              label: 'FIAF',             desc: 'Cinéma et arts visuels',    active: false },
-                            { key: 'mla',               label: 'MLA',              desc: 'Littérature et langues',    active: false },
-                          ].map(({ key, label, desc, active }) => {
-                            const checked = sources.includes(key)
-                            return (
-                              <button
-                                key={key}
-                                type="button"
-                                disabled={!active}
-                                onClick={() => {
-                                  if (!active) return
-                                  setSources(prev => prev.includes(key) ? prev.filter(s => s !== key) : [...prev, key])
-                                }}
-                                className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-all"
-                                style={{
-                                  minHeight: 44,
-                                  borderColor: !active ? '#F2F2F2' : checked ? '#2B2EB8' : '#D8D8D8',
-                                  background: !active ? '#FAFAFA' : checked ? '#E8E9F8' : '#FAFAFA',
-                                  opacity: !active ? 0.6 : 1,
-                                  cursor: !active ? 'default' : 'pointer',
-                                }}
-                              >
-                                <div
-                                  className="mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0 border flex items-center justify-center"
-                                  style={{
-                                    borderColor: !active ? '#D8D8D8' : checked ? '#2B2EB8' : '#D8D8D8',
-                                    background: checked && active ? '#2B2EB8' : 'white',
-                                  }}
-                                >
-                                  {checked && active && (
-                                    <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
-                                      <path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                  )}
-                                </div>
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: active ? 800 : 300, fontSize: 'var(--text-sm)', color: !active ? '#8A8A8A' : checked ? '#00068D' : '#0D0D0D' }}>
-                                      {label}
-                                    </span>
-                                    {!active && (
-                                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.7rem', color: '#8A8A8A', background: '#F2F2F2', borderRadius: '4px', padding: '1px 5px' }}>
-                                        Prochainement
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A', marginTop: '1px' }}>
-                                    {desc}
-                                  </div>
-                                </div>
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-
                       {/* Feedback + Submit */}
                       <div className="space-y-2 pt-1">
                         {profileError && (
@@ -582,6 +586,170 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                         </button>
                       </div>
                     </div>
+                  )}
+                </div>
+              )}
+
+              {settingsTab === 'sources' && (
+                <div className="space-y-6">
+                  {sourcesTabLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="w-5 h-5 border-2 border-[#D8D8D8] border-t-[#00068D] rounded-full animate-spin" />
+                    </div>
+                  ) : availableSources.length === 0 && availableConnectors.length === 0 ? (
+                    <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', fontStyle: 'italic' }}>
+                      Aucune source externe configurée par votre institution pour le moment.
+                    </p>
+                  ) : (
+                    <>
+                      {/* Academic sources */}
+                      {availableSources.length > 0 && (
+                        <div>
+                          <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }} className="mb-1">
+                            Sources académiques
+                          </p>
+                          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', marginBottom: '0.75rem' }}>
+                            Sélectionnez les bases que vous souhaitez interroger lors de vos recherches.
+                          </p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {availableSources.map(({ slug, label, description, icon }) => {
+                              const checked = sources.includes(slug)
+                              return (
+                                <button
+                                  key={slug}
+                                  type="button"
+                                  onClick={() => setSources((prev) => prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug])}
+                                  className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-all"
+                                  style={{
+                                    minHeight: 44,
+                                    borderColor: checked ? '#2B2EB8' : '#D8D8D8',
+                                    background: checked ? '#E8E9F8' : '#FAFAFA',
+                                  }}
+                                >
+                                  <div
+                                    className="mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0 border flex items-center justify-center"
+                                    style={{ borderColor: checked ? '#2B2EB8' : '#D8D8D8', background: checked ? '#2B2EB8' : 'white' }}
+                                  >
+                                    {checked && (
+                                      <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+                                        <path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                      </svg>
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span style={{ fontSize: '0.85rem' }}>{icon}</span>
+                                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: checked ? '#00068D' : '#0D0D0D' }}>
+                                        {label}
+                                      </span>
+                                    </div>
+                                    <div style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A', marginTop: '1px' }}>
+                                      {description}
+                                    </div>
+                                  </div>
+                                </button>
+                              )
+                            })}
+                          </div>
+                          <div className="mt-3 flex items-center gap-3">
+                            <button
+                              onClick={handleSourcesSave}
+                              disabled={sourcesSaving}
+                              className="px-4 py-2 rounded-lg disabled:opacity-50 hover:opacity-90 transition-all"
+                              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', background: '#00068D', color: '#fff', minHeight: 44 }}
+                            >
+                              {sourcesSaving ? 'Enregistrement…' : 'ENREGISTRER'}
+                            </button>
+                            {sourcesSaved && (
+                              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#2E7D32' }}>✓ Enregistré</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Connectors */}
+                      {availableConnectors.length > 0 && (
+                        <div>
+                          <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }} className="mb-3">
+                            Connecteurs
+                          </p>
+                          <div className="space-y-3">
+                            {availableConnectors.map((connector) => (
+                              <div key={connector.slug} className="p-4 rounded-xl border border-[#D8D8D8] bg-white space-y-3">
+                                <div className="flex items-center gap-3">
+                                  <span style={{ fontSize: '1.2rem' }}>{connector.icon}</span>
+                                  <div className="flex-1">
+                                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>{connector.label}</p>
+                                    <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>{connector.description}</p>
+                                  </div>
+                                  {connector.connected && (
+                                    <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', background: '#E8F5E9', color: '#2E7D32', borderRadius: 4, padding: '2px 7px' }}>
+                                      Connecté
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* GDrive */}
+                                {connector.slug === 'gdrive' && (
+                                  connector.connected ? (
+                                    <a
+                                      href="/api/connectors/gdrive/disconnect"
+                                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#D8D8D8] text-[#8A8A8A] hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-all"
+                                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', minHeight: 44 }}
+                                    >
+                                      Déconnecter Google Drive
+                                    </a>
+                                  ) : (
+                                    <a
+                                      href="/api/connectors/gdrive/init"
+                                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
+                                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', background: '#00068D', color: '#fff', minHeight: 44 }}
+                                    >
+                                      Connecter Google Drive
+                                    </a>
+                                  )
+                                )}
+
+                                {/* Notion */}
+                                {connector.slug === 'notion' && (
+                                  connector.connected ? (
+                                    <button
+                                      onClick={handleNotionDisconnect}
+                                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#D8D8D8] text-[#8A8A8A] hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-all"
+                                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', minHeight: 44 }}
+                                    >
+                                      Déconnecter Notion
+                                    </button>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      <input
+                                        type="password"
+                                        value={notionToken}
+                                        onChange={(e) => setNotionToken(e.target.value)}
+                                        placeholder="Token d'intégration Notion (secret_…)"
+                                        className="w-full px-3 py-2 rounded-lg border border-[#D8D8D8] bg-[#FAFAFA] focus:outline-none focus:ring-2 focus:ring-[#2B2EB8]"
+                                        style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', minHeight: 44 }}
+                                      />
+                                      {notionError && (
+                                        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#dc2626' }}>{notionError}</p>
+                                      )}
+                                      <button
+                                        onClick={handleNotionConnect}
+                                        disabled={notionConnecting || !notionToken.trim()}
+                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg disabled:opacity-50 transition-all"
+                                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', background: '#00068D', color: '#fff', minHeight: 44 }}
+                                      >
+                                        {notionConnecting ? 'Connexion…' : 'Connecter Notion'}
+                                      </button>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}
