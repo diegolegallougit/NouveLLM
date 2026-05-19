@@ -67,7 +67,7 @@ export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2
         />
       )}
       {showQuotaBandeau && (
-        <div className="flex items-center justify-between px-6 py-1.5 bg-orange-50 border-t border-orange-200 flex-shrink-0">
+        <div className="hidden md:flex items-center justify-between px-6 py-1.5 bg-orange-50 border-t border-orange-200 flex-shrink-0">
           <div className="flex items-center gap-2">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.5" strokeLinecap="round" className="flex-shrink-0">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
@@ -86,7 +86,7 @@ export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2
         </div>
       )}
       <footer
-        className="flex items-center justify-between px-6 bg-white border-t border-[#D8D8D8] flex-shrink-0"
+        className="hidden md:flex items-center justify-between px-6 bg-white border-t border-[#D8D8D8] flex-shrink-0"
         style={{ height: 'var(--footer-h)' }}
       >
         <div className="flex items-center gap-4">

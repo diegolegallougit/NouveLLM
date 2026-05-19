@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import BottomNav from '@/components/layout/BottomNav'
 import Message, { MessageData, Source } from '@/components/chat/Message'
 import ChatInput from '@/components/input/ChatInput'
 import Sidebar from '@/components/sidebar/Sidebar'
@@ -26,6 +27,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const [conversationId, setConversationId] = useState<string | undefined>()
   const [isStreaming, setIsStreaming] = useState(false)
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [onboardingDone, setOnboardingDone] = useState(false)
   const [expertMode, setExpertMode] = useState(false)
   const [pendingAgent, setPendingAgent] = useState<string | null | undefined>(undefined)
@@ -328,7 +330,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
       <Header userName={userName} userRole={userRole} userInitials={userInitials} />
 
       <div className="flex flex-1 min-h-0">
-        {/* Sidebar — EC/Admin only, hidden on mobile */}
+        {/* Sidebar desktop — EC/Admin uniquement */}
         {showSidebar && (
           <div className="hidden md:flex">
             <Sidebar
@@ -344,8 +346,45 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
           </div>
         )}
 
-        {/* Main area */}
-        <div className="flex flex-col flex-1 min-w-0">
+        {/* Sidebar drawer mobile */}
+        {showSidebar && (
+          <>
+            {/* Overlay */}
+            <div
+              className={`fixed left-0 right-0 z-30 md:hidden transition-opacity duration-200 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+              style={{ top: 'var(--header-h)', bottom: 56, background: 'rgba(0,0,0,0.4)' }}
+              onClick={() => setDrawerOpen(false)}
+            />
+            {/* Drawer */}
+            <div
+              className="fixed left-0 z-40 md:hidden bg-[#FAFAFA] border-r border-[#D8D8D8]"
+              style={{
+                top: 'var(--header-h)',
+                bottom: 56,
+                width: 'var(--sidebar-w)',
+                transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
+                transition: 'transform 200ms ease',
+              }}
+            >
+              <Sidebar
+                onSelectConversation={(id) => { loadConversation(id); setDrawerOpen(false) }}
+                activeConversationId={conversationId}
+                onNewConversation={() => { handleNewConversation(); setDrawerOpen(false) }}
+                refreshKey={sidebarRefreshKey}
+                userRole={userRole}
+                inDrawer
+                onClose={() => setDrawerOpen(false)}
+                onFolderToken={(token) => {
+                  window.dispatchEvent(new CustomEvent('chat:insert-source', { detail: { token } }))
+                  setDrawerOpen(false)
+                }}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Zone principale */}
+        <div className="flex flex-col flex-1 min-w-0 pb-14 md:pb-0">
           <div className="flex-1 overflow-y-auto nl-scroll" style={{ background: '#ffffff' }}>
             {messages.length === 0 ? (
               expertMode ? (
@@ -362,7 +401,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
                 />
               )
             ) : (
-              <div className="max-w-[760px] mx-auto px-8 py-8 space-y-7">
+              <div className="max-w-[760px] mx-auto px-4 md:px-8 py-8 space-y-7">
                 {messages.map((msg, i) => (
                   <Message
                     key={msg.id}
@@ -402,6 +441,13 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
       </div>
 
       <Footer userRole={userRole} />
+
+      <BottomNav
+        userRole={userRole}
+        drawerOpen={drawerOpen}
+        onToggleDrawer={() => setDrawerOpen((v) => !v)}
+        onOpenSettings={() => window.dispatchEvent(new CustomEvent('nl:open-settings'))}
+      />
     </div>
   )
 }

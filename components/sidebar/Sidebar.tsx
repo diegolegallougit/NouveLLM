@@ -17,6 +17,8 @@ interface SidebarProps {
   refreshKey?: number
   onFolderToken?: (token: string) => void
   userRole?: string
+  onClose?: () => void
+  inDrawer?: boolean
 }
 
 function formatRelativeDate(dateStr: string) {
@@ -45,7 +47,7 @@ function agentBadgeStyle(slug: string) {
   return AGENT_BADGE_COLORS[slug] ?? { bg: '#E8E9F8', color: '#00068D' }
 }
 
-export default function Sidebar({ onSelectConversation, activeConversationId, onNewConversation, refreshKey, userRole }: SidebarProps) {
+export default function Sidebar({ onSelectConversation, activeConversationId, onNewConversation, refreshKey, userRole, onClose, inDrawer }: SidebarProps) {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(false)
   const [hoveredConvId, setHoveredConvId] = useState<string | null>(null)
@@ -138,8 +140,8 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                 <div
                   role="button"
                   tabIndex={0}
-                  onClick={() => onSelectConversation(conv.id)}
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onSelectConversation(conv.id) }}
+                  onClick={() => { onSelectConversation(conv.id); onClose?.() }}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { onSelectConversation(conv.id); onClose?.() } }}
                   className={`w-full flex flex-col items-start gap-1 px-3 py-3 text-left transition-all border-l-2 cursor-pointer ${
                     activeConversationId === conv.id
                       ? 'bg-[#E8E9F8] border-l-[#00068D]'
@@ -187,8 +189,8 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
         )}
       </div>
 
-      {/* Footer — tool links */}
-      {showTools && (
+      {/* Footer — tool links (masqué dans le drawer mobile car ils ont leur onglet bottom nav) */}
+      {showTools && !inDrawer && (
         <div className="border-t border-[#C8C8C8] flex-shrink-0 px-2 py-2 flex flex-col gap-1">
           <a
             href="/spaces"
