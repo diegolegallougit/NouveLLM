@@ -8,6 +8,7 @@ import Message, { MessageData, Source } from '@/components/chat/Message'
 import ChatInput from '@/components/input/ChatInput'
 import Sidebar from '@/components/sidebar/Sidebar'
 import OnboardingModal from '@/components/onboarding/OnboardingModal'
+import OnboardingFlow from '@/components/onboarding/OnboardingFlow'
 import RoutingPanel from '@/components/routing/RoutingPanel'
 import { AgentConfig } from '@/components/input/AgentPalette'
 import { SourceConfig } from '@/components/input/SourcePalette'
@@ -37,7 +38,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
 
   const isStudent = userRole === 'STUDENT'
   const showSidebar = !isStudent
-  const showOnboarding = isStudent && needsOnboarding && !onboardingDone
+  const showOnboarding = needsOnboarding && !onboardingDone
 
   useEffect(() => {
     async function loadConfig() {
@@ -325,7 +326,12 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
 
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden">
-      {showOnboarding && <OnboardingModal onComplete={() => setOnboardingDone(true)} />}
+      {showOnboarding && isStudent && (
+        <OnboardingModal onComplete={() => setOnboardingDone(true)} />
+      )}
+      {showOnboarding && !isStudent && (
+        <OnboardingFlow onComplete={() => setOnboardingDone(true)} userName={userName} />
+      )}
 
       <Header userName={userName} userRole={userRole} userInitials={userInitials} />
 

@@ -28,7 +28,7 @@ export default async function HomePage() {
       userRole={dbUser?.role || user.role || 'EC'}
       userInitials={initials}
       userId={user.id}
-      needsOnboarding={dbUser?.role === 'STUDENT' && !dbUser?.onboarded}
+      needsOnboarding={!dbUser?.onboarded}
     />
   )
 }
