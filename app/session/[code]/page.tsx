@@ -128,7 +128,7 @@ export default function SessionPage() {
     const lines = [
       `# ${sessionInfo.name}`,
       ``,
-      `**Activité IA** · ${date} · ${guestName}`,
+      `**Séance** · ${date} · ${guestName}`,
       sessionInfo.ecName ? `Proposée par ${sessionInfo.ecName}` : '',
       ``,
       `---`,
@@ -246,7 +246,7 @@ export default function SessionPage() {
           <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
           </div>
-          <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#0D0D0D' }}>Activité IA introuvable</h2>
+          <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#0D0D0D' }}>Séance introuvable</h2>
           <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#8A8A8A' }}>{error}</p>
         </div>
       </div>
@@ -276,7 +276,7 @@ export default function SessionPage() {
 
           {/* Activity info */}
           <div className="space-y-1">
-            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Activité IA</p>
+            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Séance</p>
             <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.1rem', color: '#0D0D0D' }}>{sessionInfo.name}</h1>
             <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#8A8A8A' }}>
               {sessionInfo.ecName && `Proposée par ${sessionInfo.ecName} · `}
@@ -401,7 +401,7 @@ export default function SessionPage() {
                   {vb.icon} {vb.text}
                 </p>
                 <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A', marginTop: '0.25rem', fontStyle: 'italic' }}>
-                  Cette activité IA ne donne pas lieu à une notation.
+                  Cette séance ne donne pas lieu à une notation.
                 </p>
               </div>
             )
@@ -422,7 +422,7 @@ export default function SessionPage() {
             className="w-full py-3 rounded-xl text-sm disabled:opacity-50 transition-all hover:opacity-90"
             style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}
           >
-            {joining ? 'Connexion…' : "REJOINDRE L'ACTIVITÉ IA"}
+            {joining ? 'Connexion…' : "REJOINDRE LA SÉANCE"}
           </button>
         </div>
       </div>
@@ -440,7 +440,7 @@ export default function SessionPage() {
           </div>
           <div className="flex-1 min-w-0">
             <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#00068D', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-              Activité IA : {sessionInfo.name}
+              Séance : {sessionInfo.name}
             </span>
             {sessionInfo.ecName && (
               <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A', marginLeft: '0.75rem' }}>
@@ -473,7 +473,7 @@ export default function SessionPage() {
             <div className="px-5 py-1.5 flex items-center gap-2" style={{ background: vb.bg, borderTop: `1px solid ${vb.border}` }}>
               <span style={{ fontSize: '0.7rem' }}>{vb.icon}</span>
               <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: vb.color }}>{vb.text}</span>
-              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A', marginLeft: '0.5rem' }}>· Cette activité IA ne donne pas lieu à une notation.</span>
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A', marginLeft: '0.5rem' }}>· Cette séance ne donne pas lieu à une notation.</span>
             </div>
           )
         })()}

@@ -193,16 +193,16 @@ export default function NewSessionPage() {
             <div className="w-12 h-12 rounded-full bg-[#E8F5E9] flex items-center justify-center mx-auto mb-4">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
             </div>
-            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>Activité IA créée</h2>
+            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>Séance créée</h2>
             <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', marginTop: '0.25rem' }}>Partagez le code ou le QR avec vos étudiants</p>
           </div>
           <div className="bg-[#E8E9F8] rounded-xl px-6 py-4">
-            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.08em', color: '#00068D', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Code d'activité</p>
+            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.08em', color: '#00068D', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Code de séance</p>
             <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.5rem', color: '#00068D', letterSpacing: '0.04em' }}>{result.code}</p>
           </div>
           <img
             src={result.qrDataUrl}
-            alt="QR Code Activité IA"
+            alt="QR Code Séance"
             className="mx-auto rounded-xl border border-[#D8D8D8]"
             style={{ width: 192, height: 192 }}
           />
@@ -239,7 +239,7 @@ export default function NewSessionPage() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5A5A5A" strokeWidth="2" strokeLinecap="round"><path d="M19 12H5M5 12l7-7M5 12l7 7" /></svg>
           </button>
           <div className="flex-1">
-            <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>Nouvelle Activité IA</h1>
+            <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>Nouvelle Séance</h1>
             <div className="flex items-center gap-1 mt-1">
               {STEPS.map((s, i) => (
                 <div key={s} className="flex items-center gap-1">
@@ -364,7 +364,7 @@ export default function NewSessionPage() {
             <div className="bg-white rounded-xl border border-[#D8D8D8] p-5 space-y-4">
               <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Informations de base</h2>
               <div>
-                <label className="block mb-1.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Nom de l'activité *</label>
+                <label className="block mb-1.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#5A5A5A' }}>Nom de la séance *</label>
                 <input value={name} onChange={e => setName(e.target.value)}
                   placeholder="ex: Traduction M1 — TD du 14 mai 2026"
                   className="w-full px-3 py-2 rounded-lg border border-[#D8D8D8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2B2EB8]"
@@ -492,7 +492,7 @@ export default function NewSessionPage() {
               </div>
               <div className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-3">
                 <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#7A3200', fontStyle: 'italic' }}>
-                  ⚠️ Dans tous les cas, cette activité IA ne donne pas lieu à une notation. Cette mention est automatiquement affichée aux étudiants.
+                  ⚠️ Dans tous les cas, cette séance ne donne pas lieu à une notation. Cette mention est automatiquement affichée aux étudiants.
                 </p>
               </div>
             </div>
@@ -586,7 +586,7 @@ export default function NewSessionPage() {
               <button onClick={handleSubmit} disabled={loading || !name.trim()}
                 className="flex-1 py-3 rounded-xl text-sm disabled:opacity-50 transition-all hover:opacity-90"
                 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}>
-                {loading ? 'Création…' : "CRÉER L'ACTIVITÉ IA"}
+                {loading ? 'Création…' : 'CRÉER LA SÉANCE'}
               </button>
             </div>
           </div>

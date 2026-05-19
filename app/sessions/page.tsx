@@ -89,13 +89,16 @@ export default function SessionsPage() {
               Mes Séances
             </h1>
             <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#8A8A8A' }}>
-              {active.length} activité{active.length !== 1 ? 's' : ''} active{active.length !== 1 ? 's' : ''}
+              {active.length} séance{active.length !== 1 ? 's' : ''} active{active.length !== 1 ? 's' : ''}
             </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-            <Link href="/" className="hidden sm:inline text-[10px] text-[#8A8A8A] hover:text-[#00068D] transition-colors"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, letterSpacing: '0.04em' }}>
-              ← Retour à la conversation
+            <Link href="/"
+              className="flex items-center gap-1.5 px-4 rounded-lg transition-all hover:bg-[#D0D2F0]"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#00068D', background: '#E8E9F8', minHeight: 40, borderRadius: 8 }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M19 12H5M5 12l7-7M5 12l7 7" /></svg>
+              ← Retour
             </Link>
             <button
               onClick={() => router.push('/sessions/new')}
@@ -103,7 +106,7 @@ export default function SessionsPage() {
               style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-              <span className="hidden sm:inline">NOUVELLE ACTIVITÉ IA</span>
+              <span className="hidden sm:inline">NOUVELLE SÉANCE</span>
               <span className="sm:hidden">Nouvelle</span>
             </button>
           </div>
@@ -173,7 +176,7 @@ export default function SessionsPage() {
         {closed.length > 0 && (
           <div className="space-y-3">
             <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#C8C8C8', paddingLeft: '0.25rem' }}>
-              Activités fermées
+              Séances fermées
             </p>
             {closed.map(s => (
               <SessionCard

@@ -306,11 +306,11 @@ export default function SpacesPageClient({ initialSpaces, sharedSpaces = [], use
           <span className="hidden sm:inline" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>Mes dossiers</span>
         </div>
         <Link href="/"
-          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#8A8A8A' }}
-          className="flex items-center gap-1 hover:text-[#00068D] transition-colors min-h-[44px] px-2"
+          className="flex items-center gap-1.5 px-4 rounded-lg transition-all hover:bg-[#D0D2F0]"
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#00068D', background: '#E8E9F8', minHeight: 40, borderRadius: 8 }}
         >
-          <IconBack className="sm:hidden" />
-          <span className="hidden sm:inline">← Retour à la conversation</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M19 12H5M5 12l7-7M5 12l7 7" /></svg>
+          <span>← Retour</span>
         </Link>
       </header>
 
