@@ -5,6 +5,13 @@ type UserProfile = {
   ufr?: string | null
   niveauxEnseignement?: string | null
   languesTravail?: string | null
+  sourcesAcademiques?: string | null
+}
+
+const SOURCE_LABELS: Record<string, string> = {
+  openalex: 'OpenAlex',
+  'semantic-scholar': 'Semantic Scholar',
+  arxiv: 'ArXiv',
 }
 
 export function buildUserContext(user: UserProfile): string {
@@ -36,6 +43,14 @@ export function buildUserContext(user: UserProfile): string {
       .map((l) => l.trim())
       .filter(Boolean)
     if (langues.length > 0) parts.push(`langues : ${langues.join(', ')}`)
+  }
+
+  if (user.sourcesAcademiques) {
+    const sources = user.sourcesAcademiques
+      .split(',')
+      .map((s) => SOURCE_LABELS[s.trim()] ?? s.trim())
+      .filter(Boolean)
+    if (sources.length > 0) parts.push(`sources préférées : ${sources.join(', ')}`)
   }
 
   return parts.join(', ')

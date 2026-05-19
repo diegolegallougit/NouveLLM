@@ -169,6 +169,7 @@ export async function POST(req: NextRequest) {
       ufr: true,
       niveauxEnseignement: true,
       languesTravail: true,
+      sourcesAcademiques: true,
     },
   })
   if (userProfile) {

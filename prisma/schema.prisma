@@ -80,6 +80,7 @@ model User {
   ufr                  String?
   niveauxEnseignement  String?
   languesTravail       String?
+  sourcesAcademiques   String?
 }
 
 enum Role {

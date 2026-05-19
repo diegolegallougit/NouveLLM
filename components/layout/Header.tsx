@@ -39,6 +39,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
   const [ufr, setUfr] = useState('')
   const [niveaux, setNiveaux] = useState<string[]>([])
   const [langues, setLangues] = useState<string[]>([])
+  const [sources, setSources] = useState<string[]>([])
 
   const NIVEAUX_OPTIONS = ['L1', 'L2', 'L3', 'M1', 'M2', 'M2-pro', 'Doctorat']
   const LANGUES_OPTIONS = ['fr', 'en', 'ar', 'es', 'it', 'de', 'pt']
@@ -66,6 +67,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
         setUfr(data.ufr ?? '')
         setNiveaux(data.niveauxEnseignement ? data.niveauxEnseignement.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
         setLangues(data.languesTravail ? data.languesTravail.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
+        setSources(data.sourcesAcademiques ? data.sourcesAcademiques.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
       })
       .catch(() => {})
       .finally(() => setProfileLoading(false))
@@ -85,6 +87,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
           ufr: ufr || undefined,
           niveauxEnseignement: niveaux.length > 0 ? niveaux.join(',') : undefined,
           languesTravail: langues.length > 0 ? langues.join(',') : undefined,
+          sourcesAcademiques: sources.length > 0 ? sources.join(',') : undefined,
         }),
       })
       if (!r.ok) throw new Error()
@@ -472,6 +475,76 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                                 }}
                               >
                                 {l.toUpperCase()}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Sources académiques */}
+                      <div>
+                        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }} className="mb-2">
+                          Mes sources académiques
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { key: 'openalex',         label: 'OpenAlex',         desc: 'Publications ouvertes',     active: true },
+                            { key: 'semantic-scholar',  label: 'Semantic Scholar', desc: 'IA et sciences',            active: true },
+                            { key: 'arxiv',             label: 'ArXiv',            desc: 'Prépublications',           active: true },
+                            { key: 'hal',               label: 'HAL',              desc: 'Archives ouvertes FR',      active: false },
+                            { key: 'cairn',             label: 'Cairn.info',       desc: 'SHS francophones',          active: false },
+                            { key: 'jstor',             label: 'JSTOR',            desc: 'SHS anglophones',           active: false },
+                            { key: 'llba',              label: 'LLBA',             desc: 'Linguistique et langues',   active: false },
+                            { key: 'fiaf',              label: 'FIAF',             desc: 'Cinéma et arts visuels',    active: false },
+                            { key: 'mla',               label: 'MLA',              desc: 'Littérature et langues',    active: false },
+                          ].map(({ key, label, desc, active }) => {
+                            const checked = sources.includes(key)
+                            return (
+                              <button
+                                key={key}
+                                type="button"
+                                disabled={!active}
+                                onClick={() => {
+                                  if (!active) return
+                                  setSources(prev => prev.includes(key) ? prev.filter(s => s !== key) : [...prev, key])
+                                }}
+                                className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-all"
+                                style={{
+                                  minHeight: 44,
+                                  borderColor: !active ? '#F2F2F2' : checked ? '#2B2EB8' : '#D8D8D8',
+                                  background: !active ? '#FAFAFA' : checked ? '#E8E9F8' : '#FAFAFA',
+                                  opacity: !active ? 0.6 : 1,
+                                  cursor: !active ? 'default' : 'pointer',
+                                }}
+                              >
+                                <div
+                                  className="mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0 border flex items-center justify-center"
+                                  style={{
+                                    borderColor: !active ? '#D8D8D8' : checked ? '#2B2EB8' : '#D8D8D8',
+                                    background: checked && active ? '#2B2EB8' : 'white',
+                                  }}
+                                >
+                                  {checked && active && (
+                                    <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+                                      <path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: active ? 800 : 300, fontSize: 'var(--text-sm)', color: !active ? '#8A8A8A' : checked ? '#00068D' : '#0D0D0D' }}>
+                                      {label}
+                                    </span>
+                                    {!active && (
+                                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.7rem', color: '#8A8A8A', background: '#F2F2F2', borderRadius: '4px', padding: '1px 5px' }}>
+                                        Prochainement
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A', marginTop: '1px' }}>
+                                    {desc}
+                                  </div>
+                                </div>
                               </button>
                             )
                           })}

@@ -9,6 +9,7 @@ const PROFILE_SELECT = {
   ufr: true,
   niveauxEnseignement: true,
   languesTravail: true,
+  sourcesAcademiques: true,
 } as const
 
 export async function GET() {
