@@ -9,6 +9,7 @@ import ChatInput from '@/components/input/ChatInput'
 import Sidebar from '@/components/sidebar/Sidebar'
 import OnboardingModal from '@/components/onboarding/OnboardingModal'
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow'
+import MobileHome from '@/components/mobile/MobileHome'
 import RoutingPanel from '@/components/routing/RoutingPanel'
 import { AgentConfig } from '@/components/input/AgentPalette'
 import { SourceConfig } from '@/components/input/SourcePalette'
@@ -19,9 +20,10 @@ interface Props {
   userInitials: string
   userId: string
   needsOnboarding?: boolean
+  discipline?: string
 }
 
-export default function ConversationPage({ userName, userRole, userInitials, needsOnboarding = false }: Props) {
+export default function ConversationPage({ userName, userRole, userInitials, needsOnboarding = false, discipline }: Props) {
   const [agents, setAgents] = useState<AgentConfig[]>([])
   const [sources, setSources] = useState<SourceConfig[]>([])
   const [messages, setMessages] = useState<MessageData[]>([])
@@ -29,6 +31,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const [isStreaming, setIsStreaming] = useState(false)
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [mobileRoutingOpen, setMobileRoutingOpen] = useState(false)
   const [onboardingDone, setOnboardingDone] = useState(false)
   const [expertMode, setExpertMode] = useState(false)
   const [pendingAgent, setPendingAgent] = useState<string | null | undefined>(undefined)
@@ -130,6 +133,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
     setConversationId(undefined)
     setExpertMode(false)
     setPendingAgent(undefined)
+    setMobileRoutingOpen(false)
   }
 
   const handleSend = useCallback(
@@ -396,15 +400,35 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
               expertMode ? (
                 <EmptyState agents={agents} onSuggest={handleSend} onRoutingMode={() => setExpertMode(false)} />
               ) : (
-                <RoutingPanel
-                  onSelectAgent={(slug) => {
-                    setPendingAgent(slug)
-                    setExpertMode(true)
-                  }}
-                  onExpertMode={() => setExpertMode(true)}
-                  conversationId={conversationId}
-                  userRole={userRole}
-                />
+                <>
+                  {/* Mobile — MobileHome ou RoutingPanel complet */}
+                  <div className="md:hidden h-full">
+                    {mobileRoutingOpen ? (
+                      <RoutingPanel
+                        onSelectAgent={(slug) => { setPendingAgent(slug); setExpertMode(true); setMobileRoutingOpen(false) }}
+                        onExpertMode={() => { setExpertMode(true); setMobileRoutingOpen(false) }}
+                        conversationId={conversationId}
+                        userRole={userRole}
+                      />
+                    ) : (
+                      <MobileHome
+                        userName={userName}
+                        discipline={discipline}
+                        onSelectAgent={(slug) => setPendingAgent(slug)}
+                        onShowAll={() => setMobileRoutingOpen(true)}
+                      />
+                    )}
+                  </div>
+                  {/* Desktop — RoutingPanel inchangé */}
+                  <div className="hidden md:block h-full">
+                    <RoutingPanel
+                      onSelectAgent={(slug) => { setPendingAgent(slug); setExpertMode(true) }}
+                      onExpertMode={() => setExpertMode(true)}
+                      conversationId={conversationId}
+                      userRole={userRole}
+                    />
+                  </div>
+                </>
               )
             ) : (
               <div className="max-w-[760px] mx-auto px-4 md:px-8 py-8 space-y-7">

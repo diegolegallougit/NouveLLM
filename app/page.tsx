@@ -12,7 +12,7 @@ export default async function HomePage() {
   // Fresh DB read for onboarded status (not cached in JWT)
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { onboarded: true, role: true },
+    select: { onboarded: true, role: true, discipline: true },
   })
 
   const initials = (user.name || user.email || 'U')
@@ -29,6 +29,7 @@ export default async function HomePage() {
       userInitials={initials}
       userId={user.id}
       needsOnboarding={!dbUser?.onboarded}
+      discipline={dbUser?.discipline ?? undefined}
     />
   )
 }
