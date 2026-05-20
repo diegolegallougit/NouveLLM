@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Message, { MessageData, Source } from '@/components/chat/Message'
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function ConversationPage({ userName, userRole, userInitials, needsOnboarding = false, discipline }: Props) {
+  const router = useRouter()
   const [agents, setAgents] = useState<AgentConfig[]>([])
   const [sources, setSources] = useState<SourceConfig[]>([])
   const [messages, setMessages] = useState<MessageData[]>([])
@@ -38,6 +40,11 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef<number | null>(null)
+
+  const handleOnboardingComplete = useCallback(() => {
+    setOnboardingDone(true)
+    router.refresh()
+  }, [router])
 
   const isStudent = userRole === 'STUDENT'
   const showSidebar = !isStudent
@@ -345,10 +352,10 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden">
       {showOnboarding && isStudent && (
-        <OnboardingModal onComplete={() => setOnboardingDone(true)} />
+        <OnboardingModal onComplete={handleOnboardingComplete} />
       )}
       {showOnboarding && !isStudent && (
-        <OnboardingFlow onComplete={() => setOnboardingDone(true)} userName={userName} />
+        <OnboardingFlow onComplete={handleOnboardingComplete} userName={userName} />
       )}
 
       <Header

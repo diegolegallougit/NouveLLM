@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
         inputs = prebuiltInputs
       } else {
         const inputBuilder = AGENT_INPUTS[agentSlug]
-        if (inputBuilder) inputs = inputBuilder(message, uploadedFileId)
+        if (inputBuilder) inputs = inputBuilder(message, uploadedFileId ?? undefined)
       }
     }
   }
@@ -220,7 +220,7 @@ export async function POST(req: NextRequest) {
       conversationId: difyConvId,
       userId: session.user.id,
       inputs,
-      uploadedFileId,
+      uploadedFileId: uploadedFileId ?? undefined,
       datasetIds: datasetIds.length > 0 ? datasetIds : undefined,
     })
   } catch (err) {
