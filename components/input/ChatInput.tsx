@@ -19,7 +19,7 @@ interface MetaPromptsData {
 interface ChatInputProps {
   agents: AgentConfig[]
   sources: SourceConfig[]
-  onSend: (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File, prebuiltInputs?: Record<string, string>) => void
+  onSend: (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File, prebuiltInputs?: Record<string, string>, sourceMode?: string) => void
   disabled?: boolean
   preselectedAgent?: string
   activeMetaPrompt?: { id: string; title: string } | null
@@ -45,6 +45,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [metaPromptsData, setMetaPromptsData] = useState<MetaPromptsData | null>(null)
   const [metaPromptsLoading, setMetaPromptsLoading] = useState(false)
+  const [sourceMode, setSourceMode] = useState<'usn' | 'academic' | 'web' | 'all'>('usn')
 
   // Pre-select agent from routing
   useEffect(() => {
@@ -169,7 +170,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
 
   function handleFormSubmit(inputs: Record<string, string>, displayMessage: string) {
     setShowFormModal(false)
-    onSend(displayMessage, selectedAgent!.slug, selectedSources.length > 0 ? selectedSources : undefined, selectedFile ?? undefined, inputs)
+    onSend(displayMessage, selectedAgent!.slug, selectedSources.length > 0 ? selectedSources : undefined, selectedFile ?? undefined, inputs, sourceMode)
     setText('')
     setSelectedAgent(null)
     setSelectedSources([])
@@ -214,7 +215,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
     }
     const trimmed = text.trim()
     if (!trimmed || disabled) return
-    onSend(trimmed, selectedAgent?.slug, selectedSources.length > 0 ? selectedSources : undefined, selectedFile ?? undefined)
+    onSend(trimmed, selectedAgent?.slug, selectedSources.length > 0 ? selectedSources : undefined, selectedFile ?? undefined, undefined, sourceMode)
     setText('')
     setSelectedAgent(null)
     setSelectedSources([])
@@ -565,6 +566,52 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
             </button>
           )}
         </div>
+
+        {/* Source mode bar */}
+        {paletteMode === null && (
+          <div className="border-t border-[#F0F0F0] px-3 py-2">
+            <div
+              className="flex items-center overflow-x-auto"
+              style={{ gap: 5, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+            >
+              {([
+                { mode: 'usn',      label: 'Mes ressources',  icon: '📚' },
+                { mode: 'academic', label: 'Publications SHS', icon: '🔬' },
+                { mode: 'web',      label: 'Web',             icon: '🌐' },
+                { mode: 'all',      label: 'Tout',            icon: '⚡' },
+              ] as const).map(({ mode, label, icon }) => {
+                const active = sourceMode === mode
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setSourceMode(mode)}
+                    style={{
+                      height: 26,
+                      padding: '0 8px',
+                      borderRadius: 13,
+                      border: `0.5px solid ${active ? '#2B2EB8' : '#D8D8D8'}`,
+                      background: active ? '#E8E9F8' : 'transparent',
+                      color: active ? '#00068D' : '#8A8A8A',
+                      fontFamily: 'Gilroy, sans-serif',
+                      fontWeight: active ? 800 : 300,
+                      fontSize: 11,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span style={{ fontSize: 11 }}>{icon}</span>
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

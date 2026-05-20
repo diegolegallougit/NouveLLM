@@ -8,6 +8,7 @@ export const ChatBodySchema = z.object({
   uploadedFileId: z.string().max(200).nullish(),
   courseSessionId: z.string().max(200).nullish(),
   prebuiltInputs: z.record(z.string(), z.string().max(5_000)).nullish(),
+  sourceMode: z.enum(['usn', 'academic', 'web', 'all']).nullish(),
 })
 
 export type ChatBody = z.infer<typeof ChatBodySchema>

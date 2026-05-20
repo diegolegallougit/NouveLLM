@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
 
   const parsed = ChatBodySchema.safeParse(await req.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
-  const { message, agentSlug, sourceSlugs, conversationId, uploadedFileId, courseSessionId, prebuiltInputs } = parsed.data
+  const { message, agentSlug, sourceSlugs, conversationId, uploadedFileId, courseSessionId, prebuiltInputs, sourceMode } = parsed.data
 
   // Resolve folder filters from #spaceSlug/folderSlug tokens
   const folderPaths: string[] = []
@@ -201,6 +201,9 @@ export async function POST(req: NextRequest) {
 
   // For Chatflow continuation, Dify holds session vars from the first turn
   if (difyConvId) inputs = {}
+
+  // source_mode is injected after the reset so it applies on every turn
+  inputs.source_mode = sourceMode ?? 'usn'
 
   // Save user message
   await prisma.message.create({

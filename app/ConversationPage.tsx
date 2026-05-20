@@ -155,7 +155,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   }
 
   const handleSend = useCallback(
-    async (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File, prebuiltInputs?: Record<string, string>) => {
+    async (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File, prebuiltInputs?: Record<string, string>, sourceMode?: string) => {
       if (isStreaming) return
 
       // Upload file first if provided
@@ -237,6 +237,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
             conversationId,
             uploadedFileId,
             prebuiltInputs,
+            sourceMode,
           }),
           signal: controller.signal,
         })
@@ -483,9 +484,9 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
             <ChatInput
               agents={agents}
               sources={sources}
-              onSend={(msg, agent, srcs, file, prebuiltInputs) => {
+              onSend={(msg, agent, srcs, file, prebuiltInputs, sourceMode) => {
                 setPendingAgent(undefined)
-                handleSend(msg, agent, srcs, file, prebuiltInputs)
+                handleSend(msg, agent, srcs, file, prebuiltInputs, sourceMode)
               }}
               disabled={isStreaming}
               preselectedAgent={pendingAgent ?? undefined}
