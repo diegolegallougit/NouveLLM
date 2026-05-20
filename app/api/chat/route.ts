@@ -374,6 +374,7 @@ export async function POST(req: NextRequest) {
               sources,
               agentLabel,
               hasProcessedFile: !!uploadedFileId,
+              sourceMode: sourceMode ?? 'usn',
             })}\n\n`
           )
         )

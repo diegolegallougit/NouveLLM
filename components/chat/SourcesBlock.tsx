@@ -14,9 +14,11 @@ interface Source {
 interface SourcesBlockProps {
   sources: Source[]
   hasProcessedFile?: boolean
+  sourceMode?: string
+  hasAcademicSources?: boolean
 }
 
-export default function SourcesBlock({ sources, hasProcessedFile }: SourcesBlockProps) {
+export default function SourcesBlock({ sources, hasProcessedFile, sourceMode, hasAcademicSources }: SourcesBlockProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   if (!sources || sources.length === 0) {
@@ -25,6 +27,33 @@ export default function SourcesBlock({ sources, hasProcessedFile }: SourcesBlock
         <div className="mt-3 pt-3 border-t border-[#D8D8D8]">
           <p className="text-[#8A8A8A] italic" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)' }}>
             📄 Réponse basée sur le document fourni
+          </p>
+        </div>
+      )
+    }
+    if (sourceMode === 'academic' || hasAcademicSources) {
+      return (
+        <div className="mt-3 pt-3 border-t border-[#D8D8D8]">
+          <p className="italic" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', background: '#E8F5E9', color: '#2E7D32', padding: '4px 8px', borderRadius: 6 }}>
+            🔬 Publications SHS consultées
+          </p>
+        </div>
+      )
+    }
+    if (sourceMode === 'web') {
+      return (
+        <div className="mt-3 pt-3 border-t border-[#D8D8D8]">
+          <p className="italic" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', background: '#E3F2FD', color: '#1565C0', padding: '4px 8px', borderRadius: 6 }}>
+            🌐 Réponse basée sur le web
+          </p>
+        </div>
+      )
+    }
+    if (sourceMode === 'all') {
+      return (
+        <div className="mt-3 pt-3 border-t border-[#D8D8D8]">
+          <p className="italic" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', background: '#F3E5F5', color: '#6A1B9A', padding: '4px 8px', borderRadius: 6 }}>
+            ⚡ Sources combinées consultées
           </p>
         </div>
       )

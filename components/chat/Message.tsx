@@ -22,6 +22,7 @@ export interface MessageData {
   agentLabel?: string
   sources?: Source[]
   hasProcessedFile?: boolean
+  sourceMode?: string
   createdAt?: Date
   isStreaming?: boolean
   feedback?: 'positive' | 'negative' | null
@@ -141,7 +142,7 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
               <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatContent(cleanContent)) }} />
             </div>
           )}
-          {!message.isStreaming && <SourcesBlock sources={message.sources || []} hasProcessedFile={message.hasProcessedFile} />}
+          {!message.isStreaming && <SourcesBlock sources={message.sources || []} hasProcessedFile={message.hasProcessedFile} sourceMode={message.sourceMode} />}
         </div>
       </div>
 
@@ -204,7 +205,7 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
             </div>
           )}
 
-          {!message.isStreaming && <SourcesBlock sources={message.sources || []} hasProcessedFile={message.hasProcessedFile} />}
+          {!message.isStreaming && <SourcesBlock sources={message.sources || []} hasProcessedFile={message.hasProcessedFile} sourceMode={message.sourceMode} />}
 
           {!message.isStreaming && message.content && (
             <p className="mt-2" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#C8C8C8', fontStyle: 'italic' }}>

@@ -253,6 +253,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         let agentLabel: string | undefined
         let errorMessage: string | undefined
         let hasProcessedFile = false
+        let finalSourceMode: string | undefined
 
         resetIdle()
 
@@ -285,6 +286,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
                 finalSources = event.sources || []
                 agentLabel = event.agentLabel
                 hasProcessedFile = !!event.hasProcessedFile
+                finalSourceMode = event.sourceMode
               } else if (event.type === 'error') {
                 errorMessage = event.message
               }
@@ -314,7 +316,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
           setMessages((prev) =>
             prev.map((m) =>
               m.id === streamingId
-                ? { ...m, isStreaming: false, sources: finalSources, agentLabel, hasProcessedFile }
+                ? { ...m, isStreaming: false, sources: finalSources, agentLabel, hasProcessedFile, sourceMode: finalSourceMode }
                 : m
             )
           )
