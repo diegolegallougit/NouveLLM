@@ -277,6 +277,9 @@ function formatContent(text: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+    // Markdown links [label](url) → clickable anchor
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (_, label, url) =>
+      `<a href="${url}" target="_blank" rel="noopener noreferrer" class="nl-link">${label}</a>`)
     // Inline citation markers [N] → anchor link (future-proof for UX-013C)
     // Negative lookahead (?!\]) avoids matching [[N]] or [HIL_SUGGESTION:...]
     .replace(/\[(\d{1,2})\](?!\])/g, (_, n) => `<a href="#source-${n}" class="nl-cite">[${n}]</a>`)

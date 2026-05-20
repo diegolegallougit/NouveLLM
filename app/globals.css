@@ -206,3 +206,5 @@
 .nl-prose blockquote { border-left: 3px solid #D8D8D8; padding-left: 1rem; color: #3A3A3A; margin: 0.75rem 0; font-style: italic; }
 .nl-cite { display: inline-flex; align-items: center; justify-content: center; font-family: 'Gilroy', sans-serif; font-weight: 800; font-size: 0.7em; color: #00068D; background: #E8E9F8; border-radius: 3px; padding: 0 3px; text-decoration: none; vertical-align: super; line-height: 1.4; transition: background 0.15s; }
 .nl-cite:hover { background: #2B2EB8; color: white; }
+.nl-link { color: #2B2EB8; text-decoration: underline; text-underline-offset: 2px; transition: color 0.15s; }
+.nl-link:hover { color: #00068D; }
