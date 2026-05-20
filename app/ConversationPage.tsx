@@ -479,9 +479,9 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
             <ChatInput
               agents={agents}
               sources={sources}
-              onSend={(msg, agent, srcs, file) => {
+              onSend={(msg, agent, srcs, file, prebuiltInputs) => {
                 setPendingAgent(undefined)
-                handleSend(msg, agent, srcs, file)
+                handleSend(msg, agent, srcs, file, prebuiltInputs)
               }}
               disabled={isStreaming}
               preselectedAgent={pendingAgent ?? undefined}
