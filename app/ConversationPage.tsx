@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Message, { MessageData, Source } from '@/components/chat/Message'
@@ -24,7 +23,6 @@ interface Props {
 }
 
 export default function ConversationPage({ userName, userRole, userInitials, needsOnboarding = false, discipline }: Props) {
-  const router = useRouter()
   const [agents, setAgents] = useState<AgentConfig[]>([])
   const [sources, setSources] = useState<SourceConfig[]>([])
   const [messages, setMessages] = useState<MessageData[]>([])
@@ -43,8 +41,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
 
   const handleOnboardingComplete = useCallback(() => {
     setOnboardingDone(true)
-    router.refresh()
-  }, [router])
+  }, [])
 
   const isStudent = userRole === 'STUDENT'
   const showSidebar = !isStudent
