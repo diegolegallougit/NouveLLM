@@ -80,15 +80,15 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
 
   return (
     <div className="flex flex-col h-full bg-white px-6">
-      {/* Top spacer ~20% */}
-      <div style={{ height: '18vh', flexShrink: 0 }} />
+      {/* Top spacer ~15% */}
+      <div style={{ height: '15vh', flexShrink: 0 }} />
 
       {/* Greeting */}
       <h1
         style={{
           fontFamily: 'Gilroy, sans-serif',
           fontWeight: 800,
-          fontSize: '1rem',
+          fontSize: '1.25rem',
           color: '#0D0D0D',
           letterSpacing: '-0.01em',
         }}
@@ -100,15 +100,15 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
         style={{
           fontFamily: 'Gilroy, sans-serif',
           fontWeight: 300,
-          fontSize: '0.8125rem',
-          color: '#8A8A8A',
+          fontSize: '0.875rem',
+          color: '#5A5A6A',
         }}
       >
         Par où commençons-nous ?
       </p>
 
-      {/* Gap ~8% */}
-      <div style={{ height: '7vh', flexShrink: 0 }} />
+      {/* Gap ~6% */}
+      <div style={{ height: '6vh', flexShrink: 0 }} />
 
       {/* Suggestions */}
       <div className="space-y-2.5">
@@ -120,7 +120,7 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
               onClick={() => onSelectAgent(s.slug)}
               className="w-full flex items-center gap-3 rounded-[10px] text-left transition-all active:opacity-60"
               style={{
-                background: '#FAFAFA',
+                background: '#FFFFFF',
                 border: '0.5px solid #D8D8D8',
                 padding: '12px 14px',
                 minHeight: 44,
@@ -131,7 +131,7 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
                 style={{
                   fontFamily: 'Gilroy, sans-serif',
                   fontWeight: 800,
-                  fontSize: '0.8125rem',
+                  fontSize: '0.875rem',
                   color: '#0D0D0D',
                 }}
               >
@@ -149,7 +149,7 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
         style={{
           fontFamily: 'Gilroy, sans-serif',
           fontWeight: 300,
-          fontSize: '0.6875rem',
+          fontSize: '0.75rem',
           color: '#8A8A8A',
           minHeight: 36,
         }}

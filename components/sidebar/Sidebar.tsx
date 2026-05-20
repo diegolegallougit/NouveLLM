@@ -72,7 +72,7 @@ function groupConversations(list: Conversation[]): ConvGroup[] {
 }
 
 const SettingsIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
     <circle cx="12" cy="12" r="3" />
     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
   </svg>
@@ -117,7 +117,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
           <button
             onClick={() => { window.dispatchEvent(new CustomEvent('nl:open-settings')); onClose?.() }}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[#8A8A8A] hover:bg-[#F2F2F2] transition-colors text-left"
-            style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 11 }}
+            style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 12 }}
           >
             <SettingsIcon />
             Paramètres
@@ -174,7 +174,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
             <div className="flex items-start justify-between w-full gap-1">
               <span
                 className="text-[#0D0D0D] line-clamp-2 leading-relaxed flex-1"
-                style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '15px' }}
+                style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: inDrawer ? '13px' : '15px' }}
               >
                 {conv.title || 'Conversation sans titre'}
               </span>
@@ -229,7 +229,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Rechercher..."
               className="w-full pl-8 pr-3 rounded-lg bg-[#F2F2F2] text-[#0D0D0D] placeholder:text-[#8A8A8A] focus:outline-none"
-              style={{ height: 36, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 11, border: 'none' }}
+              style={{ height: 36, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 13, border: 'none' }}
             />
           </div>
         </div>
@@ -245,11 +245,11 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                 justifyContent: 'flex-start',
                 padding: '10px 12px',
                 borderRadius: 8,
-                background: '#E8E9F8',
+                background: '#00068D',
                 fontFamily: 'Gilroy, sans-serif',
                 fontWeight: 800,
                 fontSize: 13,
-                color: '#00068D',
+                color: 'white',
               }
             : {
                 justifyContent: 'center',
@@ -332,17 +332,17 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
               <a
                 href="/spaces"
                 className="flex items-center gap-2.5 px-3 py-2.5 text-[#8A8A8A] hover:bg-[#F2F2F2] transition-colors"
-                style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 11 }}
+                style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 12 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
                 Mes dossiers
               </a>
               <a
                 href="/sessions"
                 className="flex items-center gap-2.5 px-3 py-2.5 text-[#8A8A8A] hover:bg-[#F2F2F2] transition-colors"
-                style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 11 }}
+                style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 12 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
                 Mes séances
               </a>
             </>
@@ -350,7 +350,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
           <button
             onClick={() => { window.dispatchEvent(new CustomEvent('nl:open-settings')); onClose?.() }}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[#8A8A8A] hover:bg-[#F2F2F2] transition-colors text-left"
-            style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 11 }}
+            style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 12 }}
           >
             <SettingsIcon />
             Paramètres

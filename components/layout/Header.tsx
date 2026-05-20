@@ -211,9 +211,8 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
     <>
       <header
         className={`bg-white border-b border-[#D8D8D8] z-10 flex-shrink-0 ${
-          mobileConversationMode ? 'h-[44px] md:h-[60px]' : 'flex items-center justify-between px-6'
+          mobileConversationMode ? 'h-[44px] md:h-[60px]' : 'flex items-center justify-between px-6 h-[52px] md:h-[60px]'
         }`}
-        style={mobileConversationMode ? undefined : { height: 'var(--header-h)' }}
       >
         {/* Immersive mobile bar — conversation mode only */}
         {mobileConversationMode && (
@@ -284,7 +283,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
         {/* Standard header content — always on desktop, hidden on mobile in conv mode */}
         <div className={mobileConversationMode ? 'hidden md:flex items-center justify-between px-6 h-full w-full' : 'contents'}>
           <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4 md:gap-3">
               {/* Hamburger — home screen mobile only */}
               {onBack && (
                 <button
@@ -297,13 +296,13 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                   </svg>
                 </button>
               )}
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#00068D]">
+              <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg bg-[#00068D]">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M12 3v18M3 12h18" />
                   <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
                 </svg>
               </div>
-              <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', letterSpacing: '-0.02em', color: '#00068D' }}>
+              <span className="text-[14px] md:text-lg" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '-0.02em', color: '#00068D' }}>
                 NouveLLM
               </span>
               <span className="hidden md:block w-px h-4 bg-[#D8D8D8]" />
@@ -329,9 +328,18 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
             </div>
 
             <div className="relative">
+              {/* Mobile: simple avatar */}
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-[#F2F2F2] border border-[#D8D8D8] hover:bg-[#E8E9F8] transition-all text-left"
+                className="md:hidden w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: '#E8E9F8', color: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.625rem', letterSpacing: '0.04em' }}
+              >
+                {userInitials}
+              </button>
+              {/* Desktop: full chip */}
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="hidden md:flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-[#F2F2F2] border border-[#D8D8D8] hover:bg-[#E8E9F8] transition-all text-left"
               >
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-white flex-shrink-0"

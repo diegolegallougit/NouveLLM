@@ -383,14 +383,14 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
           {/* Overlay — instant close, no transition */}
           <div
             className={`fixed left-0 right-0 z-30 md:hidden ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-            style={{ top: mobileConversationMode ? 44 : 'var(--header-h)', bottom: 0, background: 'rgba(0,0,0,0.35)' }}
+            style={{ top: mobileConversationMode ? 44 : 52, bottom: 0, background: 'rgba(0,0,0,0.35)' }}
             onClick={() => setDrawerOpen(false)}
           />
           {/* Drawer */}
           <div
             className="fixed left-0 z-40 md:hidden bg-[#FAFAFA] border-r border-[#D8D8D8]"
             style={{
-              top: mobileConversationMode ? 44 : 'var(--header-h)',
+              top: mobileConversationMode ? 44 : 52,
               bottom: 0,
               width: 280,
               transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
