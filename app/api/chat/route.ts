@@ -155,9 +155,7 @@ export async function POST(req: NextRequest) {
     where: { userId: session.user.id },
     include: { metaPrompt: true },
   })
-  if (activeMetaPrompt?.metaPrompt?.content) {
-    inputs.system_context = activeMetaPrompt.metaPrompt.content
-  }
+  inputs.system_context = activeMetaPrompt?.metaPrompt?.content || ""
 
   // Inject professional profile as user context
   const userProfile = await prisma.user.findUnique({
@@ -174,7 +172,7 @@ export async function POST(req: NextRequest) {
   })
   if (userProfile) {
     const userContext = buildUserContext(userProfile)
-    if (userContext) inputs.user_context = userContext
+    inputs.user_context = userContext || ""
   }
 
   // Get or create conversation in DB
@@ -200,7 +198,12 @@ export async function POST(req: NextRequest) {
   }
 
   // For Chatflow continuation, Dify holds session vars from the first turn
+  // Preserve system_context and user_context even for continued conversations
+  const preservedSystemCtx = inputs.system_context
+  const preservedUserCtx = inputs.user_context
   if (difyConvId) inputs = {}
+  inputs.system_context = preservedSystemCtx ?? ''
+  inputs.user_context = preservedUserCtx ?? ''
 
   // source_mode is injected after the reset so it applies on every turn
   inputs.source_mode = sourceMode ?? 'usn'
