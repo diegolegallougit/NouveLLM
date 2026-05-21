@@ -251,6 +251,8 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'conv_id', conversationId: dbConvId })}\n\n`))
 
+
+
       const reader = difyResponse.body!.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
@@ -277,9 +279,29 @@ export async function POST(req: NextRequest) {
                 const chunk = event.answer || ''
                 fullText += chunk
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', text: chunk })}\n\n`))
+              } else if (event.event === 'node_finished') {
+                const nodeType = event.data?.node_type
+                if (nodeType === 'knowledge-retrieval') {
+                  const result = event.data?.outputs?.result
+                  if (Array.isArray(result)) {
+                    for (const item of result) {
+                      if (item?.metadata) {
+                        retrieverResources.push({
+                          segment_id: item.metadata.segment_id || '',
+                          document_id: item.metadata.document_id || '',
+                          document_name: item.metadata.document_name || item.title || 'Document',
+                          dataset_id: item.metadata.dataset_id || '',
+                          dataset_name: item.metadata.dataset_name || '',
+                          score: item.metadata.score || 0,
+                          content: item.content || '',
+                        })
+                      }
+                    }
+                  }
+                }
               } else if (event.event === 'message_end') {
                 if (event.conversation_id) difyNewConvId = event.conversation_id
-                if (event.metadata?.retriever_resources) {
+                if (event.metadata?.retriever_resources && event.metadata.retriever_resources.length > 0) {
                   retrieverResources = event.metadata.retriever_resources
                 }
                 if (event.metadata?.usage?.total_tokens) {
@@ -298,7 +320,7 @@ export async function POST(req: NextRequest) {
         const msg = err instanceof Error ? err.message : 'unknown'
         streamError =
           msg === 'IDLE_TIMEOUT'
-            ? 'Le service IA met trop de temps à répondre.'
+            ? 'Le service prend plus de temps que prévu. Réessayez dans quelques secondes — c\'est généralement résolu rapidement.'
             : 'Interruption du flux IA.'
         console.error('[chat] stream error:', msg)
         try {

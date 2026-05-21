@@ -331,7 +331,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         console.error('Chat error:', err)
         const isAbort = err instanceof Error && err.name === 'AbortError'
         const fallback = isAbort
-          ? '_Erreur :_ Réponse trop longue — requête interrompue.'
+          ? '_Erreur :_ Le service prend plus de temps que prévu. Réessayez dans quelques secondes — c\'est généralement résolu rapidement.'
           : "Une erreur s'est produite. Veuillez réessayer."
         setMessages((prev) =>
           prev.map((m) =>

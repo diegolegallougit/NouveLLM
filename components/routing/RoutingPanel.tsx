@@ -105,6 +105,9 @@ export default function RoutingPanel({ onSelectAgent, onExpertMode, conversation
       return
     }
     onSelectAgent(opt.agentSlug)
+    if (opt.agentSlug === 'analyse') {
+      window.dispatchEvent(new CustomEvent('nl:open-file-picker'))
+    }
   }
 
   function selectFamily(family: RoutingFamily) {

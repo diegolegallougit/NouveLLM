@@ -78,6 +78,15 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
     return () => window.removeEventListener('chat:insert-source', handleInsertSource)
   }, [sources])
 
+  // Open native file picker when routing selects 'analyse'
+  useEffect(() => {
+    function handleOpenFilePicker() {
+      fileInputRef.current?.click()
+    }
+    window.addEventListener('nl:open-file-picker', handleOpenFilePicker)
+    return () => window.removeEventListener('nl:open-file-picker', handleOpenFilePicker)
+  }, [])
+
   // Auto-resize textarea
   useEffect(() => {
     const ta = textareaRef.current

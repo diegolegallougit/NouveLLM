@@ -117,7 +117,10 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
           return (
             <button
               key={s.slug}
-              onClick={() => onSelectAgent(s.slug)}
+              onClick={() => {
+                onSelectAgent(s.slug)
+                if (s.slug === 'analyse') window.dispatchEvent(new CustomEvent('nl:open-file-picker'))
+              }}
               className="w-full flex items-center gap-3 rounded-[10px] text-left transition-all active:opacity-60"
               style={{
                 background: '#FFFFFF',
