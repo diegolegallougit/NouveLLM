@@ -71,62 +71,54 @@ export default function LoginClient({ proConnectEnabled }: LoginClientProps) {
 
           {/* Login form */}
           <div className="bg-white rounded-2xl shadow-sm border border-[#D8D8D8] p-8">
-            {/* SSO button (disabled placeholder) */}
-            <button
-              disabled
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border border-[#D8D8D8] text-[#8A8A8A] cursor-not-allowed mb-4"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.875rem', letterSpacing: '0.04em' }}
-              title="Connexion CAS/LDAP USN — disponible après configuration DSI"
-            >
-              <span className="w-5 h-5 text-[#D8D8D8]">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
-              </span>
-              Se connecter avec mon compte USN
-              <span className="ml-auto text-xs font-normal opacity-60">Juin 2026</span>
-            </button>
-
-            {/* ProConnect button */}
-            <div className="relative mb-4">
+            {/* SSO CAS button — Juin 2026, non déployé */}
+            {false && (
               <button
-                onClick={handleProConnect}
-                disabled={!proConnectEnabled || pcLoading}
-                className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border text-sm font-medium transition-all ${
-                  proConnectEnabled
-                    ? 'border-[#003189] text-[#003189] hover:bg-[#f0f4ff] cursor-pointer'
-                    : 'border-[#D8D8D8] text-[#B0B0B0] cursor-not-allowed'
-                }`}
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em', fontSize: '0.875rem' }}
-                title={proConnectEnabled ? 'Se connecter avec ProConnect' : 'Disponible après configuration par la DSI USN'}
+                disabled
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border border-[#D8D8D8] text-[#8A8A8A] cursor-not-allowed mb-4"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.875rem', letterSpacing: '0.04em' }}
+                title="Connexion CAS/LDAP USN — disponible après configuration DSI"
               >
-                {pcLoading ? (
-                  <span className="nl-spinner" />
-                ) : (
-                  <span className="text-base">🏛️</span>
-                )}
-                Se connecter avec ProConnect
-                {!proConnectEnabled && (
-                  <span className="ml-auto text-[10px] font-normal opacity-60" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
-                    Non configuré
-                  </span>
-                )}
-              </button>
-              {!proConnectEnabled && (
-                <p className="mt-1 text-center text-[10px] text-[#B0B0B0]" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontStyle: 'italic' }}>
-                  Disponible après configuration par la DSI USN
-                </p>
-              )}
-            </div>
-
-            <div className="relative my-5">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#D8D8D8]" />
-              </div>
-              <div className="relative flex justify-center text-xs text-[#8A8A8A] uppercase tracking-wider">
-                <span className="bg-white px-3" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
-                  Accès pilote
+                <span className="w-5 h-5 text-[#D8D8D8]">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
                 </span>
+                Se connecter avec mon compte USN
+                <span className="ml-auto text-xs font-normal opacity-60">Juin 2026</span>
+              </button>
+            )}
+
+            {/* ProConnect button — visible uniquement si configuré */}
+            {proConnectEnabled && (
+              <div className="relative mb-4">
+                <button
+                  onClick={handleProConnect}
+                  disabled={pcLoading}
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border border-[#003189] text-[#003189] hover:bg-[#f0f4ff] cursor-pointer text-sm font-medium transition-all"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em', fontSize: '0.875rem' }}
+                  title="Se connecter avec ProConnect"
+                >
+                  {pcLoading ? (
+                    <span className="nl-spinner" />
+                  ) : (
+                    <span className="text-base">🏛️</span>
+                  )}
+                  Se connecter avec ProConnect
+                </button>
               </div>
-            </div>
+            )}
+
+            {proConnectEnabled && (
+              <div className="relative my-5">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-[#D8D8D8]" />
+                </div>
+                <div className="relative flex justify-center text-xs text-[#6B6B6B] uppercase tracking-wider">
+                  <span className="bg-white px-3" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+                    Accès pilote
+                  </span>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>

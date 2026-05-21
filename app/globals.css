@@ -48,7 +48,7 @@
   --color-nl-blue-light: #E8E9F8;
   --color-nl-blue-subtle: #F0F1FB;
   --color-nl-grey-dark: #3A3A3A;
-  --color-nl-grey-mid: #8A8A8A;
+  --color-nl-grey-mid: #6B6B6B;
   --color-nl-grey-light: #D8D8D8;
   --color-nl-off-white: #F2F2F2;
   --color-nl-green: #2e7d32;
@@ -111,7 +111,7 @@
   --secondary: #F0F1FB;
   --secondary-foreground: #00068D;
   --muted: #F2F2F2;
-  --muted-foreground: #8A8A8A;
+  --muted-foreground: #6B6B6B;
   --accent: #E8E9F8;
   --accent-foreground: #00068D;
   --destructive: oklch(0.577 0.245 27.325);
@@ -129,6 +129,8 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -138,7 +140,7 @@
 .nl-scroll::-webkit-scrollbar { width: 6px; }
 .nl-scroll::-webkit-scrollbar-track { background: transparent; }
 .nl-scroll::-webkit-scrollbar-thumb { background: #D8D8D8; border-radius: 3px; }
-.nl-scroll::-webkit-scrollbar-thumb:hover { background: #8A8A8A; }
+.nl-scroll::-webkit-scrollbar-thumb:hover { background: #6B6B6B; }
 
 /* ── Streaming cursor ── */
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
