@@ -26,11 +26,13 @@ interface ChatInputProps {
   onDeactivateMetaPrompt?: () => void
   onActivateMetaPrompt?: (id: string, title: string) => void
   onAbort?: () => void
+  sourceMode: 'usn' | 'academic' | 'web' | 'all'
+  onSourceModeChange: (mode: 'usn' | 'academic' | 'web' | 'all') => void
 }
 
 type PaletteMode = null | 'agent' | 'source'
 
-export default function ChatInput({ agents, sources, onSend, disabled, preselectedAgent, activeMetaPrompt, onDeactivateMetaPrompt, onActivateMetaPrompt, onAbort }: ChatInputProps) {
+export default function ChatInput({ agents, sources, onSend, disabled, preselectedAgent, activeMetaPrompt, onDeactivateMetaPrompt, onActivateMetaPrompt, onAbort, sourceMode, onSourceModeChange }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -45,7 +47,6 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [metaPromptsData, setMetaPromptsData] = useState<MetaPromptsData | null>(null)
   const [metaPromptsLoading, setMetaPromptsLoading] = useState(false)
-  const [sourceMode, setSourceMode] = useState<'usn' | 'academic' | 'web' | 'all'>('usn')
 
   // Pre-select agent from routing
   useEffect(() => {
@@ -585,7 +586,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                   <button
                     key={mode}
                     type="button"
-                    onClick={() => setSourceMode(mode)}
+                    onClick={() => onSourceModeChange(mode)}
                     style={{
                       height: 26,
                       padding: '0 8px',

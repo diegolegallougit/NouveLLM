@@ -34,6 +34,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const [onboardingDone, setOnboardingDone] = useState(false)
   const [expertMode, setExpertMode] = useState(false)
   const [pendingAgent, setPendingAgent] = useState<string | null | undefined>(undefined)
+  const [sourceMode, setSourceMode] = useState<'usn' | 'academic' | 'web' | 'all'>('usn')
   const [activeMetaPrompt, setActiveMetaPrompt] = useState<{ id: string; title: string } | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -152,6 +153,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
     setExpertMode(false)
     setPendingAgent(undefined)
     setMobileRoutingOpen(false)
+    setSourceMode('usn')
   }
 
   const handleSend = useCallback(
@@ -220,7 +222,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
 
       const controller = new AbortController()
       abortRef.current = controller
-      const CLIENT_IDLE_TIMEOUT_MS = 90_000
+      const CLIENT_IDLE_TIMEOUT_MS = 45_000
       let idleTimer: ReturnType<typeof setTimeout> | undefined
       const resetIdle = () => {
         if (idleTimer) clearTimeout(idleTimer)
@@ -283,6 +285,8 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
                     m.id === streamingId ? { ...m, content: m.content + event.text } : m
                   )
                 )
+              } else if (event.type === 'heartbeat') {
+                // heartbeat — ne rien faire, resetIdle deja appele
               } else if (event.type === 'done') {
                 finalSources = event.sources || []
                 agentLabel = event.agentLabel
@@ -487,7 +491,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
             <ChatInput
               agents={agents}
               sources={sources}
-              onSend={(msg, agent, srcs, file, prebuiltInputs, sourceMode) => {
+              onSend={(msg, agent, srcs, file, prebuiltInputs) => {
                 setPendingAgent(undefined)
                 handleSend(msg, agent, srcs, file, prebuiltInputs, sourceMode)
               }}
@@ -497,6 +501,8 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
               onDeactivateMetaPrompt={handleDeactivateMetaPrompt}
               onActivateMetaPrompt={handleActivateMetaPrompt}
               onAbort={() => abortRef.current?.abort()}
+              sourceMode={sourceMode}
+              onSourceModeChange={setSourceMode}
             />
           </div>
         </div>
