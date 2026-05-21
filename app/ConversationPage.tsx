@@ -496,7 +496,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
                 handleSend(msg, agent, srcs, file, prebuiltInputs, sourceMode)
               }}
               disabled={isStreaming}
-              preselectedAgent={pendingAgent ?? undefined}
+              preselectedAgent={pendingAgent}
               activeMetaPrompt={activeMetaPrompt}
               onDeactivateMetaPrompt={handleDeactivateMetaPrompt}
               onActivateMetaPrompt={handleActivateMetaPrompt}

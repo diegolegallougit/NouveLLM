@@ -21,7 +21,7 @@ interface ChatInputProps {
   sources: SourceConfig[]
   onSend: (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File, prebuiltInputs?: Record<string, string>, sourceMode?: string) => void
   disabled?: boolean
-  preselectedAgent?: string
+  preselectedAgent?: string | null
   activeMetaPrompt?: { id: string; title: string } | null
   onDeactivateMetaPrompt?: () => void
   onActivateMetaPrompt?: (id: string, title: string) => void
