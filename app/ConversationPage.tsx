@@ -444,7 +444,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
                       <MobileHome
                         userName={userName}
                         discipline={discipline}
-                        onSelectAgent={(slug) => setPendingAgent(slug)}
+                        onSelectAgent={(slug) => { setPendingAgent(slug); setExpertMode(true) }}
                         onShowAll={() => setMobileRoutingOpen(true)}
                       />
                     )}
