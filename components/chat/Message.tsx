@@ -136,7 +136,7 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
           style={{ background: '#F5F5F8', borderRadius: '14px 14px 14px 3px' }}
         >
           {message.isStreaming && !message.content ? (
-            <ProcessingState agentSlug={message.agentUsed} />
+            <ProcessingState agentSlug={message.agentUsed} sourceMode={message.sourceMode} />
           ) : (
             <div className={`nl-prose${message.isStreaming ? ' nl-cursor' : ''}`} style={{ fontSize: '0.875rem' }}>
               <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatContent(cleanContent)) }} />
@@ -178,7 +178,7 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
           </div>
 
           {message.isStreaming && !message.content ? (
-            <ProcessingState agentSlug={message.agentUsed} />
+            <ProcessingState agentSlug={message.agentUsed} sourceMode={message.sourceMode} />
           ) : (
             <div className={`nl-prose${message.isStreaming ? ' nl-cursor' : ''}`}>
               <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatContent(cleanContent)) }} />

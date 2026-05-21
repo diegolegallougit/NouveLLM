@@ -196,6 +196,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         agentUsed: effectiveAgentSlug,
         isStreaming: true,
         createdAt: new Date(),
+        sourceMode,
       }
 
       setMessages((prev) => [...prev, userMsg, streamingMsg])

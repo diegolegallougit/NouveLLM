@@ -46,15 +46,54 @@ const DEFAULT_STEPS = [
   'Rédaction de la réponse...',
 ]
 
-export default function ProcessingState({ agentSlug }: { agentSlug?: string }) {
-  const steps = (agentSlug && STEPS_BY_AGENT[agentSlug]) || DEFAULT_STEPS
+interface SourceModeConfig {
+  steps: string[]
+  intervalMs: number
+  note?: string
+}
+
+const STEPS_BY_SOURCE_MODE: Record<string, SourceModeConfig> = {
+  academic: {
+    steps: [
+      'Interrogation de HAL Archives Ouvertes...',
+      'Interrogation de OpenAlex et Semantic Scholar...',
+      'Analyse des publications académiques...',
+      'Synthèse des sources vérifiées...',
+    ],
+    intervalMs: 2500,
+    note: 'La recherche dans les bases académiques prend 8 à 15 secondes pour garantir des sources vérifiables.',
+  },
+  web: {
+    steps: [
+      'Lecture de la page web...',
+      'Extraction du contenu...',
+      'Analyse et synthèse...',
+    ],
+    intervalMs: 2000,
+  },
+  all: {
+    steps: [
+      'Interrogation des ressources USN...',
+      'Interrogation des bases académiques...',
+      'Interrogation de HAL, OpenAlex, Semantic Scholar...',
+      'Fusion et synthèse des sources...',
+    ],
+    intervalMs: 3000,
+    note: 'Recherche combinée — comptez 15 à 20 secondes.',
+  },
+}
+
+export default function ProcessingState({ agentSlug, sourceMode }: { agentSlug?: string; sourceMode?: string }) {
+  const sourceModeConfig = sourceMode ? STEPS_BY_SOURCE_MODE[sourceMode] : undefined
+  const steps = sourceModeConfig?.steps ?? (agentSlug ? STEPS_BY_AGENT[agentSlug] : undefined) ?? DEFAULT_STEPS
+  const intervalMs = sourceModeConfig?.intervalMs ?? 1400
   const [currentStep, setCurrentStep] = useState(0)
 
   useEffect(() => {
     if (currentStep >= steps.length - 1) return
-    const timer = setTimeout(() => setCurrentStep((s) => s + 1), 1400)
+    const timer = setTimeout(() => setCurrentStep((s) => s + 1), intervalMs)
     return () => clearTimeout(timer)
-  }, [currentStep, steps.length])
+  }, [currentStep, steps.length, intervalMs])
 
   return (
     <div className="space-y-2 py-1">
@@ -87,6 +126,11 @@ export default function ProcessingState({ agentSlug }: { agentSlug?: string }) {
           </span>
         </div>
       ))}
+      {sourceModeConfig?.note && (
+        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 11, color: '#5A5A6A', marginTop: 6 }}>
+          {sourceModeConfig.note}
+        </p>
+      )}
     </div>
   )
 }
