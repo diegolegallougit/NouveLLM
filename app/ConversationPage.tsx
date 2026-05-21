@@ -133,6 +133,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
 
       setMessages(msgs)
       setConversationId(convId)
+      setSourceMode('usn')
     } catch (err) {
       console.error('Failed to load conversation:', err)
     }
