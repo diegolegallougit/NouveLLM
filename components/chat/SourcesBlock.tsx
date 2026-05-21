@@ -31,7 +31,16 @@ export default function SourcesBlock({ sources, hasProcessedFile, sourceMode, ha
         </div>
       )
     }
-    if (sourceMode === 'academic' || hasAcademicSources) {
+    if (sourceMode === 'academic') {
+      return (
+        <div className="mt-3 pt-3 border-t border-[#D8D8D8]">
+          <p className="italic" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', background: '#F5F5F5', color: '#5A5A6A', padding: '4px 8px', borderRadius: 6 }}>
+            🔬 Recherche académique — aucune source vérifiée trouvée pour cette requête
+          </p>
+        </div>
+      )
+    }
+    if (hasAcademicSources) {
       return (
         <div className="mt-3 pt-3 border-t border-[#D8D8D8]">
           <p className="italic" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', background: '#E8F5E9', color: '#2E7D32', padding: '4px 8px', borderRadius: 6 }}>
