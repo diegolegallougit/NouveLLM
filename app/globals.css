@@ -201,7 +201,7 @@
 .nl-prose h1, .nl-prose h2, .nl-prose h3 { font-family: 'Gilroy', sans-serif; font-weight: 800; margin: 1.2rem 0 0.5rem; color: #00068D; }
 .nl-prose h1 { font-size: var(--text-lg); }
 .nl-prose h2 { font-size: var(--text-md); }
-.nl-prose h3 { font-size: var(--text-base); font-weight: 600; }
+.nl-prose h3 { font-size: var(--text-base); font-weight: 800; }
 .nl-prose code { font-family: monospace; font-size: 0.85em; background: #F2F2F2; padding: 1px 5px; border-radius: 3px; }
 .nl-prose pre { background: #F2F2F2; padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 0.75rem 0; }
 .nl-prose pre code { background: none; padding: 0; }
@@ -210,3 +210,20 @@
 .nl-cite:hover { background: #2B2EB8; color: white; }
 .nl-link { color: #2B2EB8; text-decoration: underline; text-underline-offset: 2px; transition: color 0.15s; }
 .nl-link:hover { color: #00068D; }
+
+@media (max-width: 767px) {
+  .nl-prose {
+    line-height: 1.85;
+    font-size: var(--text-base);
+  }
+  .nl-prose p {
+    margin-bottom: 1rem;
+  }
+  .nl-prose ul, .nl-prose ol {
+    margin-bottom: 1rem;
+    padding-left: 1.25rem;
+  }
+  .nl-prose li {
+    margin-bottom: 0.5rem;
+  }
+}

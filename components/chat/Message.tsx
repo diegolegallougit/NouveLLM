@@ -95,7 +95,7 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
             className="max-w-[78%] px-4 py-3"
             style={{ background: '#00068D', borderRadius: '14px 14px 3px 14px', color: 'white' }}
           >
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.875rem', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
               {message.content}
             </p>
           </div>
@@ -188,7 +188,7 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
           {!message.isStreaming && hilSlug && (
             <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#E8E9F8] border border-[#C5C7F0]">
               <span className="text-base flex-shrink-0">💡</span>
-              <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#00068D', flex: 1 }}>
+              <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#00068D', flex: 1 }}>
                 Vous pourriez bénéficier d&apos;un accompagnement humain pour cette question.
               </p>
               <a

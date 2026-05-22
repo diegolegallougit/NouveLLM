@@ -83,12 +83,17 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
       {/* Top spacer ~15% */}
       <div style={{ height: '15vh', flexShrink: 0 }} />
 
+      {/* Logo mark */}
+      <div className="text-center mb-6">
+        <span style={{ fontSize: 32, color: '#00068D', opacity: 0.15, lineHeight: 1 }}>★</span>
+      </div>
+
       {/* Greeting */}
       <h1
         style={{
           fontFamily: 'Gilroy, sans-serif',
           fontWeight: 800,
-          fontSize: '1.25rem',
+          fontSize: 'var(--text-xl)',
           color: '#0D0D0D',
           letterSpacing: '-0.01em',
         }}
@@ -96,22 +101,19 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
         Bonjour {firstName}.
       </h1>
       <p
-        className="mt-1.5"
+        className="mb-2"
         style={{
           fontFamily: 'Gilroy, sans-serif',
           fontWeight: 300,
-          fontSize: '0.875rem',
-          color: '#5A5A6A',
+          fontSize: 'var(--text-md)',
+          color: '#8A8A8A',
         }}
       >
         Par où commençons-nous ?
       </p>
 
-      {/* Gap ~6% */}
-      <div style={{ height: '6vh', flexShrink: 0 }} />
-
       {/* Suggestions */}
-      <div className="space-y-2.5">
+      <div className="mt-8 space-y-2.5">
         {suggestions.map((s) => {
           const Icon = s.icon
           return (
@@ -125,8 +127,8 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
               style={{
                 background: '#FFFFFF',
                 border: '0.5px solid #D8D8D8',
-                padding: '12px 14px',
-                minHeight: 44,
+                padding: '14px 16px',
+                minHeight: 52,
               }}
             >
               <Icon size={16} color="#00068D" strokeWidth={2} />
@@ -134,7 +136,7 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
                 style={{
                   fontFamily: 'Gilroy, sans-serif',
                   fontWeight: 800,
-                  fontSize: '0.875rem',
+                  fontSize: 'var(--text-base)',
                   color: '#0D0D0D',
                 }}
               >
@@ -152,9 +154,9 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
         style={{
           fontFamily: 'Gilroy, sans-serif',
           fontWeight: 300,
-          fontSize: '0.75rem',
+          fontSize: 'var(--text-sm)',
           color: '#8A8A8A',
-          minHeight: 36,
+          minHeight: 44,
         }}
       >
         Voir tous les outils →

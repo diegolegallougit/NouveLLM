@@ -302,7 +302,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                   <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
                 </svg>
               </div>
-              <span className="text-[14px] md:text-lg" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '-0.02em', color: '#00068D' }}>
+              <span className="text-sm md:text-lg" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '-0.02em', color: '#00068D' }}>
                 NouveLLM
               </span>
               <span className="hidden md:block w-px h-4 bg-[#D8D8D8]" />

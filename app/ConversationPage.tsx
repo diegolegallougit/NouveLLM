@@ -431,8 +431,8 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         </>
 
         {/* Zone principale */}
-        <div className={`flex ${messages.length === 0 ? 'flex-col-reverse' : 'flex-col'} md:flex-col flex-1 min-w-0`}>
-          <div className="flex-1 overflow-y-auto nl-scroll" style={{ background: '#ffffff' }}>
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="flex-1 overflow-y-auto nl-scroll pb-20 md:pb-0" style={{ background: '#ffffff' }}>
             {messages.length === 0 ? (
               expertMode ? (
                 <EmptyState agents={agents} onSuggest={handleSend} onRoutingMode={() => setExpertMode(false)} />
@@ -490,7 +490,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
             )}
           </div>
 
-          <div className="flex-shrink-0 border-b border-[#D8D8D8] md:border-b-0">
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white md:static md:z-auto md:bg-transparent md:flex-shrink-0">
             <ChatInput
               agents={agents}
               sources={sources}

@@ -94,8 +94,8 @@ export default function SourcesBlock({ sources, hasProcessedFile, sourceMode, ha
             <>
               {/* Number badge */}
               <span
-                className="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 rounded text-[10px]"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, background: '#E8E9F8', color: '#00068D' }}
+                className="inline-flex items-center justify-center flex-shrink-0 w-5 h-5 rounded"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, background: '#E8E9F8', color: '#00068D', fontSize: 'var(--text-2xs)' }}
               >
                 {n}
               </span>

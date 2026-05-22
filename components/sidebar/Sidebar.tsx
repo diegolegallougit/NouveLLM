@@ -117,7 +117,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
           <button
             onClick={() => { window.dispatchEvent(new CustomEvent('nl:open-settings')); onClose?.() }}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[#8A8A8A] hover:bg-[#F2F2F2] transition-colors text-left"
-            style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 12 }}
+            style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)' }}
           >
             <SettingsIcon />
             Paramètres
@@ -174,7 +174,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
             <div className="flex items-start justify-between w-full gap-1">
               <span
                 className="text-[#0D0D0D] line-clamp-2 leading-relaxed flex-1"
-                style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: inDrawer ? '13px' : '15px' }}
+                style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: inDrawer ? 'var(--text-xs)' : 'var(--text-base)' }}
               >
                 {conv.title || 'Conversation sans titre'}
               </span>
@@ -229,7 +229,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Rechercher..."
               className="w-full pl-8 pr-3 rounded-lg bg-[#F2F2F2] text-[#0D0D0D] placeholder:text-[#8A8A8A] focus:outline-none"
-              style={{ height: 36, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 13, border: 'none' }}
+              style={{ height: 36, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', border: 'none' }}
             />
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                 background: '#00068D',
                 fontFamily: 'Gilroy, sans-serif',
                 fontWeight: 800,
-                fontSize: 13,
+                fontSize: 'var(--text-xs)',
                 color: 'white',
               }
             : {
@@ -290,7 +290,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
             <div key={group.label}>
               <p
                 className="px-3 pt-3 pb-1.5"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 10, letterSpacing: '0.08em', color: '#8A8A8A', textTransform: 'uppercase' }}
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', letterSpacing: '0.08em', color: '#8A8A8A', textTransform: 'uppercase' }}
               >
                 {group.label}
               </p>
@@ -332,7 +332,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
               <a
                 href="/spaces"
                 className="flex items-center gap-2.5 px-3 py-2.5 text-[#8A8A8A] hover:bg-[#F2F2F2] transition-colors"
-                style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 12 }}
+                style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)' }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
                 Mes dossiers
@@ -340,7 +340,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
               <a
                 href="/sessions"
                 className="flex items-center gap-2.5 px-3 py-2.5 text-[#8A8A8A] hover:bg-[#F2F2F2] transition-colors"
-                style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 12 }}
+                style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)' }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
                 Mes séances
@@ -350,7 +350,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
           <button
             onClick={() => { window.dispatchEvent(new CustomEvent('nl:open-settings')); onClose?.() }}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[#8A8A8A] hover:bg-[#F2F2F2] transition-colors text-left"
-            style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 12 }}
+            style={{ minHeight: 44, fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)' }}
           >
             <SettingsIcon />
             Paramètres

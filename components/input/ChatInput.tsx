@@ -370,7 +370,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                         const label = section === 'institutional' ? 'Institutionnel' : section === 'shared' ? 'Partagé' : 'Personnel'
                         return (
                           <div key={section}>
-                            <p className="px-1 mt-2 mb-0.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 9, letterSpacing: '0.1em', color: '#8A8A8A', textTransform: 'uppercase' }}>
+                            <p className="px-1 mt-2 mb-0.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.1em', color: '#8A8A8A', textTransform: 'uppercase' }}>
                               {label}
                             </p>
                             {items.map((mp) => (
@@ -403,7 +403,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
           {selectedAgent && (
             <div className="flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-lg bg-[#E8E9F8] border border-[#2B2EB8]">
               <span className="text-sm">{selectedAgent.icon}</span>
-              <span className="nl-token-agent text-xs">@{selectedAgent.slug}</span>
+              <span className="nl-token-agent">@{selectedAgent.slug}</span>
               {selectedAgent.inputSchema && (
                 <button
                   onClick={() => setShowFormModal(true)}
@@ -416,7 +416,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
               )}
               <button
                 onClick={handleRemoveAgent}
-                className="w-4 h-4 rounded-full flex items-center justify-center text-[#00068D] hover:bg-[#2B2EB8] hover:text-white transition-all"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#00068D] hover:bg-[#2B2EB8] hover:text-white transition-all"
                 aria-label="Retirer l'agent"
               >
                 <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
@@ -436,7 +436,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
               </span>
               <button
                 onClick={() => setSelectedFile(null)}
-                className="w-4 h-4 rounded-full flex items-center justify-center text-[#F57F17] hover:bg-[#FFD54F] transition-all"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#F57F17] hover:bg-[#FFD54F] transition-all"
                 aria-label="Retirer le fichier"
               >
                 <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
@@ -450,10 +450,10 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
             return (
               <div key={slug} className="flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-lg bg-[#e8f5e9] border border-[#a5d6a7]">
                 {source && <span className="text-sm">{source.icon}</span>}
-                <span className="nl-token-source text-xs">#{slug}</span>
+                <span className="nl-token-source">#{slug}</span>
                 <button
                   onClick={() => handleRemoveSource(slug)}
-                  className="w-4 h-4 rounded-full flex items-center justify-center text-[#2e7d32] hover:bg-[#2e7d32] hover:text-white transition-all"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-[#2e7d32] hover:bg-[#2e7d32] hover:text-white transition-all"
                   aria-label="Retirer la source"
                 >
                   <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
@@ -471,12 +471,12 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
         className="md:hidden px-4 pt-2"
         style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
       >
-        <div className="flex items-center gap-2 bg-white rounded-full shadow-md border border-[#E0E0E0] px-3 py-2">
+        <div className="flex items-center gap-2 bg-white rounded-full shadow-md border border-[#E0E0E0] px-3 py-2.5">
           {/* [+] / [📎] */}
           <button
             type="button"
             onClick={onOpenSourceSheet}
-            className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${plusButtonClasses}`}
+            className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${plusButtonClasses}`}
             aria-label="Sources et options"
           >
             {selectedFile ? (
@@ -508,7 +508,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
             <button
               type="button"
               onClick={() => onAbort?.()}
-              className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center flex-shrink-0 transition-all"
+              className="w-11 h-11 rounded-full bg-red-500 text-white flex items-center justify-center flex-shrink-0 transition-all"
               aria-label="Arrêter"
             >
               <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
@@ -520,7 +520,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
               type="button"
               onClick={handleSend}
               disabled={!hasContent}
-              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:cursor-not-allowed"
+              className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:cursor-not-allowed"
               style={{ background: hasContent ? '#00068D' : '#E8E8E8' }}
               aria-label="Envoyer"
             >
@@ -670,7 +670,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                         color: active ? '#00068D' : '#8A8A8A',
                         fontFamily: 'Gilroy, sans-serif',
                         fontWeight: active ? 800 : 300,
-                        fontSize: 11,
+                        fontSize: 'var(--text-2xs)',
                         whiteSpace: 'nowrap',
                         flexShrink: 0,
                         display: 'flex',
