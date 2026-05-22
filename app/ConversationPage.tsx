@@ -33,7 +33,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [mobileRoutingOpen, setMobileRoutingOpen] = useState(false)
   const [onboardingDone, setOnboardingDone] = useState(false)
-  const [expertMode, setExpertMode] = useState(false)
+  const [showRoutingPanel, setShowRoutingPanel] = useState(false)
   const [pendingAgent, setPendingAgent] = useState<string | null | undefined>(undefined)
   const [sourceMode, setSourceMode] = useState<'usn' | 'academic' | 'web' | 'all'>('usn')
   const [sourceSheetOpen, setSourceSheetOpen] = useState(false)
@@ -153,7 +153,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   function handleNewConversation() {
     setMessages([])
     setConversationId(undefined)
-    setExpertMode(false)
+    setShowRoutingPanel(false)
     setPendingAgent(undefined)
     setMobileRoutingOpen(false)
     setSourceMode('usn')
@@ -434,39 +434,39 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         <div className="flex flex-col flex-1 min-w-0">
           <div className="flex-1 overflow-y-auto nl-scroll pb-20 md:pb-0" style={{ background: '#ffffff' }}>
             {messages.length === 0 ? (
-              expertMode ? (
-                <EmptyState agents={agents} onSuggest={handleSend} onRoutingMode={() => setExpertMode(false)} />
-              ) : (
-                <>
-                  {/* Mobile — MobileHome ou RoutingPanel complet */}
-                  <div className="md:hidden flex flex-col" style={{ minHeight: 'calc(100dvh - 56px - 72px)' }}>
-                    {mobileRoutingOpen ? (
-                      <RoutingPanel
-                        onSelectAgent={(slug) => { setPendingAgent(slug); setExpertMode(true); setMobileRoutingOpen(false) }}
-                        onExpertMode={() => { setExpertMode(true); setMobileRoutingOpen(false) }}
-                        conversationId={conversationId}
-                        userRole={userRole}
-                      />
-                    ) : (
-                      <MobileHome
-                        userName={userName}
-                        discipline={discipline}
-                        onSelectAgent={(slug) => { setPendingAgent(slug); setExpertMode(true) }}
-                        onShowAll={() => setMobileRoutingOpen(true)}
-                      />
-                    )}
-                  </div>
-                  {/* Desktop — RoutingPanel inchangé */}
-                  <div className="hidden md:block h-full">
+              <>
+                {/* Mobile — MobileHome ou RoutingPanel complet */}
+                <div className="md:hidden flex flex-col" style={{ minHeight: 'calc(100dvh - 56px - 72px)' }}>
+                  {mobileRoutingOpen ? (
                     <RoutingPanel
-                      onSelectAgent={(slug) => { setPendingAgent(slug); setExpertMode(true) }}
-                      onExpertMode={() => setExpertMode(true)}
+                      onSelectAgent={(slug) => { setPendingAgent(slug); setMobileRoutingOpen(false) }}
+                      onExpertMode={() => setMobileRoutingOpen(false)}
                       conversationId={conversationId}
                       userRole={userRole}
                     />
-                  </div>
-                </>
-              )
+                  ) : (
+                    <MobileHome
+                      userName={userName}
+                      discipline={discipline}
+                      onSelectAgent={(slug) => { setPendingAgent(slug) }}
+                      onShowAll={() => setMobileRoutingOpen(true)}
+                    />
+                  )}
+                </div>
+                {/* Desktop — EmptyState par défaut, RoutingPanel via "Vue guidée" */}
+                <div className="hidden md:block h-full">
+                  {showRoutingPanel ? (
+                    <RoutingPanel
+                      onSelectAgent={(slug) => { setPendingAgent(slug); setShowRoutingPanel(false) }}
+                      onExpertMode={() => setShowRoutingPanel(false)}
+                      conversationId={conversationId}
+                      userRole={userRole}
+                    />
+                  ) : (
+                    <EmptyState agents={agents} onSuggest={handleSend} onRoutingMode={() => setShowRoutingPanel(true)} />
+                  )}
+                </div>
+              </>
             ) : (
               <div className="max-w-[760px] mx-auto px-4 md:px-8 py-4 md:py-8 space-y-4 md:space-y-7">
                 {messages.map((msg, i) => (

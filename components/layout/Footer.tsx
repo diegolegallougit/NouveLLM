@@ -29,19 +29,26 @@ export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2
   const isStudent = userRole === 'STUDENT'
 
   const [quota, setQuota] = useState<{ available: number; pct: number } | null>(null)
+  const [ecUsage, setEcUsage] = useState<number | null>(null)
   const [pendingSurveys, setPendingSurveys] = useState<Survey[]>([])
   const [activeSurvey, setActiveSurvey] = useState<Survey | null>(null)
 
   useEffect(() => {
-    if (!isStudent) return
-    fetch('/api/quota')
-      .then((r) => r.json())
-      .then((data) => setQuota({ available: data.available, pct: data.pct }))
-      .catch(() => null)
-    fetch('/api/surveys')
-      .then((r) => r.json())
-      .then((data) => setPendingSurveys(data.surveys ?? []))
-      .catch(() => null)
+    if (isStudent) {
+      fetch('/api/quota')
+        .then((r) => r.json())
+        .then((data) => setQuota({ available: data.available, pct: data.pct }))
+        .catch(() => null)
+      fetch('/api/surveys')
+        .then((r) => r.json())
+        .then((data) => setPendingSurveys(data.surveys ?? []))
+        .catch(() => null)
+    } else {
+      fetch('/api/usage')
+        .then((r) => r.json())
+        .then((data) => setEcUsage(data.tokensUsed ?? null))
+        .catch(() => null)
+    }
   }, [isStudent])
 
   function handleSurveyComplete(_tokenEarned: number) {
@@ -159,14 +166,14 @@ export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2
           ) : (
             <div className="flex items-center gap-2">
               <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#8A8A8A' }}>
-                Ce mois : {tokenCount > 999 ? `${(tokenCount / 1000).toFixed(0)}k` : tokenCount} / {(tokenLimit / 1000).toFixed(0)}k tokens
+                Ce mois : {ecUsage !== null ? (ecUsage > 999 ? `${(ecUsage / 1000).toFixed(0)}k` : ecUsage) : '…'} / 2 000k tokens
               </span>
               <div className="w-16 h-1.5 rounded-full bg-[#D8D8D8] overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{
-                    width: `${Math.min(100, Math.round((tokenCount / tokenLimit) * 100))}%`,
-                    background: tokenCount / tokenLimit > 0.8 ? '#dc2626' : tokenCount / tokenLimit > 0.6 ? '#f97316' : '#00068D',
+                    width: `${ecUsage !== null ? Math.min(100, Math.round((ecUsage / 2000000) * 100)) : 0}%`,
+                    background: ecUsage !== null && ecUsage / 2000000 > 0.8 ? '#dc2626' : ecUsage !== null && ecUsage / 2000000 > 0.6 ? '#f97316' : '#00068D',
                   }}
                 />
               </div>
