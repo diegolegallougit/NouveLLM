@@ -398,7 +398,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
           {/* Overlay — instant close, no transition */}
           <div
             className={`fixed left-0 right-0 z-30 md:hidden ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-            style={{ top: mobileConversationMode ? 44 : 52, bottom: 0, background: 'rgba(0,0,0,0.35)' }}
+            style={{ top: 56, bottom: 0, background: 'rgba(0,0,0,0.35)' }}
             onClick={() => setDrawerOpen(false)}
           />
           {/* Drawer */}

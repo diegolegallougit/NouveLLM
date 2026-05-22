@@ -211,7 +211,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
     <>
       <header
         className={`bg-white border-b border-[#D8D8D8] z-10 flex-shrink-0 ${
-          mobileConversationMode ? 'h-[44px] md:h-[60px]' : 'flex items-center justify-between px-6 h-[52px] md:h-[60px]'
+          mobileConversationMode ? 'h-[56px] md:h-[60px]' : 'flex items-center justify-between px-6 h-[56px] md:h-[60px]'
         }`}
       >
         {/* Immersive mobile bar — conversation mode only */}
@@ -220,7 +220,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
             {/* ☰ drawer toggle */}
             <button
               onClick={onBack}
-              className="w-10 h-10 -ml-2 flex items-center justify-center rounded-lg text-[#0D0D0D] hover:bg-[#F2F2F2] transition-all"
+              className="w-11 h-11 -ml-2 flex items-center justify-center rounded-lg text-[#0D0D0D] hover:bg-[#F2F2F2] transition-all"
               aria-label="Menu"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -254,7 +254,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
             <div className="relative">
               <button
                 onClick={() => setMobileCtxOpen(v => !v)}
-                className="w-10 h-10 -mr-2 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#F2F2F2] transition-all"
+                className="w-11 h-11 -mr-2 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#F2F2F2] transition-all"
                 aria-label="Options"
               >
                 <svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor">
@@ -288,7 +288,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="md:hidden w-10 h-10 -ml-2 flex items-center justify-center rounded-lg text-[#0D0D0D] hover:bg-[#F2F2F2] transition-all"
+                  className="md:hidden w-11 h-11 -ml-2 flex items-center justify-center rounded-lg text-[#0D0D0D] hover:bg-[#F2F2F2] transition-all"
                   aria-label="Menu"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -302,7 +302,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                   <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
                 </svg>
               </div>
-              <span className="text-sm md:text-lg" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '-0.02em', color: '#00068D' }}>
+              <span className="md:text-lg" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', letterSpacing: '-0.02em', color: '#00068D' }}>
                 NouveLLM
               </span>
               <span className="hidden md:block w-px h-4 bg-[#D8D8D8]" />
@@ -331,7 +331,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
               {/* Mobile: simple avatar */}
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="md:hidden w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                className="md:hidden w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ background: '#E8E9F8', color: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.625rem', letterSpacing: '0.04em' }}
               >
                 {userInitials}
