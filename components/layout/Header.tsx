@@ -244,9 +244,12 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                   </span>
                 </div>
               ) : (
-                <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#00068D', letterSpacing: '-0.01em' }}>
-                  NouveLLM
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span style={{ fontSize: 14, color: '#00068D', lineHeight: 1 }}>★</span>
+                  <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#00068D', letterSpacing: '-0.01em' }}>
+                    NouveLLM
+                  </span>
+                </div>
               )}
             </div>
 

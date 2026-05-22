@@ -405,7 +405,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
           <div
             className="fixed left-0 z-40 md:hidden bg-[#FAFAFA] border-r border-[#D8D8D8]"
             style={{
-              top: mobileConversationMode ? 44 : 52,
+              top: 56,
               bottom: 0,
               width: 280,
               transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
@@ -439,7 +439,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
               ) : (
                 <>
                   {/* Mobile — MobileHome ou RoutingPanel complet */}
-                  <div className="md:hidden h-full">
+                  <div className="md:hidden flex flex-col h-full">
                     {mobileRoutingOpen ? (
                       <RoutingPanel
                         onSelectAgent={(slug) => { setPendingAgent(slug); setExpertMode(true); setMobileRoutingOpen(false) }}

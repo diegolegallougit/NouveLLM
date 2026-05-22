@@ -80,12 +80,6 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
 
   return (
     <div className="flex flex-col justify-center flex-1 px-6 pb-24 bg-white">
-      {/* Logo text row */}
-      <div className="mb-5 flex items-center gap-2">
-        <span style={{ fontSize: 20, color: '#00068D', lineHeight: 1 }}>★</span>
-        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', color: '#00068D', opacity: 0.7 }}>NouveLLM</span>
-      </div>
-
       {/* Greeting */}
       <h1
         style={{
@@ -111,7 +105,7 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
       </p>
 
       {/* Suggestions — horizontal chips */}
-      <div className="flex gap-2 mt-6 pb-1 overflow-x-auto" style={{ scrollbarWidth: 'none' } as React.CSSProperties}>
+      <div className="flex gap-3 mt-6 pb-1 overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none' } as React.CSSProperties}>
         {suggestions.map((s) => {
           const Icon = s.icon
           return (
@@ -121,12 +115,12 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
                 onSelectAgent(s.slug)
                 if (s.slug === 'analyse') window.dispatchEvent(new CustomEvent('nl:open-file-picker'))
               }}
-              className="flex items-center gap-2 rounded-full flex-shrink-0 transition-all active:opacity-60"
+              className="flex items-center gap-2 rounded-full flex-shrink-0 transition-all active:opacity-60 snap-start shadow-sm"
               style={{
                 background: '#FFFFFF',
-                border: '1px solid #E0E0E0',
-                padding: '8px 16px',
-                minHeight: 40,
+                border: '1.5px solid #D0D0E0',
+                padding: '10px 20px',
+                minHeight: 44,
               }}
             >
               <Icon size={14} color="#00068D" strokeWidth={2} />
@@ -134,7 +128,7 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
                 style={{
                   fontFamily: 'Gilroy, sans-serif',
                   fontWeight: 800,
-                  fontSize: 'var(--text-sm)',
+                  fontSize: 'var(--text-base)',
                   color: '#0D0D0D',
                   whiteSpace: 'nowrap',
                 }}
@@ -149,7 +143,7 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
       {/* Voir tous les outils */}
       <button
         onClick={onShowAll}
-        className="mt-3 flex items-center gap-1.5 transition-colors"
+        className="mt-5 flex items-center gap-1.5 transition-colors"
         style={{
           fontFamily: 'Gilroy, sans-serif',
           fontWeight: 300,

@@ -92,7 +92,7 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
         {/* Mobile: bubble right-aligned */}
         <div className="md:hidden flex justify-end">
           <div
-            className="max-w-[78%] px-4 py-3"
+            className="max-w-[85%] mr-4 px-4 py-3"
             style={{ background: '#00068D', borderRadius: '14px 14px 3px 14px', color: 'white' }}
           >
             <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
