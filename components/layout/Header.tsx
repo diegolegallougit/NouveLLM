@@ -299,15 +299,18 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                   </svg>
                 </button>
               )}
-              <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg bg-[#00068D]">
+              <div className="hidden md:flex items-center justify-center md:w-8 md:h-8 rounded-lg bg-[#00068D]">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M12 3v18M3 12h18" />
                   <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
                 </svg>
               </div>
-              <span className="md:text-lg" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', letterSpacing: '-0.02em', color: '#00068D' }}>
-                NouveLLM
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="md:hidden" style={{ fontSize: 14, color: '#00068D', lineHeight: 1 }}>★</span>
+                <span className="md:text-lg" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', letterSpacing: '-0.02em', color: '#00068D' }}>
+                  NouveLLM
+                </span>
+              </div>
               <span className="hidden md:block w-px h-4 bg-[#D8D8D8]" />
               <span className="hidden md:inline" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.08em', color: '#8A8A8A', textTransform: 'uppercase' }}>
                 Université Sorbonne Nouvelle

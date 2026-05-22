@@ -439,7 +439,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
               ) : (
                 <>
                   {/* Mobile — MobileHome ou RoutingPanel complet */}
-                  <div className="md:hidden flex flex-col h-full">
+                  <div className="md:hidden flex flex-col" style={{ minHeight: 'calc(100dvh - 56px - 72px)' }}>
                     {mobileRoutingOpen ? (
                       <RoutingPanel
                         onSelectAgent={(slug) => { setPendingAgent(slug); setExpertMode(true); setMobileRoutingOpen(false) }}

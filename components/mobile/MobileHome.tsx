@@ -79,7 +79,7 @@ export default function MobileHome({ userName, discipline, onSelectAgent, onShow
   const suggestions = getSuggestions(discipline)
 
   return (
-    <div className="flex flex-col justify-center flex-1 px-6 pb-24 bg-white">
+    <div className="flex flex-col justify-center flex-1 px-6 pb-6 bg-white" style={{ minHeight: '100%' }}>
       {/* Greeting */}
       <h1
         style={{
