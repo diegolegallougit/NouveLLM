@@ -10,6 +10,7 @@ import OnboardingModal from '@/components/onboarding/OnboardingModal'
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow'
 import MobileHome from '@/components/mobile/MobileHome'
 import RoutingPanel from '@/components/routing/RoutingPanel'
+import SourceModeSheet from '@/components/chat/SourceModeSheet'
 import { AgentConfig } from '@/components/input/AgentPalette'
 import { SourceConfig } from '@/components/input/SourcePalette'
 
@@ -35,6 +36,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const [expertMode, setExpertMode] = useState(false)
   const [pendingAgent, setPendingAgent] = useState<string | null | undefined>(undefined)
   const [sourceMode, setSourceMode] = useState<'usn' | 'academic' | 'web' | 'all'>('usn')
+  const [sourceSheetOpen, setSourceSheetOpen] = useState(false)
   const [activeMetaPrompt, setActiveMetaPrompt] = useState<{ id: string; title: string } | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -504,12 +506,24 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
               onAbort={() => abortRef.current?.abort()}
               sourceMode={sourceMode}
               onSourceModeChange={setSourceMode}
+              onOpenSourceSheet={() => setSourceSheetOpen(true)}
             />
           </div>
         </div>
       </div>
 
       <Footer userRole={userRole} />
+
+      <SourceModeSheet
+        isOpen={sourceSheetOpen}
+        sourceMode={sourceMode}
+        onSourceModeChange={setSourceMode}
+        onClose={() => setSourceSheetOpen(false)}
+        onFileClick={() => {
+          setSourceSheetOpen(false)
+          window.dispatchEvent(new CustomEvent('nl:open-file-picker'))
+        }}
+      />
     </div>
   )
 }

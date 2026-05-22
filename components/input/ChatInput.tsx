@@ -28,12 +28,14 @@ interface ChatInputProps {
   onAbort?: () => void
   sourceMode: 'usn' | 'academic' | 'web' | 'all'
   onSourceModeChange: (mode: 'usn' | 'academic' | 'web' | 'all') => void
+  onOpenSourceSheet?: () => void
 }
 
 type PaletteMode = null | 'agent' | 'source'
 
-export default function ChatInput({ agents, sources, onSend, disabled, preselectedAgent, activeMetaPrompt, onDeactivateMetaPrompt, onActivateMetaPrompt, onAbort, sourceMode, onSourceModeChange }: ChatInputProps) {
+export default function ChatInput({ agents, sources, onSend, disabled, preselectedAgent, activeMetaPrompt, onDeactivateMetaPrompt, onActivateMetaPrompt, onAbort, sourceMode, onSourceModeChange, onOpenSourceSheet }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const mobileInputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
   const [text, setText] = useState('')
@@ -58,7 +60,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       if (agent.inputSchema) {
         setShowFormModal(true) // eslint-disable-line react-hooks/set-state-in-effect
       } else {
-        setTimeout(() => textareaRef.current?.focus(), 50)
+        setTimeout(() => { textareaRef.current?.focus(); mobileInputRef.current?.focus() }, 50)
       }
     }
   }, [preselectedAgent, agents])
@@ -71,7 +73,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       const source = sources.find(s => s.slug === token)
       if (source) {
         setSelectedSources(prev => prev.includes(token) ? prev : [...prev, token])
-        setTimeout(() => textareaRef.current?.focus(), 50)
+        setTimeout(() => { textareaRef.current?.focus(); mobileInputRef.current?.focus() }, 50)
       }
     }
     window.addEventListener('chat:insert-source', handleInsertSource)
@@ -87,12 +89,14 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
     return () => window.removeEventListener('nl:open-file-picker', handleOpenFilePicker)
   }, [])
 
-  // Auto-resize textarea
+  // Auto-resize textarea (both mobile and desktop)
   useEffect(() => {
-    const ta = textareaRef.current
-    if (!ta) return
-    ta.style.height = 'auto'
-    ta.style.height = Math.min(ta.scrollHeight, 200) + 'px'
+    for (const ref of [textareaRef, mobileInputRef]) {
+      const ta = ref.current
+      if (!ta) continue
+      ta.style.height = 'auto'
+      ta.style.height = Math.min(ta.scrollHeight, 200) + 'px'
+    }
   }, [text])
 
   // Close popover on outside click
@@ -175,6 +179,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       setShowFormModal(true)
     } else {
       textareaRef.current?.focus()
+      mobileInputRef.current?.focus()
     }
   }
 
@@ -201,6 +206,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       prev.includes(source.slug) ? prev.filter((s) => s !== source.slug) : [...prev, source.slug]
     )
     textareaRef.current?.focus()
+    mobileInputRef.current?.focus()
   }
 
   function handleSelectMetaPrompt(mp: MetaPromptItem) {
@@ -231,8 +237,8 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
     setSelectedSources([])
     setSelectedFile(null)
     setPaletteMode(null)
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
+    for (const ref of [textareaRef, mobileInputRef]) {
+      if (ref.current) ref.current.style.height = 'auto'
     }
   }
 
@@ -252,8 +258,12 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
 
   const hasContent = text.trim().length > 0 || selectedAgent !== null || selectedSources.length > 0 || selectedFile !== null
 
+  const plusButtonClasses = selectedFile
+    ? 'bg-yellow-100 text-yellow-600'
+    : ({ usn: 'bg-indigo-100 text-indigo-600', academic: 'bg-green-100 text-green-600', web: 'bg-blue-100 text-blue-600', all: 'bg-purple-100 text-purple-600' } as const)[sourceMode]
+
   return (
-    <div className="relative px-4 pb-3 md:px-6 md:pb-4 bg-white border-t border-[#D8D8D8] flex-shrink-0">
+    <div className="relative bg-white md:border-t md:border-[#D8D8D8] md:px-6 md:pb-4 flex-shrink-0">
       {/* Agent form modal */}
       {showFormModal && selectedAgent?.inputSchema && (
         <AgentFormModal
@@ -297,7 +307,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
 
       {/* Tokens row */}
       {(activeMetaPrompt || selectedAgent || selectedSources.length > 0 || selectedFile) && (
-        <div className="flex flex-wrap items-center gap-2 pt-3 pb-1">
+        <div className="flex flex-wrap items-center gap-2 pt-3 pb-1 px-4 md:px-0">
 
           {/* Meta-prompt badge */}
           {activeMetaPrompt && (
@@ -456,172 +466,228 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
         </div>
       )}
 
-      {/* Input box */}
-      <div className="mt-3 flex flex-col rounded-xl border border-[#D8D8D8] bg-white md:focus-within:ring-2 md:focus-within:ring-[#2B2EB8] md:focus-within:border-transparent transition-all overflow-hidden">
-        <textarea
-          ref={textareaRef}
-          value={text}
-          onChange={(e) => handleTextChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          disabled={disabled}
-          placeholder="Posez une question ou tapez @ pour un agent, # pour une source · Cmd+Entrée"
-          className="w-full px-4 pt-3 pb-2 bg-transparent resize-none text-[#0D0D0D] placeholder:text-[#8A8A8A] focus:outline-none disabled:opacity-50 leading-relaxed"
-          style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-base)', minHeight: 'var(--input-min-h)', maxHeight: '200px' }}
-          rows={1}
-        />
-
-        {/* Toolbar */}
-        <div className="flex items-center justify-between px-3 pb-2">
-          <div className="flex items-center gap-1">
-            {/* 📎 file */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#FFF8E1] hover:text-[#F57F17] transition-all"
-              title="Joindre un document"
-              aria-label="Joindre un document"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      {/* ── MOBILE : pill unique ────────────────────────────────────── */}
+      <div
+        className="md:hidden px-4 pt-2"
+        style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
+      >
+        <div className="flex items-center gap-2 bg-white rounded-full shadow-md border border-[#E0E0E0] px-3 py-2">
+          {/* [+] / [📎] */}
+          <button
+            type="button"
+            onClick={onOpenSourceSheet}
+            className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${plusButtonClasses}`}
+            aria-label="Sources et options"
+          >
+            {selectedFile ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
               </svg>
-            </button>
-            {/* @ trigger */}
-            <button
-              onClick={() => {
-                setText((t) => t + '@')
-                setPaletteMode('agent')
-                setPaletteQuery('')
-                textareaRef.current?.focus()
-              }}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all text-sm font-bold"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
-              title="Sélectionner un agent (@)"
-              aria-label="Sélectionner un agent"
-            >
-              @
-            </button>
-            {/* # trigger */}
-            <button
-              onClick={() => {
-                setText((t) => t + '#')
-                setPaletteMode('source')
-                setPaletteQuery('')
-                textareaRef.current?.focus()
-              }}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#e8f5e9] hover:text-[#2e7d32] transition-all text-sm font-bold"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
-              title="Sélectionner une source (#)"
-              aria-label="Sélectionner une source"
-            >
-              #
-            </button>
-            {/* Clear */}
-            {hasContent && (
-              <button
-                onClick={() => {
-                  setText('')
-                  setSelectedAgent(null)
-                  setSelectedSources([])
-                  setSelectedFile(null)
-                }}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-red-50 hover:text-red-500 transition-all"
-                title="Effacer"
-                aria-label="Effacer"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6l-1 14H6L5 6" />
-                  <path d="M10 11v6M14 11v6" />
-                  <path d="M9 6V4h6v2" />
-                </svg>
-              </button>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
             )}
-          </div>
+          </button>
 
-          {/* Stop / Send button */}
+          {/* Textarea */}
+          <textarea
+            ref={mobileInputRef}
+            value={text}
+            onChange={(e) => handleTextChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={disabled}
+            placeholder="Posez une question..."
+            className="flex-1 bg-transparent resize-none text-[#0D0D0D] placeholder:text-[#8A8A8A] focus:outline-none disabled:opacity-50 leading-relaxed"
+            style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-base)', maxHeight: '120px' }}
+            rows={1}
+          />
+
+          {/* Stop / Send */}
           {disabled ? (
             <button
               type="button"
               onClick={() => onAbort?.()}
-              className="flex items-center justify-center gap-2 w-9 h-9 md:w-auto md:h-auto md:px-4 md:py-2 rounded-lg text-white transition-all"
-              style={{
-                background: '#EF4444',
-                fontFamily: 'Gilroy, sans-serif',
-                fontWeight: 800,
-                fontSize: 'var(--text-xs)',
-                letterSpacing: '0.04em',
-              }}
+              className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center flex-shrink-0 transition-all"
+              aria-label="Arrêter"
             >
               <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
                 <rect width="10" height="10" rx="1.5" />
               </svg>
-              <span className="hidden md:inline">ARRÊTER</span>
             </button>
           ) : (
             <button
+              type="button"
               onClick={handleSend}
               disabled={!hasContent}
-              className="flex items-center justify-center gap-2 w-9 h-9 md:w-auto md:h-auto md:px-4 md:py-2 rounded-lg text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{
-                background: hasContent ? '#00068D' : '#D8D8D8',
-                fontFamily: 'Gilroy, sans-serif',
-                fontWeight: 800,
-                fontSize: 'var(--text-xs)',
-                letterSpacing: '0.04em',
-              }}
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:cursor-not-allowed"
+              style={{ background: hasContent ? '#00068D' : '#E8E8E8' }}
+              aria-label="Envoyer"
             >
-              <span className="hidden md:inline">ENVOYER</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={hasContent ? 'white' : '#B0B0B0'} strokeWidth="2.5" strokeLinecap="round">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </button>
           )}
         </div>
+      </div>
 
-        {/* Source mode bar */}
-        {paletteMode === null && (
-          <div className="border-t border-[#F0F0F0] px-3 py-2">
-            <div
-              className="flex items-center overflow-x-auto"
-              style={{ gap: 5, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
-            >
-              {([
-                { mode: 'usn',      label: 'Mes ressources',  icon: '📚' },
-                { mode: 'academic', label: 'Publications SHS', icon: '🔬' },
-                { mode: 'web',      label: 'Web',             icon: '🌐' },
-                { mode: 'all',      label: 'Tout',            icon: '⚡' },
-              ] as const).map(({ mode, label, icon }) => {
-                const active = sourceMode === mode
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => onSourceModeChange(mode)}
-                    style={{
-                      height: 26,
-                      padding: '0 8px',
-                      borderRadius: 13,
-                      border: `0.5px solid ${active ? '#2B2EB8' : '#D8D8D8'}`,
-                      background: active ? '#E8E9F8' : 'transparent',
-                      color: active ? '#00068D' : '#8A8A8A',
-                      fontFamily: 'Gilroy, sans-serif',
-                      fontWeight: active ? 800 : 300,
-                      fontSize: 11,
-                      whiteSpace: 'nowrap',
-                      flexShrink: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span style={{ fontSize: 11 }}>{icon}</span>
-                    {label}
-                  </button>
-                )
-              })}
+      {/* ── DESKTOP : inchangé ──────────────────────────────────────── */}
+      <div className="hidden md:block">
+        <div className="mt-3 flex flex-col rounded-xl border border-[#D8D8D8] bg-white md:focus-within:ring-2 md:focus-within:ring-[#2B2EB8] md:focus-within:border-transparent transition-all overflow-hidden">
+          <textarea
+            ref={textareaRef}
+            value={text}
+            onChange={(e) => handleTextChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={disabled}
+            placeholder="Posez une question ou tapez @ pour un agent, # pour une source · Cmd+Entrée"
+            className="w-full px-4 pt-3 pb-2 bg-transparent resize-none text-[#0D0D0D] placeholder:text-[#8A8A8A] focus:outline-none disabled:opacity-50 leading-relaxed"
+            style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-base)', minHeight: 'var(--input-min-h)', maxHeight: '200px' }}
+            rows={1}
+          />
+
+          {/* Toolbar */}
+          <div className="flex items-center justify-between px-3 pb-2">
+            <div className="flex items-center gap-1">
+              {/* 📎 file */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#FFF8E1] hover:text-[#F57F17] transition-all"
+                title="Joindre un document"
+                aria-label="Joindre un document"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                </svg>
+              </button>
+              {/* @ trigger */}
+              <button
+                onClick={() => {
+                  setText((t) => t + '@')
+                  setPaletteMode('agent')
+                  setPaletteQuery('')
+                  textareaRef.current?.focus()
+                }}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all text-sm font-bold"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                title="Sélectionner un agent (@)"
+                aria-label="Sélectionner un agent"
+              >
+                @
+              </button>
+              {/* # trigger */}
+              <button
+                onClick={() => {
+                  setText((t) => t + '#')
+                  setPaletteMode('source')
+                  setPaletteQuery('')
+                  textareaRef.current?.focus()
+                }}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#e8f5e9] hover:text-[#2e7d32] transition-all text-sm font-bold"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                title="Sélectionner une source (#)"
+                aria-label="Sélectionner une source"
+              >
+                #
+              </button>
+              {/* Clear */}
+              {hasContent && (
+                <button
+                  onClick={() => {
+                    setText('')
+                    setSelectedAgent(null)
+                    setSelectedSources([])
+                    setSelectedFile(null)
+                  }}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-red-50 hover:text-red-500 transition-all"
+                  title="Effacer"
+                  aria-label="Effacer"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14H6L5 6" />
+                    <path d="M10 11v6M14 11v6" />
+                    <path d="M9 6V4h6v2" />
+                  </svg>
+                </button>
+              )}
             </div>
+
+            {/* Stop / Send button */}
+            {disabled ? (
+              <button
+                type="button"
+                onClick={() => onAbort?.()}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white transition-all"
+                style={{ background: '#EF4444', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em' }}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                  <rect width="10" height="10" rx="1.5" />
+                </svg>
+                ARRÊTER
+              </button>
+            ) : (
+              <button
+                onClick={handleSend}
+                disabled={!hasContent}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: hasContent ? '#00068D' : '#D8D8D8', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em' }}
+              >
+                ENVOYER
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
           </div>
-        )}
+
+          {/* Source mode bar */}
+          {paletteMode === null && (
+            <div className="border-t border-[#F0F0F0] px-3 py-2">
+              <div
+                className="flex items-center overflow-x-auto"
+                style={{ gap: 5, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+              >
+                {([
+                  { mode: 'usn',      label: 'Mes ressources',  icon: '📚' },
+                  { mode: 'academic', label: 'Publications SHS', icon: '🔬' },
+                  { mode: 'web',      label: 'Web',             icon: '🌐' },
+                  { mode: 'all',      label: 'Tout',            icon: '⚡' },
+                ] as const).map(({ mode, label, icon }) => {
+                  const active = sourceMode === mode
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => onSourceModeChange(mode)}
+                      style={{
+                        height: 26,
+                        padding: '0 8px',
+                        borderRadius: 13,
+                        border: `0.5px solid ${active ? '#2B2EB8' : '#D8D8D8'}`,
+                        background: active ? '#E8E9F8' : 'transparent',
+                        color: active ? '#00068D' : '#8A8A8A',
+                        fontFamily: 'Gilroy, sans-serif',
+                        fontWeight: active ? 800 : 300,
+                        fontSize: 11,
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <span style={{ fontSize: 11 }}>{icon}</span>
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
