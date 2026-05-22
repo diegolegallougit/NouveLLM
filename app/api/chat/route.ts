@@ -1,12 +1,30 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { streamDifyChat, parseDifySources, DifySource, AGENT_INPUTS } from '@/lib/dify'
+import { streamDifyChat, parseDifySources, DifySource, ParsedSource, AGENT_INPUTS } from '@/lib/dify'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { ChatBodySchema } from '@/lib/schemas/chat.schema'
 import { buildUserContext } from '@/lib/user-context'
 import { NextRequest, NextResponse } from 'next/server'
 
 const IDLE_TIMEOUT_MS = 60_000
+
+function parseAcademicXml(responseBody: string): ParsedSource[] {
+  let json: { xml?: string }
+  try { json = JSON.parse(responseBody) } catch { return [] }
+  const xml = json.xml || ''
+  if (!xml) return []
+  const blocks = xml.match(/<source[^>]*>[\s\S]*?<\/source>/g) ?? []
+  return blocks.flatMap((block): ParsedSource[] => {
+    const get = (tag: string) =>
+      (block.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`)) ?? [])[1]?.trim() ?? ''
+    const title = get('titre')
+    if (!title) return []
+    const url = get('url') || undefined
+    const resume = get('resume') || undefined
+    const sourceDb = get('source_db')
+    return [{ title, domain: sourceDb === 'HAL' ? 'hal.science' : 'openalex.org', url, icon: '📰', tag: 'SHS', excerpt: resume }]
+  })
+}
 
 function mapDifyError(status: number, body: string): string {
   let detail = ''
@@ -248,6 +266,7 @@ export async function POST(req: NextRequest) {
   let fullText = ''
   let difyNewConvId: string | undefined
   let retrieverResources: DifySource[] = []
+  let academicProxySources: ParsedSource[] = []
   let totalTokens: number | undefined
 
   const stream = new ReadableStream({
@@ -301,6 +320,15 @@ export async function POST(req: NextRequest) {
                       }
                     }
                   }
+                } else if (nodeType === 'http-request') {
+                  const title = (event.data?.title || '') as string
+                  if (title.toLowerCase().includes('openalex') || title.toLowerCase().includes('hal') || title.toLowerCase().includes('proxy')) {
+                    const body = event.data?.outputs?.body
+                    if (typeof body === 'string' && body) {
+                      const parsed = parseAcademicXml(body)
+                      if (parsed.length > 0) academicProxySources = parsed
+                    }
+                  }
                 }
               } else if (event.event === 'message_end') {
                 if (event.conversation_id) difyNewConvId = event.conversation_id
@@ -340,6 +368,11 @@ export async function POST(req: NextRequest) {
       }
 
       const sources = parseDifySources(retrieverResources)
+
+      // Merge academic proxy sources (from http-request node) when KB returned nothing
+      if (academicProxySources.length > 0 && sources.length < 6) {
+        sources.push(...academicProxySources.slice(0, 6 - sources.length))
+      }
 
       // Enrich sources with source_url stored in NouveLLM DB (Dify doesn't expose doc metadata in retriever_resources)
       const difyDocIds = sources.map(s => s.difyDocumentId).filter((id): id is string => !!id)

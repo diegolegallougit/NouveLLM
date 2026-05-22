@@ -6,6 +6,7 @@ export interface DifySource {
   segment_id: string
   score: number
   content: string
+  dataset_id?: string
   dataset_name?: string
   document_id?: string
 }
