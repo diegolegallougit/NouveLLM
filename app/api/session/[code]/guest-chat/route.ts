@@ -51,10 +51,39 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
     }
   }
 
+  // ── Persist conversation + user message ──────────────────────
+  let dbConvId = conversationId
+  let dbConversation: { id: string; difyConvId: string | null } | null = null
+
+  if (dbConvId) {
+    dbConversation = await prisma.conversation.findUnique({ where: { id: dbConvId }, select: { id: true, difyConvId: true } })
+  }
+  if (!dbConversation) {
+    dbConversation = await prisma.conversation.create({
+      data: {
+        userId: guestId,
+        title: message.slice(0, 60),
+        courseSessionId: courseSession.id,
+      },
+    })
+    dbConvId = dbConversation.id
+  }
+
+  await prisma.message.create({
+    data: {
+      conversationId: dbConvId!,
+      role: 'USER',
+      content: message,
+    },
+  })
+
+  // Pass the Dify conversation id if we already know one
+  const difyConversationId = dbConversation?.difyConvId ?? conversationId
+
   const difyResponse = await streamDifyChat({
     apiKey,
     query: message,
-    conversationId,
+    conversationId: difyConversationId,
     userId: guestId,
     inputs,
   })
@@ -108,8 +137,29 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
       }
 
       const sources = parseDifySources(retrieverResources)
+
+      // ── Persist assistant message ────────────────────────────
+      if (fullText.length > 0) {
+        await prisma.message.create({
+          data: {
+            conversationId: dbConvId!,
+            role: 'ASSISTANT',
+            content: fullText,
+            agentUsed: agentSlug ?? null,
+            sources: sources.length > 0 ? JSON.stringify(sources) : null,
+          },
+        })
+      }
+
+      if (difyNewConvId) {
+        await prisma.conversation.update({
+          where: { id: dbConvId! },
+          data: { difyConvId: difyNewConvId },
+        })
+      }
+
       controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ type: 'done', conversationId: difyNewConvId, sources, agentLabel })}\n\n`)
+        encoder.encode(`data: ${JSON.stringify({ type: 'done', conversationId: dbConvId, difyConvId: difyNewConvId, sources, agentLabel })}\n\n`)
       )
       controller.close()
     },
