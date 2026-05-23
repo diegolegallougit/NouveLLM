@@ -144,6 +144,13 @@ export default function NewSessionPage() {
 
   async function handleSubmit() {
     if (!name.trim()) { setError('Le nom est requis.'); return }
+    if (!selectedScenario?.hasStructuredForm) {
+      const unresolved = getEffectivePrompt().match(/\[[^\]]+\]/g)
+      if (unresolved) {
+        setError(`Prompt incomplet — ${unresolved.length} élément${unresolved.length > 1 ? 's' : ''} à remplacer : ${unresolved.join(', ')}`)
+        return
+      }
+    }
     setLoading(true)
     setError('')
     try {

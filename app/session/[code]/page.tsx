@@ -42,6 +42,7 @@ export default function SessionPage() {
   const { code } = useParams<{ code: string }>()
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null)
   const [error, setError] = useState('')
+  const [errorCode, setErrorCode] = useState(0)
   const [joined, setJoined] = useState(false)
   const [joining, setJoining] = useState(false)
   const [isGuest, setIsGuest] = useState(false)
@@ -57,13 +58,13 @@ export default function SessionPage() {
 
   useEffect(() => {
     fetch(`/api/session/${code}`)
-      .then(r => r.json())
-      .then(d => {
-        if (d.error) { setError(d.error); return }
-        setSessionInfo(d.session)
-        setIsGuest(d.session.isGuest ?? false)
-        if (d.session.isParticipant) setJoined(true)
-        if (d.session.agents.length > 0) setSelectedAgent(d.session.agents[0])
+      .then(r => { const status = r.status; return r.json().then((d: Record<string, unknown>) => ({ d, status })) })
+      .then(({ d, status }) => {
+        if ((d as { error?: string }).error) { setErrorCode(status); setError((d as { error: string }).error); return }
+        setSessionInfo((d as { session: SessionInfo }).session)
+        setIsGuest((d as { session: SessionInfo }).session.isGuest ?? false)
+        if ((d as { session: SessionInfo }).session.isParticipant) setJoined(true)
+        if ((d as { session: SessionInfo }).session.agents.length > 0) setSelectedAgent((d as { session: SessionInfo }).session.agents[0])
       })
       .catch(() => setError('Impossible de charger la session'))
   }, [code])
@@ -240,14 +241,29 @@ export default function SessionPage() {
   }
 
   if (error) {
+    const isClosed = errorCode === 410
+    const isFull = errorCode === 409
     return (
       <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6">
         <div className="bg-white rounded-2xl border border-[#D8D8D8] p-8 max-w-sm w-full text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto ${isClosed ? 'bg-gray-100' : isFull ? 'bg-orange-50' : 'bg-red-50'}`}>
+            {isClosed
+              ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+              : isFull
+                ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F57F17" strokeWidth="2.5" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
+            }
           </div>
-          <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#0D0D0D' }}>Séance introuvable</h2>
-          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#8A8A8A' }}>{error}</p>
+          <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#0D0D0D' }}>
+            {isClosed ? 'Séance terminée' : isFull ? 'Séance complète' : 'Séance introuvable'}
+          </h2>
+          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#8A8A8A' }}>
+            {isClosed
+              ? "Cette séance a été fermée par l'enseignant."
+              : isFull
+                ? 'Le nombre maximum de participants a été atteint.'
+                : error}
+          </p>
         </div>
       </div>
     )

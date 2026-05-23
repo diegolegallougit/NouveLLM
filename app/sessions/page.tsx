@@ -233,7 +233,7 @@ function SessionCard({
           <div className="flex items-center gap-4 mb-3">
             <span className="font-mono text-xs bg-[#F2F2F2] px-2 py-0.5 rounded text-[#5A5A5A]">{s.code}</span>
             <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }}>
-              {s.participantCount} participant{s.participantCount !== 1 ? 's' : ''}{s.maxParticipants ? ` / ${s.maxParticipants}` : ''}
+              {s.participantCount} connecté{s.participantCount !== 1 ? 's' : ''}{s.maxParticipants ? ` / ${s.maxParticipants}` : ''}
             </span>
             <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }}>
               {formatTokens(s.tokens)} tokens

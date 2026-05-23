@@ -155,7 +155,7 @@ export default function SessionDashboardPage() {
         {/* Stats cards */}
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label: 'Participants', value: String(session.participantCount) + (session.maxParticipants ? `/${session.maxParticipants}` : '') },
+            { label: 'Connectés', value: String(session.participantCount) + (session.maxParticipants ? `/${session.maxParticipants}` : '') },
             { label: 'Conversations', value: String(session.conversationCount) },
             { label: 'Messages', value: String(session.messageCount) },
             { label: 'Tokens', value: formatTokens(session.tokens) },
@@ -166,6 +166,9 @@ export default function SessionDashboardPage() {
             </div>
           ))}
         </div>
+        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#C8C8C8', fontStyle: 'italic', marginTop: '-0.5rem' }}>
+          Les participants invités (sans compte) ne sont pas comptabilisés dans ces statistiques.
+        </p>
 
         {/* Analytics — niveau 1+ */}
         {session.visibility >= 1 && analytics && (
@@ -276,13 +279,6 @@ export default function SessionDashboardPage() {
               <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#5A5A5A', fontStyle: 'italic' }}>
                 Les conversations sont confidentielles — aucun accès.
               </p>
-            )}
-            {session.visibility >= 1 && (
-              <div className="mt-2 p-3 rounded-lg bg-[#F8F8FF] border border-[#E8E9F8]">
-                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A', fontStyle: 'italic' }}>
-                  Analytics détaillées disponibles en Sprint 12.
-                </p>
-              </div>
             )}
           </div>
         </div>
