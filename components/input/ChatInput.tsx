@@ -673,18 +673,20 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                   { mode: 'all',      label: 'Tout',            icon: '⚡' },
                 ] as const).map(({ mode, label, icon }) => {
                   const active = sourceMode === mode
+                  const disabled = mode === 'web'
                   return (
                     <button
                       key={mode}
                       type="button"
-                      onClick={() => onSourceModeChange(mode)}
+                      onClick={() => { if (!disabled) onSourceModeChange(mode) }}
+                      title={disabled ? 'Recherche web disponible prochainement' : undefined}
                       style={{
                         height: 26,
                         padding: '0 8px',
                         borderRadius: 13,
                         border: `0.5px solid ${active ? (MODE_COLORS[mode]?.border ?? '#2B2EB8') : '#D8D8D8'}`,
                         background: active ? (MODE_COLORS[mode]?.bg ?? '#E8E9F8') : 'transparent',
-                        color: active ? (MODE_COLORS[mode]?.color ?? '#00068D') : '#8A8A8A',
+                        color: disabled ? '#C8C8C8' : active ? (MODE_COLORS[mode]?.color ?? '#00068D') : '#8A8A8A',
                         fontFamily: 'Gilroy, sans-serif',
                         fontWeight: active ? 800 : 300,
                         fontSize: 'var(--text-2xs)',
@@ -693,7 +695,8 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                         display: 'flex',
                         alignItems: 'center',
                         gap: 4,
-                        cursor: 'pointer',
+                        cursor: disabled ? 'not-allowed' : 'pointer',
+                        opacity: disabled ? 0.5 : 1,
                       }}
                     >
                       <span style={{ fontSize: 11 }}>{icon}</span>
