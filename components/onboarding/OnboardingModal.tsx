@@ -348,7 +348,7 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
                   <div className="mt-2 space-y-1.5">
                     {[
                       { slug: 'formations-sn', label: 'Formations Sorbonne Nouvelle' },
-                      { slug: 'publications-shs', label: 'Publications SHS' },
+                      { slug: 'publications-shs', label: 'Académique (HAL, OpenEdition)' },
                     ].map((s) => (
                       <div key={s.slug} className="flex items-center gap-2 p-2 rounded-lg bg-white border border-[#a5d6a7]">
                         <span className="nl-token-source text-[11px]">#{s.slug}</span>

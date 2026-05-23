@@ -2,25 +2,33 @@
 
 interface SourceModeSheetProps {
   isOpen: boolean
-  sourceMode: 'usn' | 'academic' | 'web' | 'all'
-  onSourceModeChange: (mode: 'usn' | 'academic' | 'web' | 'all') => void
+  sourceMode: 'docs' | 'usn' | 'academic' | 'web' | 'all'
+  onSourceModeChange: (mode: 'docs' | 'usn' | 'academic' | 'web' | 'all') => void
   onClose: () => void
   onFileClick: () => void
 }
 
 const SOURCE_OPTIONS = [
   {
-    mode: 'usn' as const,
-    icon: '📚',
-    label: 'Mes ressources',
-    desc: 'Documents et KB institutionnels',
+    mode: 'docs' as const,
+    icon: '📂',
+    label: 'Mes docs',
+    desc: 'Vos dossiers et documents personnels',
     activeBg: '#E8E9F8',
     activeColor: '#00068D',
   },
   {
+    mode: 'usn' as const,
+    icon: '🏛️',
+    label: 'USN',
+    desc: 'Bases institutionnelles Sorbonne Nouvelle',
+    activeBg: '#FFF8E1',
+    activeColor: '#E65100',
+  },
+  {
     mode: 'academic' as const,
     icon: '🔬',
-    label: 'Publications SHS',
+    label: 'Académique',
     desc: 'HAL, OpenAlex, sources vérifiées',
     activeBg: '#E8F5E9',
     activeColor: '#2E7D32',

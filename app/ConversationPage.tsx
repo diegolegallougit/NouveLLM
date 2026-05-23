@@ -35,7 +35,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const [onboardingDone, setOnboardingDone] = useState(false)
   const [showRoutingPanel, setShowRoutingPanel] = useState(false)
   const [pendingAgent, setPendingAgent] = useState<string | null | undefined>(undefined)
-  const [sourceMode, setSourceMode] = useState<'usn' | 'academic' | 'web' | 'all'>('usn')
+  const [sourceMode, setSourceMode] = useState<'docs' | 'usn' | 'academic' | 'web' | 'all'>('usn')
   const [sourceSheetOpen, setSourceSheetOpen] = useState(false)
   const [activeMetaPrompt, setActiveMetaPrompt] = useState<{ id: string; title: string } | null>(null)
   const abortRef = useRef<AbortController | null>(null)

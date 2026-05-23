@@ -44,7 +44,7 @@ export default function SourcesBlock({ sources, hasProcessedFile, sourceMode, ha
       return (
         <div className="mt-3 pt-3 border-t border-[#D8D8D8]">
           <p className="italic" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', background: '#E8F5E9', color: '#2E7D32', padding: '4px 8px', borderRadius: 6 }}>
-            🔬 Publications SHS consultées
+            🎓 Sources académiques consultées
           </p>
         </div>
       )

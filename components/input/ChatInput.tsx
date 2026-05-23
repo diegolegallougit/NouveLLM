@@ -26,12 +26,28 @@ interface ChatInputProps {
   onDeactivateMetaPrompt?: () => void
   onActivateMetaPrompt?: (id: string, title: string) => void
   onAbort?: () => void
-  sourceMode: 'usn' | 'academic' | 'web' | 'all'
-  onSourceModeChange: (mode: 'usn' | 'academic' | 'web' | 'all') => void
+  sourceMode: 'docs' | 'usn' | 'academic' | 'web' | 'all'
+  onSourceModeChange: (mode: 'docs' | 'usn' | 'academic' | 'web' | 'all') => void
   onOpenSourceSheet?: () => void
 }
 
 type PaletteMode = null | 'agent' | 'source'
+
+const MODE_COLORS: Record<string, { bg: string; color: string; border: string }> = {
+  docs:     { bg: '#E8E9F8', color: '#00068D', border: '#2B2EB8' },
+  usn:      { bg: '#FFF8E1', color: '#E65100', border: '#E65100' },
+  academic: { bg: '#E8F5E9', color: '#2E7D32', border: '#2E7D32' },
+  web:      { bg: '#E3F2FD', color: '#1565C0', border: '#1565C0' },
+  all:      { bg: '#F3E5F5', color: '#6A1B9A', border: '#6A1B9A' },
+}
+
+const MODE_SOURCE_FILTER: Record<string, (s: SourceConfig) => boolean> = {
+  docs:     (s) => s.isFolder === true,
+  usn:      (s) => !s.isFolder && s.slug !== 'publications-shs',
+  academic: (s) => !s.isFolder && s.slug === 'publications-shs',
+  web:      () => false,
+  all:      () => true,
+}
 
 export default function ChatInput({ agents, sources, onSend, disabled, preselectedAgent, activeMetaPrompt, onDeactivateMetaPrompt, onActivateMetaPrompt, onAbort, sourceMode, onSourceModeChange, onOpenSourceSheet }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -260,7 +276,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
 
   const plusButtonClasses = selectedFile
     ? 'bg-yellow-100 text-yellow-600'
-    : ({ usn: 'bg-indigo-100 text-indigo-600', academic: 'bg-green-100 text-green-600', web: 'bg-blue-100 text-blue-600', all: 'bg-purple-100 text-purple-600' } as const)[sourceMode]
+    : ({ docs: 'bg-indigo-100 text-indigo-600', usn: 'bg-orange-100 text-orange-600', academic: 'bg-green-100 text-green-600', web: 'bg-blue-100 text-blue-600', all: 'bg-purple-100 text-purple-600' } as const)[sourceMode]
 
   return (
     <div className="relative bg-white md:border-t md:border-[#D8D8D8] md:px-6 md:pb-4 flex-shrink-0">
@@ -297,7 +313,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       )}
       {paletteMode === 'source' && (
         <SourcePalette
-          sources={sources}
+          sources={sources.filter(MODE_SOURCE_FILTER[sourceMode] ?? (() => true))}
           query={paletteQuery}
           selected={selectedSources}
           onToggle={handleToggleSource}
@@ -650,8 +666,9 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                 style={{ gap: 5, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
               >
                 {([
-                  { mode: 'usn',      label: 'Mes ressources',  icon: '📚' },
-                  { mode: 'academic', label: 'Publications SHS', icon: '🔬' },
+                  { mode: 'docs',     label: 'Mes docs',         icon: '📂' },
+                  { mode: 'usn',      label: 'USN',              icon: '🏛️' },
+                  { mode: 'academic', label: 'Académique',        icon: '🎓' },
                   { mode: 'web',      label: 'Web',             icon: '🌐' },
                   { mode: 'all',      label: 'Tout',            icon: '⚡' },
                 ] as const).map(({ mode, label, icon }) => {
@@ -665,9 +682,9 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                         height: 26,
                         padding: '0 8px',
                         borderRadius: 13,
-                        border: `0.5px solid ${active ? '#2B2EB8' : '#D8D8D8'}`,
-                        background: active ? '#E8E9F8' : 'transparent',
-                        color: active ? '#00068D' : '#8A8A8A',
+                        border: `0.5px solid ${active ? (MODE_COLORS[mode]?.border ?? '#2B2EB8') : '#D8D8D8'}`,
+                        background: active ? (MODE_COLORS[mode]?.bg ?? '#E8E9F8') : 'transparent',
+                        color: active ? (MODE_COLORS[mode]?.color ?? '#00068D') : '#8A8A8A',
                         fontFamily: 'Gilroy, sans-serif',
                         fontWeight: active ? 800 : 300,
                         fontSize: 'var(--text-2xs)',

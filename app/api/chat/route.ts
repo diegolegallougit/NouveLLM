@@ -224,7 +224,7 @@ export async function POST(req: NextRequest) {
   inputs.user_context = preservedUserCtx ?? ''
 
   // source_mode is injected after the reset so it applies on every turn
-  inputs.source_mode = sourceMode ?? 'usn'
+  inputs.source_mode = (sourceMode === 'docs' ? 'usn' : sourceMode) ?? 'usn'
 
   // Save user message
   await prisma.message.create({
@@ -432,7 +432,7 @@ export async function POST(req: NextRequest) {
               sources,
               agentLabel,
               hasProcessedFile: !!uploadedFileId,
-              sourceMode: sourceMode ?? 'usn',
+              sourceMode: (sourceMode === 'docs' ? 'usn' : sourceMode) ?? 'usn',
             })}\n\n`
           )
         )
