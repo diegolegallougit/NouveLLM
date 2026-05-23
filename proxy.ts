@@ -43,7 +43,8 @@ export async function proxy(req: NextRequest) {
 
   const token = await getToken({ req, secret: process.env.AUTH_SECRET })
   if (!token) {
-    return NextResponse.redirect(new URL('/login', req.url))
+    const callbackUrl = pathname.startsWith('/c/') ? `?callbackUrl=${encodeURIComponent(pathname)}` : ''
+    return NextResponse.redirect(new URL(`/login${callbackUrl}`, req.url))
   }
 
   // Admin pages require ADMIN role

@@ -5,14 +5,16 @@ import ConversationPage from '@/app/ConversationPage'
 
 export const dynamic = 'force-dynamic'
 
-export default async function ConversationRoute({ params }: { params: { id: string } }) {
+export default async function ConversationRoute({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
-  if (!session?.user?.id) redirect(`/login?callbackUrl=/c/${params.id}`)
+  // Middleware already ensures auth — session is always valid here
+  if (!session?.user?.id) redirect('/')
 
   const user = session.user as { id: string; name?: string; email?: string; role?: string }
 
   const conv = await prisma.conversation.findFirst({
-    where: { id: params.id, userId: user.id },
+    where: { id, userId: user.id },
     select: { id: true },
   })
   if (!conv) redirect('/')
@@ -37,7 +39,7 @@ export default async function ConversationRoute({ params }: { params: { id: stri
       userId={user.id}
       needsOnboarding={!dbUser?.onboarded}
       discipline={dbUser?.discipline ?? undefined}
-      initialConversationId={params.id}
+      initialConversationId={id}
     />
   )
 }
