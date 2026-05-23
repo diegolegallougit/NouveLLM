@@ -160,11 +160,16 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
             </button>
           </div>
         ) : (
-          <div
-            role="button"
+          <a
+            href={`/c/${conv.id}`}
             tabIndex={0}
-            onClick={() => { onSelectConversation(conv.id); onClose?.() }}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { onSelectConversation(conv.id); onClose?.() } }}
+            onClick={(e) => {
+              if (!e.metaKey && !e.ctrlKey) {
+                e.preventDefault()
+                onSelectConversation(conv.id)
+                onClose?.()
+              }
+            }}
             className={`w-full flex flex-col items-start gap-1 px-3 py-3 text-left transition-all border-l-2 cursor-pointer ${
               activeConversationId === conv.id
                 ? 'bg-[#E8E9F8] border-l-[#00068D]'
@@ -202,7 +207,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
                 {formatRelativeDate(conv.updatedAt)}
               </span>
             </div>
-          </div>
+          </a>
         )}
       </div>
     )

@@ -21,9 +21,10 @@ interface Props {
   userId: string
   needsOnboarding?: boolean
   discipline?: string
+  initialConversationId?: string
 }
 
-export default function ConversationPage({ userName, userRole, userInitials, needsOnboarding = false, discipline }: Props) {
+export default function ConversationPage({ userName, userRole, userInitials, needsOnboarding = false, discipline, initialConversationId }: Props) {
   const [agents, setAgents] = useState<AgentConfig[]>([])
   const [sources, setSources] = useState<SourceConfig[]>([])
   const [messages, setMessages] = useState<MessageData[]>([])
@@ -61,7 +62,8 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         fetch('/api/config/agents').then((r) => r.json()),
         fetch('/api/config/sources').then((r) => r.json()),
       ])
-      setAgents(agentData.agents || [])
+      const loadedAgents: AgentConfig[] = agentData.agents || []
+      setAgents(loadedAgents)
       const institutionalSources: SourceConfig[] = sourceData.sources || []
 
       if (!isStudent) {
@@ -83,6 +85,10 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         setSources([...institutionalSources, ...folderSources])
       } else {
         setSources(institutionalSources)
+      }
+
+      if (initialConversationId) {
+        await loadConversation(initialConversationId, loadedAgents)
       }
     }
     loadConfig()
@@ -110,12 +116,13 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
     setActiveMetaPrompt({ id, title })
   }
 
-  async function loadConversation(convId: string) {
+  async function loadConversation(convId: string, resolvedAgents?: AgentConfig[]) {
     try {
       const r = await fetch(`/api/conversations/${convId}`)
       const data = await r.json()
       if (!data.conversation) return
 
+      const agentList = resolvedAgents ?? agents
       const msgs: MessageData[] = data.conversation.messages.map((m: {
         id: string
         role: string
@@ -128,7 +135,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         role: m.role === 'USER' ? 'user' : 'assistant',
         content: m.content,
         agentUsed: m.agentUsed || undefined,
-        agentLabel: m.agentUsed ? agents.find((a) => a.slug === m.agentUsed)?.label : undefined,
+        agentLabel: m.agentUsed ? agentList.find((a) => a.slug === m.agentUsed)?.label : undefined,
         sources: m.sources ? JSON.parse(m.sources) : undefined,
         createdAt: new Date(m.createdAt),
       }))
@@ -136,6 +143,9 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
       setMessages(msgs)
       setConversationId(convId)
       setSourceMode('usn')
+      if (typeof window !== 'undefined' && window.location.pathname !== `/c/${convId}`) {
+        window.history.pushState({}, '', `/c/${convId}`)
+      }
     } catch (err) {
       console.error('Failed to load conversation:', err)
     }
@@ -157,6 +167,9 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
     setPendingAgent(undefined)
     setMobileRoutingOpen(false)
     setSourceMode('usn')
+    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+      window.history.pushState({}, '', '/')
+    }
   }
 
   const handleSend = useCallback(
@@ -282,6 +295,9 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
 
               if (event.type === 'conv_id') {
                 setConversationId(event.conversationId)
+                if (!conversationId && typeof window !== 'undefined') {
+                  window.history.pushState({}, '', `/c/${event.conversationId}`)
+                }
               } else if (event.type === 'chunk') {
                 setMessages((prev) =>
                   prev.map((m) =>

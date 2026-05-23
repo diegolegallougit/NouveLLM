@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 interface LoginClientProps {
   proConnectEnabled: boolean
@@ -10,6 +10,8 @@ interface LoginClientProps {
 
 export default function LoginClient({ proConnectEnabled }: LoginClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') ?? '/'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -25,14 +27,14 @@ export default function LoginClient({ proConnectEnabled }: LoginClientProps) {
       setError('Identifiants incorrects. Vérifiez votre email et mot de passe.')
       setLoading(false)
     } else {
-      router.push('/')
+      router.push(callbackUrl)
     }
   }
 
   async function handleProConnect() {
     if (!proConnectEnabled) return
     setPcLoading(true)
-    await signIn('proconnect', { callbackUrl: '/' })
+    await signIn('proconnect', { callbackUrl })
   }
 
   return (
