@@ -146,7 +146,9 @@ export async function POST(req: NextRequest) {
         select: { difyWorkflowOverride: true, slug: true },
       })
       if (scenario?.difyWorkflowOverride) {
-        const envKey = `DIFY_${scenario.slug.replace(/-/g, '_').toUpperCase()}_API_KEY`
+        const envKey = scenario.difyWorkflowOverride
+          ? `DIFY_${scenario.difyWorkflowOverride.replace(/-/g, '_').toUpperCase()}_API_KEY`
+          : `DIFY_${scenario.slug.replace(/-/g, '_').toUpperCase()}_API_KEY`
         const overrideKey = process.env[envKey]
         if (overrideKey) apiKey = overrideKey
       }
