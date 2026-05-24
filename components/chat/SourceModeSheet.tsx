@@ -37,7 +37,7 @@ const SOURCE_OPTIONS = [
     mode: 'web' as const,
     icon: '🌐',
     label: 'Web',
-    desc: 'Recherche web en temps réel',
+    desc: 'Recherche web en temps réel — synthèse de sources actuelles avec citations',
     activeBg: '#E3F2FD',
     activeColor: '#1565C0',
   },
@@ -110,18 +110,15 @@ export default function SourceModeSheet({ isOpen, sourceMode, onSourceModeChange
 
         {SOURCE_OPTIONS.map(({ mode, icon, label, desc, activeBg, activeColor }) => {
           const active = sourceMode === mode
-          const disabled = mode === 'web'
           return (
             <button
               key={mode}
               type="button"
               onClick={() => {
-                if (!disabled) {
-                  onSourceModeChange(mode)
-                  setTimeout(onClose, 150)
-                }
+                onSourceModeChange(mode)
+                setTimeout(onClose, 150)
               }}
-              className={`w-full flex items-center gap-3 px-5 py-3.5 transition-all text-left ${disabled ? 'opacity-40 cursor-not-allowed' : 'active:opacity-70'}`}
+              className="w-full flex items-center gap-3 px-5 py-3.5 transition-all text-left active:opacity-70"
               style={{ background: active ? activeBg : 'transparent' }}
             >
               <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>{icon}</span>
@@ -130,7 +127,7 @@ export default function SourceModeSheet({ isOpen, sourceMode, onSourceModeChange
                   {label}
                 </p>
                 <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', lineHeight: 1.4 }}>
-                  {disabled ? 'Disponible prochainement' : desc}
+                  {desc}
                 </p>
               </div>
               {active && (
