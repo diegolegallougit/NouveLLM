@@ -114,6 +114,7 @@ export default function SessionsPage() {
   const closed = sessions.filter(s => s.status === 'CLOSED')
 
   return (
+    <>
     <div className="min-h-screen bg-[#FAFAFA] p-3 sm:p-6">
       <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
@@ -242,6 +243,7 @@ export default function SessionsPage() {
         {toast.type === 'success' ? '✓' : '⚠'} {toast.message}
       </div>
     )}
+    </>
   )
 }
 
