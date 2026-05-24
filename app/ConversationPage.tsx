@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Message, { MessageData, Source } from '@/components/chat/Message'
@@ -479,7 +480,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
                       userRole={userRole}
                     />
                   ) : (
-                    <EmptyState agents={agents} onSuggest={handleSend} onRoutingMode={() => setShowRoutingPanel(true)} />
+                    <EmptyState />
                   )}
                 </div>
               </>
@@ -544,85 +545,106 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   )
 }
 
-function EmptyState({
-  agents,
-  onSuggest,
-  onRoutingMode,
-}: {
-  agents: AgentConfig[]
-  onSuggest: (msg: string, agent?: string) => void
-  onRoutingMode?: () => void
-}) {
-  const suggestions = [
-    { text: "Créer une bibliographie sur l'IA en enseignement supérieur", agent: 'bibliographie', icon: '📚' },
-    { text: 'Rédiger une fiche de cours ECTS pour un module Licence', agent: 'fiche-cours', icon: '📋' },
-    { text: 'Concevoir un module pédagogique sur la sociolinguistique', agent: 'module', icon: '📖' },
-    { text: "Préparer un sujet d'examen sur la traductologie", agent: 'examen', icon: '🎯' },
+function EmptyState() {
+  const router = useRouter()
+
+  const shortcuts = [
+    {
+      label: 'Mes dossiers',
+      bg: '#E8E9F8',
+      color: '#00068D',
+      onClick: () => router.push('/spaces'),
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00068D" strokeWidth="2" strokeLinecap="round">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Séances',
+      bg: '#E8F5E9',
+      color: '#2E7D32',
+      onClick: () => router.push('/sessions'),
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" strokeWidth="2" strokeLinecap="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <path d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Agents',
+      bg: '#FFF8E1',
+      color: '#E65100',
+      onClick: () => router.push('/agents'),
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E65100" strokeWidth="2" strokeLinecap="round">
+          <path d="M15 3l-4 4-4-4" />
+          <path d="M3 12h18" />
+          <path d="M12 7v10" />
+          <circle cx="12" cy="19" r="2" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Assistance',
+      bg: '#F3E5F5',
+      color: '#7B1FA2',
+      onClick: () => router.push('/session/AIDE-2026'),
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" strokeWidth="2" strokeLinecap="round">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <circle cx="12" cy="17" r="0.5" fill="#7B1FA2" />
+        </svg>
+      ),
+    },
   ]
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-full py-16 px-8">
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#00068D] mb-6 shadow-md">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round">
+    <div
+      className="flex flex-col items-center justify-center min-h-full"
+      style={{ padding: '24px 40px 16px' }}
+    >
+      {/* Logo + titre */}
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#00068D] mb-4 shadow-md">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round">
             <path d="M12 3v18M3 12h18" />
             <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
           </svg>
         </div>
-        <h2
-          style={{
-            fontFamily: 'Gilroy, sans-serif',
-            fontWeight: 800,
-            fontSize: '1.5rem',
-            letterSpacing: '-0.02em',
-            color: '#0D0D0D',
-          }}
-        >
+        <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.5rem', letterSpacing: '-0.02em', color: '#0D0D0D' }}>
           Bonjour, comment puis-je vous aider ?
         </h2>
-        <p className="mt-2 text-sm text-[#8A8A8A]" style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}>
-          Posez une question, ou utilisez un agent <span className="nl-token-agent">@</span> pour des tâches
-          structurées
+        <p className="mt-2" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A' }}>
+          Posez une question, utilisez <span className="nl-token-agent">@</span> agent,{' '}
+          <span className="nl-token-source">#</span> source ou{' '}
+          <span style={{ color: '#E65100', fontWeight: 800 }}>/</span> posture
         </p>
       </div>
 
-      {onRoutingMode && (
-        <button
-          onClick={onRoutingMode}
-          className="mb-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#8A8A8A] hover:text-[#00068D] hover:bg-[#E8E9F8] transition-all"
-          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.03em' }}
-        >
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <path d="M19 12H5M5 12l7-7M5 12l7 7" />
-          </svg>
-          Vue guidée
-        </button>
-      )}
-
-      {agents.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 max-w-xl w-full">
-          {suggestions
-            .filter((s) => agents.find((a) => a.slug === s.agent))
-            .map((s) => (
-              <button
-                key={s.agent}
-                onClick={() => onSuggest(s.text, s.agent)}
-                className="flex items-start gap-3 p-4 rounded-xl border border-[#D8D8D8] bg-white hover:bg-[#F0F1FB] hover:border-[#2B2EB8] transition-all text-left"
-              >
-                <span className="text-xl flex-shrink-0">{s.icon}</span>
-                <div>
-                  <p
-                    className="text-xs text-[#3A3A3A] leading-relaxed"
-                    style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }}
-                  >
-                    {s.text}
-                  </p>
-                  <span className="mt-1.5 inline-block nl-token-agent text-[10px]">@{s.agent}</span>
-                </div>
-              </button>
-            ))}
-        </div>
-      )}
+      {/* 4 raccourcis */}
+      <div className="grid grid-cols-4 gap-2" style={{ maxWidth: 420, marginTop: 20, width: '100%' }}>
+        {shortcuts.map((s) => (
+          <button
+            key={s.label}
+            type="button"
+            onClick={s.onClick}
+            className="flex flex-col items-center transition-all"
+            style={{ gap: 6, padding: '12px 8px', border: '0.5px solid var(--color-border)', borderRadius: 10, background: 'white', cursor: 'pointer' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2B2EB8'; e.currentTarget.style.background = '#F0F1FB' }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.background = 'white' }}
+          >
+            <div style={{ width: 28, height: 28, borderRadius: 7, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {s.icon}
+            </div>
+            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
+              {s.label}
+            </span>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
