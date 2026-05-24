@@ -31,7 +31,7 @@ interface ChatInputProps {
   onOpenSourceSheet?: () => void
 }
 
-type PaletteMode = null | 'agent' | 'source'
+type PaletteMode = null | 'agent' | 'source' | 'posture'
 
 const MODE_COLORS: Record<string, { bg: string; color: string; border: string }> = {
   docs:     { bg: '#E8E9F8', color: '#00068D', border: '#2B2EB8' },
@@ -143,7 +143,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
 
   // Load meta-prompts list when popover opens
   useEffect(() => {
-    if (!popoverOpen || metaPromptsData) return
+    if ((!popoverOpen && paletteMode !== 'posture') || metaPromptsData) return
     setMetaPromptsLoading(true)
     fetch('/api/meta-prompts')
       .then((r) => r.json())
@@ -154,7 +154,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       }))
       .catch(() => {})
       .finally(() => setMetaPromptsLoading(false))
-  }, [popoverOpen, metaPromptsData])
+  }, [popoverOpen, paletteMode, metaPromptsData])
 
   function handleTextChange(value: string) {
     setText(value)
@@ -269,7 +269,13 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault()
       handleSend()
+      return
     }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+    // Shift+Entrée : comportement natif textarea (saut de ligne)
   }
 
   const hasContent = text.trim().length > 0 || selectedAgent !== null || selectedSources.length > 0 || selectedFile !== null
@@ -303,6 +309,55 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       />
 
       {/* Palette overlay */}
+      {paletteMode === 'posture' && (
+        <div
+          className="absolute bottom-full left-0 right-0 mx-6 mb-1 z-50 bg-white rounded-xl shadow-xl border border-[#D8D8D8] overflow-hidden"
+          style={{ maxHeight: 320, overflowY: 'auto' }}
+        >
+          <div className="px-3 pt-3 pb-1">
+            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#0D0D0D' }}>
+              CHOISIR UNE POSTURE
+            </p>
+          </div>
+          {metaPromptsLoading ? (
+            <div className="flex items-center justify-center py-6">
+              <div className="w-4 h-4 border-2 border-[#D8D8D8] border-t-[#E65100] rounded-full animate-spin" />
+            </div>
+          ) : metaPromptsData ? (
+            <div className="px-2 pb-2">
+              {(['institutional', 'shared', 'personal'] as const).map((section) => {
+                const items = metaPromptsData[section]
+                if (items.length === 0) return null
+                const label = section === 'institutional' ? 'Institutionnel' : section === 'shared' ? 'Partagé' : 'Personnel'
+                return (
+                  <div key={section}>
+                    <p className="px-1 mt-2 mb-0.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.1em', color: '#8A8A8A', textTransform: 'uppercase' }}>
+                      {label}
+                    </p>
+                    {items.map((mp) => (
+                      <button
+                        key={mp.id}
+                        type="button"
+                        onClick={() => { onActivateMetaPrompt?.(mp.id, mp.title); setPaletteMode(null) }}
+                        className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-[#FEF0E8] transition-all flex items-center justify-between gap-2"
+                      >
+                        <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D', lineHeight: '1.3' }}>
+                          {mp.title}
+                        </span>
+                        {activeMetaPrompt?.id === mp.id && (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E65100" strokeWidth="2.5" strokeLinecap="round">
+                            <path d="M20 6L9 17l-5-5" />
+                          </svg>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )
+              })}
+            </div>
+          ) : null}
+        </div>
+      )}
       {paletteMode === 'agent' && (
         <AgentPalette
           agents={agents}
@@ -550,14 +605,14 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
 
       {/* ── DESKTOP : inchangé ──────────────────────────────────────── */}
       <div className="hidden md:block">
-        <div className="mt-3 flex flex-col rounded-xl border border-[#D8D8D8] bg-white md:focus-within:ring-2 md:focus-within:ring-[#2B2EB8] md:focus-within:border-transparent transition-all overflow-hidden">
+        <div className="mt-3 flex flex-col rounded-xl border border-[#D8D8D8] bg-white md:focus-within:ring-2 md:focus-within:ring-[#2B2EB8] md:focus-within:border-transparent transition-all overflow-hidden" style={{ boxShadow: '0 1px 6px rgba(0, 0, 6, 0.08)' }}>
           <textarea
             ref={textareaRef}
             value={text}
             onChange={(e) => handleTextChange(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={disabled}
-            placeholder="Posez une question ou tapez @ pour un agent, # pour une source · Cmd+Entrée"
+            placeholder="Posez une question · Shift+Entrée pour aller à la ligne"
             className="w-full px-4 pt-3 pb-2 bg-transparent resize-none text-[#0D0D0D] placeholder:text-[#8A8A8A] focus:outline-none disabled:opacity-50 leading-relaxed"
             style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-base)', minHeight: 'var(--input-min-h)', maxHeight: '200px' }}
             rows={1}
@@ -577,35 +632,35 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                   <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
                 </svg>
               </button>
-              {/* @ trigger */}
+              {/* @ Agent */}
               <button
-                onClick={() => {
-                  setText((t) => t + '@')
-                  setPaletteMode('agent')
-                  setPaletteQuery('')
-                  textareaRef.current?.focus()
-                }}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#E8E9F8] hover:text-[#00068D] transition-all text-sm font-bold"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                onClick={() => { setText((t) => t + '@'); setPaletteMode('agent'); setPaletteQuery(''); textareaRef.current?.focus() }}
+                style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '3px 8px', borderRadius: 6, border: '0.5px solid var(--color-border)', background: '#F2F2F2', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#5A5A5A', cursor: 'pointer' }}
                 title="Sélectionner un agent (@)"
                 aria-label="Sélectionner un agent"
               >
-                @
+                <span style={{ color: '#00068D', fontWeight: 800 }}>@</span>
+                <span style={{ fontSize: 'var(--text-xs)' }}>Agent</span>
               </button>
-              {/* # trigger */}
+              {/* # Source */}
               <button
-                onClick={() => {
-                  setText((t) => t + '#')
-                  setPaletteMode('source')
-                  setPaletteQuery('')
-                  textareaRef.current?.focus()
-                }}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8A8A8A] hover:bg-[#e8f5e9] hover:text-[#2e7d32] transition-all text-sm font-bold"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                onClick={() => { setText((t) => t + '#'); setPaletteMode('source'); setPaletteQuery(''); textareaRef.current?.focus() }}
+                style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '3px 8px', borderRadius: 6, border: '0.5px solid var(--color-border)', background: '#F2F2F2', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#5A5A5A', cursor: 'pointer' }}
                 title="Sélectionner une source (#)"
                 aria-label="Sélectionner une source"
               >
-                #
+                <span style={{ color: '#2E7D32', fontWeight: 800 }}>#</span>
+                <span style={{ fontSize: 'var(--text-xs)' }}>Source</span>
+              </button>
+              {/* / Posture */}
+              <button
+                onClick={() => setPaletteMode('posture')}
+                style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '3px 8px', borderRadius: 6, border: '0.5px solid var(--color-border)', background: '#F2F2F2', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#5A5A5A', cursor: 'pointer' }}
+                title="Choisir une posture (/)"
+                aria-label="Choisir une posture"
+              >
+                <span style={{ color: '#E65100', fontWeight: 800 }}>/</span>
+                <span style={{ fontSize: 'var(--text-xs)' }}>Posture</span>
               </button>
               {/* Clear */}
               {hasContent && (
@@ -679,15 +734,15 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                       type="button"
                       onClick={() => onSourceModeChange(mode)}
                       style={{
-                        height: 26,
-                        padding: '0 8px',
+                        height: 32,
+                        padding: '0 10px',
                         borderRadius: 13,
                         border: `0.5px solid ${active ? (MODE_COLORS[mode]?.border ?? '#2B2EB8') : '#D8D8D8'}`,
                         background: active ? (MODE_COLORS[mode]?.bg ?? '#E8E9F8') : 'transparent',
                         color: active ? (MODE_COLORS[mode]?.color ?? '#00068D') : '#8A8A8A',
                         fontFamily: 'Gilroy, sans-serif',
-                        fontWeight: active ? 800 : 300,
-                        fontSize: 'var(--text-2xs)',
+                        fontWeight: active ? 800 : 500,
+                        fontSize: 'var(--text-xs)',
                         whiteSpace: 'nowrap',
                         flexShrink: 0,
                         display: 'flex',
