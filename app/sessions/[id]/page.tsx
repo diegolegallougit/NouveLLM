@@ -89,6 +89,35 @@ export default function SessionDashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   useEffect(() => { load() }, [id])
 
+  function exportSession() {
+    if (!session) return
+    const data = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      generator: 'NouveLLM',
+      session: {
+        name: session.name,
+        description: session.description ?? undefined,
+        systemPrompt: session.systemPrompt ?? undefined,
+        studentConsigne: session.studentConsigne ?? undefined,
+        scenarioSlug: session.scenarioSlug ?? undefined,
+        visibility: session.visibility,
+        maxParticipants: session.maxParticipants ?? undefined,
+        access: session.access,
+        validityHours: 168,
+        agentSlugs: session.agents.map(a => a.slug),
+        sourceSlugs: session.sources.map(s => s.slug),
+      },
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `seance-${session.name.toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 40)}-${Date.now()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   async function triggerPhase2() {
     if (!session) return
     if (!confirm('Envoyer le signal Phase 2 à toutes les conversations actives de cette session ?')) return
@@ -150,6 +179,14 @@ export default function SessionDashboardPage() {
               Code : <span className="font-mono font-bold">{session.code}</span> · Créée le {formatDate(session.createdAt)}
             </p>
           </div>
+          <button
+            onClick={exportSession}
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-[11px] hover:bg-[#F2F2F2] transition-colors"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#5A5A5A' }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+            EXPORTER
+          </button>
         </div>
 
         {/* Stats cards */}

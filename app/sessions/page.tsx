@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -41,6 +41,40 @@ export default function SessionsPage() {
   const [sessions, setSessions] = useState<CourseSession[]>([])
   const [working, setWorking] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  function showToast(type: 'success' | 'error', message: string) {
+    setToast({ type, message })
+    setTimeout(() => setToast(null), 3500)
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    try {
+      const text = await file.text()
+      const parsed = JSON.parse(text) as { version?: number; session?: { name?: string; validityHours?: number; [k: string]: unknown } }
+      if (parsed.version !== 1 || !parsed.session?.name) {
+        showToast('error', 'Format de fichier invalide')
+        return
+      }
+      const { session: s } = parsed
+      const validUntil = new Date(Date.now() + (Number(s.validityHours) || 168) * 3600 * 1000).toISOString()
+      const res = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...s, validUntil }),
+      })
+      if (!res.ok) { showToast('error', "Erreur lors de l'import"); return }
+      const data = await res.json() as { session: { id: string } }
+      showToast('success', 'Séance importée avec succès')
+      router.push(`/sessions/${data.session.id}`)
+    } catch {
+      showToast('error', 'Format de fichier invalide')
+    }
+  }
 
   async function load() {
     const d = await fetch('/api/sessions').then(r => r.json())
@@ -109,6 +143,15 @@ export default function SessionsPage() {
               <span className="hidden sm:inline">NOUVELLE SÉANCE</span>
               <span className="sm:hidden">Nouvelle</span>
             </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] rounded-xl text-sm border border-[#D8D8D8] transition-all hover:bg-[#F2F2F2]"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#5A5A5A', letterSpacing: '0.04em' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+              <span className="hidden sm:inline">IMPORTER</span>
+            </button>
+            <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
           </div>
         </div>
 
@@ -193,6 +236,12 @@ export default function SessionsPage() {
         )}
       </div>
     </div>
+    {toast && (
+      <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-md text-[12px] whitespace-nowrap ${toast.type === 'success' ? 'bg-[#E8F5E9] border border-[#A5D6A7] text-[#2E7D32]' : 'bg-red-50 border border-red-200 text-red-700'}`}
+        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+        {toast.type === 'success' ? '✓' : '⚠'} {toast.message}
+      </div>
+    )}
   )
 }
 
