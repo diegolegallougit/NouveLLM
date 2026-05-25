@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 interface Conversation {
   id: string
@@ -106,6 +107,7 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadConversations() }, [refreshKey])
 
+  const pathname = usePathname()
   const showTools = userRole !== 'STUDENT'
 
   // STUDENT in drawer: Paramètres only
@@ -353,44 +355,22 @@ export default function Sidebar({ onSelectConversation, activeConversationId, on
       {/* Desktop footer — tool links */}
       {showTools && !inDrawer && (
         <div className="border-t border-[#D8D8D8] flex-shrink-0 px-2 py-2 flex flex-col gap-1">
-          <a
-            href="/spaces"
-            className="flex items-center gap-2.5 px-3 rounded-lg transition-all bg-[#E8E9F8] text-[#00068D] hover:bg-[#00068D] hover:text-white"
-            style={{ minHeight: 52, fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
-            Mes dossiers
-          </a>
-          <a
-            href="/sessions"
-            className="flex items-center gap-2.5 px-3 rounded-lg transition-all bg-[#E8E9F8] text-[#00068D] hover:bg-[#00068D] hover:text-white"
-            style={{ minHeight: 52, fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-            Séances
-          </a>
-          <a
-            href="/agents"
-            className="flex items-center gap-2.5 px-3 rounded-lg transition-all bg-[#FFF8E1] text-[#E65100] hover:bg-[#E65100] hover:text-white"
-            style={{ minHeight: 52, fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-            </svg>
-            Agents
-          </a>
-          <a
-            href="/session/AIDE-2026"
-            className="flex items-center gap-2.5 px-3 rounded-lg transition-all bg-[#F3E5F5] text-[#7B1FA2] hover:bg-[#7B1FA2] hover:text-white"
-            style={{ minHeight: 52, fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <circle cx="12" cy="17" r="0.5" fill="currentColor" />
-            </svg>
-            Assistance
-          </a>
+          {[
+            { href: '/spaces', label: 'Mes dossiers', active: pathname === '/spaces', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg> },
+            { href: '/sessions', label: 'Séances', active: pathname?.startsWith('/sessions'), icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg> },
+            { href: '/agents', label: 'Agents', active: pathname === '/agents', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg> },
+            { href: '/session/AIDE-2026', label: 'Assistance', active: pathname === '/session/AIDE-2026', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><circle cx="12" cy="17" r="0.5" fill="currentColor" /></svg> },
+          ].map(({ href, label, active, icon }) => (
+            <a
+              key={href}
+              href={href}
+              className={`flex items-center gap-2.5 px-3 rounded-lg transition-all hover:bg-[#F0F1FB] hover:text-[#00068D] ${active ? 'bg-[#E8E9F8] text-[#00068D] border-l-2 border-[#00068D]' : 'bg-transparent text-[#5A5A5A]'}`}
+              style={{ minHeight: 52, fontFamily: 'Gilroy, sans-serif', fontWeight: 700, fontSize: 'var(--text-xs)' }}
+            >
+              {icon}
+              {label}
+            </a>
+          ))}
         </div>
       )}
 

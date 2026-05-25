@@ -2,21 +2,13 @@
 
 interface SourceModeSheetProps {
   isOpen: boolean
-  sourceMode: 'docs' | 'usn' | 'academic' | 'web' | 'all'
-  onSourceModeChange: (mode: 'docs' | 'usn' | 'academic' | 'web' | 'all') => void
+  sourceMode: 'usn' | 'academic' | 'web' | 'all'
+  onSourceModeChange: (mode: 'usn' | 'academic' | 'web' | 'all') => void
   onClose: () => void
   onFileClick: () => void
 }
 
 const SOURCE_OPTIONS = [
-  {
-    mode: 'docs' as const,
-    icon: '📂',
-    label: 'Mes docs',
-    desc: 'Vos dossiers et documents personnels',
-    activeBg: '#E8E9F8',
-    activeColor: '#00068D',
-  },
   {
     mode: 'usn' as const,
     icon: '🏛️',

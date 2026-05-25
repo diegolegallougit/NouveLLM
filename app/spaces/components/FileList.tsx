@@ -82,6 +82,8 @@ const FileList = memo(function FileList({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const sourceUrlRef = useRef<HTMLInputElement>(null)
   const createSpaceInputRef = useRef<HTMLInputElement>(null)
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   function handleFilesSelected(files: File[]) {
     if (!files.length) return
@@ -117,6 +119,11 @@ const FileList = memo(function FileList({
   const displayDocs = useMemo(
     () => selectedFolderId ? docs.filter(d => d.folderId === selectedFolderId) : docs.filter(d => d.folderId === null),
     [docs, selectedFolderId]
+  )
+
+  const filteredDocs = useMemo(
+    () => searchQuery ? displayDocs.filter(d => (d.displayName ?? '').toLowerCase().includes(searchQuery.toLowerCase())) : displayDocs,
+    [displayDocs, searchQuery]
   )
 
   const totalDocs = docs.length
@@ -231,7 +238,7 @@ const FileList = memo(function FileList({
                   {selectedSpace.description}
                 </p>
               )}
-              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#C8C8C8', marginTop: '0.25rem' }}>
+              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#C8C8C8', marginTop: '0.25rem' }}>
                 {selectedSpace.folders.length} dossier{selectedSpace.folders.length !== 1 ? 's' : ''} · {totalDocs} fichier{totalDocs !== 1 ? 's' : ''}
               </p>
             </div>
@@ -322,6 +329,22 @@ const FileList = memo(function FileList({
               accept=".pdf,.docx,.doc,.txt,.md,.pptx,.xlsx,.csv,.json"
               onChange={e => { const files = Array.from(e.target.files ?? []); if (files.length) handleFilesSelected(files); e.target.value = '' }}
             />
+            <button
+              onClick={() => {
+                setShowSearch(true)
+                setTimeout(() => {
+                  document.querySelector<HTMLInputElement>('[data-search-input]')?.focus()
+                }, 50)
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg border border-[#D8D8D8] bg-white hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#0D0D0D' }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+              Rechercher
+            </button>
             {(uploading || uploadMsg) && (
               <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', fontStyle: 'italic' }}>
                 {uploadMsg || 'Importation en cours…'}
@@ -332,6 +355,27 @@ const FileList = memo(function FileList({
                 {uploadError}
               </span>
             )}
+          </div>
+        )}
+
+        {activeTab === 'files' && showSearch && (
+          <div className="flex items-center gap-2">
+            <input
+              data-search-input
+              type="text"
+              placeholder="Rechercher un fichier..."
+              className="flex-1 px-3 py-2 rounded-lg border border-[#D8D8D8] focus:border-[#00068D] focus:outline-none"
+              style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+              }}
+            />
+            <button
+              onClick={() => { setShowSearch(false); setSearchQuery('') }}
+              className="px-2 py-2 rounded-lg text-[#8A8A8A] hover:text-[#5A5A5A]"
+            >
+              ✕
+            </button>
           </div>
         )}
 
@@ -349,7 +393,7 @@ const FileList = memo(function FileList({
               )}
             </div>
             <div className="space-y-1">
-              <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#5A5A5A', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#5A5A5A', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                 URL source <span style={{ fontWeight: 300, textTransform: 'none' }}>(optionnel)</span>
               </label>
               <input
@@ -399,7 +443,7 @@ const FileList = memo(function FileList({
         {/* Folders grid (root only) */}
         {activeTab === 'files' && !selectedFolderId && (
           <div>
-            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
+            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
               Dossiers
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -414,7 +458,7 @@ const FileList = memo(function FileList({
                   <IconFolder size={22} fill="#E8E9F8" stroke="#2B2EB8" strokeWidth={1.5} />
                   <div className="flex-1 min-w-0">
                     <p className="truncate" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#0D0D0D' }}>{folder.name}</p>
-                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#C8C8C8' }}>{folder._count.documents} fichier{folder._count.documents !== 1 ? 's' : ''}</p>
+                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#C8C8C8' }}>{folder._count.documents} fichier{folder._count.documents !== 1 ? 's' : ''}</p>
                   </div>
                   {deletingFolderId === folder.id ? (
                     <div className="flex flex-col gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
@@ -467,17 +511,17 @@ const FileList = memo(function FileList({
         )}
 
         {/* Files section */}
-        {activeTab === 'files' && (docsLoading || displayDocs.length > 0) && (
+        {activeTab === 'files' && (docsLoading || filteredDocs.length > 0) && (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                 Fichiers
               </p>
             </div>
 
-            {isShared && displayDocs.length > 0 && (
+            {isShared && filteredDocs.length > 0 && (
               <BatchActions
-                displayDocs={displayDocs}
+                displayDocs={filteredDocs}
                 selectedDocIds={selectedDocIds}
                 setSelectedDocIds={onSetSelectedDocIds}
                 onBatchVisibility={onBatchVisibility}
@@ -491,7 +535,7 @@ const FileList = memo(function FileList({
               </div>
             ) : (
               <div className="bg-white rounded-xl border border-[#D8D8D8] overflow-hidden">
-                {displayDocs.map((doc, i) => {
+                {filteredDocs.map((doc, i) => {
                   const isVis = doc.isVisible !== false
                   const isPending = doc.indexingStatus === 'pending'
                   const isFailed = doc.indexingStatus === 'failed'
@@ -557,28 +601,28 @@ const FileList = memo(function FileList({
                                   <button
                                     onClick={() => onToggleDocVisibility(doc.id, doc.isVisible)}
                                     className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border transition-all hover:opacity-80 ${isVis ? 'bg-green-50 border-green-200 text-green-700' : 'bg-[#F2F2F2] border-[#D8D8D8] text-[#8A8A8A]'}`}
-                                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
+                                    style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}
                                   >
                                     <span className={`w-1.5 h-1.5 rounded-full ${isVis ? 'bg-green-500' : 'bg-[#C8C8C8]'}`} />
                                     {isVis ? 'Visible' : 'Masqué'}
                                   </button>
                                   {(doc.visibleFrom || doc.visibleUntil) && editVisibilityDocId !== doc.id && (
-                                    <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
+                                    <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>
                                       {doc.visibleFrom ? `Dès ${fmtVisibleDate(doc.visibleFrom)}` : ''}{doc.visibleFrom && doc.visibleUntil ? ' → ' : ''}{doc.visibleUntil ? `${fmtVisibleDate(doc.visibleUntil)}` : ''}
                                     </span>
                                   )}
                                   {editVisibilityDocId === doc.id ? (
                                     <div className="flex items-center gap-1">
-                                      <input type="date" defaultValue={doc.visibleFrom ? doc.visibleFrom.slice(0, 10) : ''} id={`vf-${doc.id}`} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontSize: 'var(--text-2xs)' }} />
-                                      <span style={{ fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>→</span>
-                                      <input type="date" defaultValue={doc.visibleUntil ? doc.visibleUntil.slice(0, 10) : ''} id={`vu-${doc.id}`} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontSize: 'var(--text-2xs)' }} />
+                                      <input type="date" defaultValue={doc.visibleFrom ? doc.visibleFrom.slice(0, 10) : ''} id={`vf-${doc.id}`} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontSize: 'var(--text-xs)' }} />
+                                      <span style={{ fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>→</span>
+                                      <input type="date" defaultValue={doc.visibleUntil ? doc.visibleUntil.slice(0, 10) : ''} id={`vu-${doc.id}`} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]" style={{ fontSize: 'var(--text-xs)' }} />
                                       <button onClick={() => {
                                         const f = (document.getElementById(`vf-${doc.id}`) as HTMLInputElement)?.value ?? ''
                                         const u = (document.getElementById(`vu-${doc.id}`) as HTMLInputElement)?.value ?? ''
                                         onSaveDocDates(doc.id, f, u)
                                         setEditVisibilityDocId(null)
-                                      }} className="px-1.5 py-0.5 rounded bg-[#00068D] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>OK</button>
-                                      <button aria-label="Fermer" onClick={() => setEditVisibilityDocId(null)} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>✕</button>
+                                      }} className="px-1.5 py-0.5 rounded bg-[#00068D] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}>OK</button>
+                                      <button aria-label="Fermer" onClick={() => setEditVisibilityDocId(null)} className="px-1.5 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}>✕</button>
                                     </div>
                                   ) : (
                                     <button aria-label="Modifier les dates de visibilité" onClick={() => setEditVisibilityDocId(doc.id)} className="text-[#8A8A8A] hover:text-[#00068D]" title="Modifier les dates" style={{ fontSize: 'var(--text-xs)' }}>✏</button>
@@ -591,18 +635,18 @@ const FileList = memo(function FileList({
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0">
                         {doc.uploadedBy && (
-                          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#C8C8C8' }} title={doc.uploadedBy.email}>
+                          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#C8C8C8' }} title={doc.uploadedBy.email}>
                             {doc.uploadedBy.name ?? doc.uploadedBy.email.split('@')[0]}
                           </span>
                         )}
-                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#C8C8C8' }}>{formatSize(doc.size)}</span>
+                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#C8C8C8' }}>{formatSize(doc.size)}</span>
                         {doc.uploadedAt && (
-                          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#C8C8C8' }}>{formatDate(doc.uploadedAt)}</span>
+                          <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#C8C8C8' }}>{formatDate(doc.uploadedAt)}</span>
                         )}
                         {deletingDocId === doc.id ? (
                           <div className="flex items-center gap-1">
-                            <button onClick={() => { onDeleteDoc(doc.id); setDeletingDocId(null) }} className="px-2 py-0.5 rounded bg-[#EF4444] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Oui</button>
-                            <button onClick={() => setDeletingDocId(null)} className="px-2 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Non</button>
+                            <button onClick={() => { onDeleteDoc(doc.id); setDeletingDocId(null) }} className="px-2 py-0.5 rounded bg-[#EF4444] text-white" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}>Oui</button>
+                            <button onClick={() => setDeletingDocId(null)} className="px-2 py-0.5 rounded border border-[#D8D8D8] text-[#5A5A5A] hover:bg-[#F2F2F2]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)' }}>Non</button>
                           </div>
                         ) : hoveredDocId === doc.id && renamingDocId !== doc.id ? (
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -675,7 +719,7 @@ const FileList = memo(function FileList({
                         {' '}{formatAuditAction(entry.action)}{' '}
                         <span style={{ color: '#5A5A5A' }}>{entry.entityName}</span>
                       </p>
-                      <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#C8C8C8', marginTop: '0.1rem' }}>
+                      <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#C8C8C8', marginTop: '0.1rem' }}>
                         {new Date(entry.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -698,7 +742,7 @@ const FileList = memo(function FileList({
             </div>
             <div className="flex-1 px-5 py-5 space-y-5">
               <div className="space-y-1.5">
-                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   Nom de l&apos;espace de travail
                 </label>
                 <input
@@ -709,7 +753,7 @@ const FileList = memo(function FileList({
                 />
               </div>
               <div className="space-y-1.5">
-                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   Description
                 </label>
                 <textarea
@@ -723,7 +767,7 @@ const FileList = memo(function FileList({
               </div>
               {canSetAudience && (
                 <div className="space-y-1.5">
-                  <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                  <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                     Audience
                   </label>
                   <select
@@ -740,7 +784,7 @@ const FileList = memo(function FileList({
                 </div>
               )}
               <div className="space-y-2">
-                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   Qui peut enrichir cet espace ?
                 </label>
                 <div className="space-y-1">

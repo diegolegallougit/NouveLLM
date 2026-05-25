@@ -74,6 +74,52 @@ export default function SourcePalette({ sources, query, selected, onToggle, onCl
 
       {/* List */}
       <div className="overflow-y-auto nl-scroll" style={{ maxHeight: '310px' }}>
+        {folderSources.length > 0 && (
+          <>
+            <div className="px-3 py-1.5 bg-[#F2F2F2] border-b border-[#D8D8D8]">
+              <span className="text-[#8A8A8A] uppercase tracking-widest"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Mes dossiers</span>
+            </div>
+            {folderSources.map((source) => {
+              const isSelected = selected.includes(source.slug)
+              const globalIdx = filtered.indexOf(source)
+              return (
+                <button key={source.slug} onClick={() => onToggle(source)}
+                  className="w-full flex items-start gap-3 px-4 py-2.5 text-left transition-colors border-b border-[#F2F2F2] last:border-0"
+                  style={{ background: globalIdx === activeIndex ? '#f1f8e9' : isSelected ? '#f1f8e9' : 'transparent' }}>
+                  <span className="text-base flex-shrink-0 mt-0.5">{source.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#2e7d32' }}>
+                        #{source.slug}
+                      </span>
+                      {source.docCount != null && (
+                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
+                          {source.docCount} docs
+                        </span>
+                      )}
+                      <span className="px-1.5 py-0.5 rounded border bg-[#E8E9F8] text-[#00068D] border-[#C5C7F0]"
+                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
+                        Personnel
+                      </span>
+                    </div>
+                    {source.spaceName && (
+                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A', marginTop: '1px' }}>
+                        {source.spaceName}
+                      </p>
+                    )}
+                  </div>
+                  {isSelected && (
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#2e7d32] flex items-center justify-center mt-1">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </>
+        )}
+
         {institutionalSources.length > 0 && (
           <>
             {folderSources.length > 0 && (
@@ -116,52 +162,6 @@ export default function SourcePalette({ sources, query, selected, onToggle, onCl
                     <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', marginTop: '2px' }}>
                       {source.description}
                     </p>
-                  </div>
-                  {isSelected && (
-                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#2e7d32] flex items-center justify-center mt-1">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
-                    </div>
-                  )}
-                </button>
-              )
-            })}
-          </>
-        )}
-
-        {folderSources.length > 0 && (
-          <>
-            <div className="px-3 py-1.5 bg-[#F2F2F2] border-b border-[#D8D8D8]">
-              <span className="text-[#8A8A8A] uppercase tracking-widest"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Mes espaces documentaires</span>
-            </div>
-            {folderSources.map((source) => {
-              const isSelected = selected.includes(source.slug)
-              const globalIdx = filtered.indexOf(source)
-              return (
-                <button key={source.slug} onClick={() => onToggle(source)}
-                  className="w-full flex items-start gap-3 px-4 py-2.5 text-left transition-colors border-b border-[#F2F2F2] last:border-0"
-                  style={{ background: globalIdx === activeIndex ? '#f1f8e9' : isSelected ? '#f1f8e9' : 'transparent' }}>
-                  <span className="text-base flex-shrink-0 mt-0.5">{source.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#2e7d32' }}>
-                        #{source.slug}
-                      </span>
-                      {source.docCount != null && (
-                        <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
-                          {source.docCount} docs
-                        </span>
-                      )}
-                      <span className="px-1.5 py-0.5 rounded border bg-[#E8E9F8] text-[#00068D] border-[#C5C7F0]"
-                        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
-                        Personnel
-                      </span>
-                    </div>
-                    {source.spaceName && (
-                      <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A', marginTop: '1px' }}>
-                        {source.spaceName}
-                      </p>
-                    )}
                   </div>
                   {isSelected && (
                     <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#2e7d32] flex items-center justify-center mt-1">

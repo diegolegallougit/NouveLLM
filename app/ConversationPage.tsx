@@ -37,7 +37,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const [onboardingDone, setOnboardingDone] = useState(false)
   const [showRoutingPanel, setShowRoutingPanel] = useState(false)
   const [pendingAgent, setPendingAgent] = useState<string | null | undefined>(undefined)
-  const [sourceMode, setSourceMode] = useState<'docs' | 'usn' | 'academic' | 'web' | 'all'>('usn')
+  const [sourceMode, setSourceMode] = useState<'usn' | 'academic' | 'web' | 'all'>('usn')
   const [sourceSheetOpen, setSourceSheetOpen] = useState(false)
   const [activeMetaPrompt, setActiveMetaPrompt] = useState<{ id: string; title: string } | null>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -551,22 +551,18 @@ function EmptyState() {
   const shortcuts = [
     {
       label: 'Mes dossiers',
-      bg: '#E8E9F8',
-      color: '#00068D',
       onClick: () => router.push('/spaces'),
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00068D" strokeWidth="2" strokeLinecap="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
         </svg>
       ),
     },
     {
       label: 'Séances',
-      bg: '#E8F5E9',
-      color: '#2E7D32',
       onClick: () => router.push('/sessions'),
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" strokeWidth="2" strokeLinecap="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <rect x="3" y="4" width="18" height="18" rx="2" />
           <path d="M16 2v4M8 2v4M3 10h18" />
         </svg>
@@ -574,11 +570,9 @@ function EmptyState() {
     },
     {
       label: 'Agents',
-      bg: '#FFF8E1',
-      color: '#E65100',
       onClick: () => router.push('/agents'),
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E65100" strokeWidth="2" strokeLinecap="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M15 3l-4 4-4-4" />
           <path d="M3 12h18" />
           <path d="M12 7v10" />
@@ -588,14 +582,12 @@ function EmptyState() {
     },
     {
       label: 'Assistance',
-      bg: '#F3E5F5',
-      color: '#7B1FA2',
       onClick: () => router.push('/session/AIDE-2026'),
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" strokeWidth="2" strokeLinecap="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <circle cx="12" cy="12" r="10" />
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-          <circle cx="12" cy="17" r="0.5" fill="#7B1FA2" />
+          <circle cx="12" cy="17" r="0.5" fill="currentColor" />
         </svg>
       ),
     },
@@ -633,13 +625,23 @@ function EmptyState() {
             onClick={s.onClick}
             className="flex flex-col items-center transition-all"
             style={{ gap: 6, padding: '12px 8px', border: '0.5px solid var(--color-border)', borderRadius: 10, background: 'white', cursor: 'pointer' }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#2B2EB8'; e.currentTarget.style.background = '#F0F1FB' }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.background = 'white' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#00068D'
+              e.currentTarget.style.background = '#F0F1FB'
+              const ic = e.currentTarget.querySelector<HTMLElement>('.icon-c')
+              if (ic) { ic.style.background = '#E8E9F8'; ic.style.color = '#00068D' }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border)'
+              e.currentTarget.style.background = 'white'
+              const ic = e.currentTarget.querySelector<HTMLElement>('.icon-c')
+              if (ic) { ic.style.background = '#F2F2F2'; ic.style.color = '#5A5A5A' }
+            }}
           >
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="icon-c" style={{ width: 28, height: 28, borderRadius: 7, background: '#F2F2F2', color: '#5A5A5A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {s.icon}
             </div>
-            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
+            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 700, fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
               {s.label}
             </span>
           </button>

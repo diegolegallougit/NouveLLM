@@ -26,15 +26,14 @@ interface ChatInputProps {
   onDeactivateMetaPrompt?: () => void
   onActivateMetaPrompt?: (id: string, title: string) => void
   onAbort?: () => void
-  sourceMode: 'docs' | 'usn' | 'academic' | 'web' | 'all'
-  onSourceModeChange: (mode: 'docs' | 'usn' | 'academic' | 'web' | 'all') => void
+  sourceMode: 'usn' | 'academic' | 'web' | 'all'
+  onSourceModeChange: (mode: 'usn' | 'academic' | 'web' | 'all') => void
   onOpenSourceSheet?: () => void
 }
 
 type PaletteMode = null | 'agent' | 'source' | 'posture'
 
 const MODE_COLORS: Record<string, { bg: string; color: string; border: string }> = {
-  docs:     { bg: '#E8E9F8', color: '#00068D', border: '#2B2EB8' },
   usn:      { bg: '#FFF8E1', color: '#E65100', border: '#E65100' },
   academic: { bg: '#E8F5E9', color: '#2E7D32', border: '#2E7D32' },
   web:      { bg: '#E3F2FD', color: '#1565C0', border: '#1565C0' },
@@ -42,7 +41,6 @@ const MODE_COLORS: Record<string, { bg: string; color: string; border: string }>
 }
 
 const MODE_SOURCE_FILTER: Record<string, (s: SourceConfig) => boolean> = {
-  docs:     (s) => s.isFolder === true,
   usn:      (s) => !s.isFolder && s.slug !== 'publications-shs',
   academic: (s) => !s.isFolder && s.slug === 'publications-shs',
   web:      () => false,
@@ -299,7 +297,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
 
   const plusButtonClasses = selectedFile
     ? 'bg-yellow-100 text-yellow-600'
-    : ({ docs: 'bg-indigo-100 text-indigo-600', usn: 'bg-orange-100 text-orange-600', academic: 'bg-green-100 text-green-600', web: 'bg-blue-100 text-blue-600', all: 'bg-purple-100 text-purple-600' } as const)[sourceMode]
+    : ({ usn: 'bg-orange-100 text-orange-600', academic: 'bg-green-100 text-green-600', web: 'bg-blue-100 text-blue-600', all: 'bg-purple-100 text-purple-600' } as const)[sourceMode]
 
   return (
     <div className="relative bg-white md:border-t md:border-[#D8D8D8] md:px-6 md:pb-4 flex-shrink-0">
@@ -385,7 +383,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       )}
       {paletteMode === 'source' && (
         <SourcePalette
-          sources={sources.filter(MODE_SOURCE_FILTER[sourceMode] ?? (() => true))}
+          sources={sources}
           query={paletteQuery}
           selected={selectedSources}
           onToggle={handleToggleSource}
@@ -738,7 +736,6 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                 style={{ gap: 5, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
               >
                 {([
-                  { mode: 'docs',     label: 'Mes docs',         icon: '📂' },
                   { mode: 'usn',      label: 'USN',              icon: '🏛️' },
                   { mode: 'academic', label: 'Académique',        icon: '🎓' },
                   { mode: 'web',      label: 'Web',             icon: '🌐' },
