@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import NLLogo from '@/components/ui/NLLogo'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Message, { MessageData, Source } from '@/components/chat/Message'
@@ -600,11 +601,8 @@ function EmptyState() {
     >
       {/* Logo + titre */}
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#00068D] mb-4 shadow-md">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round">
-            <path d="M12 3v18M3 12h18" />
-            <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
-          </svg>
+        <div className="mb-4 inline-flex" style={{ borderRadius: 11, boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+          <NLLogo size={40} />
         </div>
         <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.5rem', letterSpacing: '-0.02em', color: '#0D0D0D' }}>
           Bonjour, comment puis-je vous aider ?

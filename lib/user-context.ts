@@ -17,6 +17,8 @@ const SOURCE_LABELS: Record<string, string> = {
 export function buildUserContext(user: UserProfile): string {
   const parts: string[] = []
 
+  const prefix = user.name?.trim() ? `${user.name.trim()} — ` : ''
+
   if (user.roleExact || user.discipline) {
     if (user.roleExact && user.discipline) {
       parts.push(`${user.roleExact} en ${user.discipline}`)
@@ -53,5 +55,5 @@ export function buildUserContext(user: UserProfile): string {
     if (sources.length > 0) parts.push(`sources préférées : ${sources.join(', ')}`)
   }
 
-  return parts.join(', ')
+  return prefix + parts.join(', ')
 }

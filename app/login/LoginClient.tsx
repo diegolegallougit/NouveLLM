@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import NLLogo from '@/components/ui/NLLogo'
 
 interface LoginClientProps {
   proConnectEnabled: boolean
@@ -57,11 +58,8 @@ export default function LoginClient({ proConnectEnabled }: LoginClientProps) {
         <div className="w-full max-w-md">
           {/* Logo card */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#00068D] mb-5 shadow-lg">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round">
-                <path d="M12 3v18M3 12h18" />
-                <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
-              </svg>
+            <div className="mb-5 inline-flex" style={{ borderRadius: 18, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+              <NLLogo size={64} />
             </div>
             <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.75rem', letterSpacing: '-0.02em', color: '#0D0D0D' }}>
               Bienvenue sur NouveLLM

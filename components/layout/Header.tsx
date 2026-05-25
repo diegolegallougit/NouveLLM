@@ -3,6 +3,7 @@
 import { signOut } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import MetaPromptsPanel from '@/components/meta-prompts/MetaPromptsPanel'
+import NLLogo from '@/components/ui/NLLogo'
 
 interface HeaderProps {
   userName?: string
@@ -18,7 +19,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileCtxOpen, setMobileCtxOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [settingsTab, setSettingsTab] = useState<'profile' | 'meta-prompts' | 'sources' | 'data'>('meta-prompts')
+  const [settingsTab, setSettingsTab] = useState<'meta-prompts' | 'sources' | 'data'>('meta-prompts')
 
   useEffect(() => {
     const handler = () => { setSettingsOpen(true); setSettingsTab('meta-prompts') }
@@ -29,17 +30,6 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
   const [deleteAccountConfirm, setDeleteAccountConfirm] = useState(false)
   const [working, setWorking] = useState(false)
   const [done, setDone] = useState('')
-
-  // Profile form state
-  const [profileLoading, setProfileLoading] = useState(false)
-  const [profileSaving, setProfileSaving] = useState(false)
-  const [profileSaved, setProfileSaved] = useState(false)
-  const [profileError, setProfileError] = useState('')
-  const [discipline, setDiscipline] = useState('')
-  const [roleExact, setRoleExact] = useState('')
-  const [ufr, setUfr] = useState('')
-  const [niveaux, setNiveaux] = useState<string[]>([])
-  const [langues, setLangues] = useState<string[]>([])
   const [sources, setSources] = useState<string[]>([])
 
   // MES SOURCES tab state
@@ -53,38 +43,6 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
   const [notionToken, setNotionToken] = useState('')
   const [notionConnecting, setNotionConnecting] = useState(false)
   const [notionError, setNotionError] = useState('')
-
-  const NIVEAUX_OPTIONS = ['L1', 'L2', 'L3', 'M1', 'M2', 'M2-pro', 'Doctorat']
-  const LANGUES_OPTIONS = ['fr', 'en', 'ar', 'es', 'it', 'de', 'pt']
-  const ROLE_OPTIONS = ['MCF', 'PR', 'PRAG', 'ATER', 'Doctorant·e', 'BIATSS-A', 'BIATSS-B', 'Vacataire']
-  const UFR_OPTIONS = [
-    'Arts & Médias',
-    'Langues, Littératures, Civilisations et Sociétés Étrangères (LLCSE)',
-    'Littérature, Linguistique, Didactique (LLD)',
-    'Monde Anglophone',
-    'IHEAL',
-    'ESIT',
-    'ICM',
-    'INSPÉ de Paris',
-    'Autre',
-  ]
-
-  useEffect(() => {
-    if (settingsTab !== 'profile' || !settingsOpen) return
-    setProfileLoading(true)
-    fetch('/api/users/profile')
-      .then((r) => r.json())
-      .then((data) => {
-        setDiscipline(data.discipline ?? '')
-        setRoleExact(data.roleExact ?? '')
-        setUfr(data.ufr ?? '')
-        setNiveaux(data.niveauxEnseignement ? data.niveauxEnseignement.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
-        setLangues(data.languesTravail ? data.languesTravail.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
-        setSources(data.sourcesAcademiques ? data.sourcesAcademiques.split(',').map((s: string) => s.trim()).filter(Boolean) : [])
-      })
-      .catch(() => {})
-      .finally(() => setProfileLoading(false))
-  }, [settingsTab, settingsOpen])
 
   useEffect(() => {
     if (settingsTab !== 'sources' || !settingsOpen) return
@@ -146,40 +104,6 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
     await fetch('/api/connectors/notion/connect', { method: 'DELETE' })
     const intData = await fetch('/api/integrations/sources').then((res) => res.json())
     setAvailableConnectors(intData.connectors ?? [])
-  }
-
-  async function handleProfileSave() {
-    setProfileSaving(true)
-    setProfileError('')
-    setProfileSaved(false)
-    try {
-      const r = await fetch('/api/users/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          discipline: discipline || undefined,
-          roleExact: roleExact || undefined,
-          ufr: ufr || undefined,
-          niveauxEnseignement: niveaux.length > 0 ? niveaux.join(',') : undefined,
-          languesTravail: langues.length > 0 ? langues.join(',') : undefined,
-        }),
-      })
-      if (!r.ok) throw new Error()
-      setProfileSaved(true)
-      setTimeout(() => setProfileSaved(false), 3000)
-    } catch {
-      setProfileError('Une erreur est survenue. Réessayez.')
-    } finally {
-      setProfileSaving(false)
-    }
-  }
-
-  function toggleNiveau(val: string) {
-    setNiveaux((prev) => prev.includes(val) ? prev.filter((x) => x !== val) : [...prev, val])
-  }
-
-  function toggleLangue(val: string) {
-    setLangues((prev) => prev.includes(val) ? prev.filter((x) => x !== val) : [...prev, val])
   }
 
   const roleLabel =
@@ -245,7 +169,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5">
-                  <span style={{ fontSize: 14, color: '#00068D', lineHeight: 1 }}>★</span>
+                  <NLLogo size={18} />
                   <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#00068D', letterSpacing: '-0.01em' }}>
                     NouveLLM
                   </span>
@@ -299,14 +223,9 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                   </svg>
                 </button>
               )}
-              <div className="hidden md:flex items-center justify-center md:w-8 md:h-8 rounded-lg bg-[#00068D]">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M12 3v18M3 12h18" />
-                  <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
-                </svg>
-              </div>
+              <span className="hidden md:inline-flex"><NLLogo size={32} /></span>
               <div className="flex items-center gap-1.5">
-                <span className="md:hidden" style={{ fontSize: 14, color: '#00068D', lineHeight: 1 }}>★</span>
+                <span className="md:hidden inline-flex"><NLLogo size={18} /></span>
                 <span className="md:text-lg" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', letterSpacing: '-0.02em', color: '#00068D' }}>
                   NouveLLM
                 </span>
@@ -374,6 +293,15 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                       <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontWeight: 600, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>{userName}</p>
                       <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>{roleLabel}</p>
                     </div>
+                    <a
+                      href="/profile"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full text-left px-3 py-2 text-[#3A3A3A] hover:bg-[#F2F2F2] transition-colors flex items-center gap-2"
+                      style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', textDecoration: 'none' }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+                      Mon profil
+                    </a>
                     <button
                       onClick={() => { setMenuOpen(false); setSettingsOpen(true) }}
                       className="w-full text-left px-3 py-2 text-[#3A3A3A] hover:bg-[#F2F2F2] transition-colors flex items-center gap-2"
@@ -417,10 +345,9 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
             </div>
 
             {/* Tab bar */}
-            <div className="flex border-b border-[#D8D8D8] px-6 flex-shrink-0">
+            <div className="flex border-b border-[#D8D8D8] px-6 flex-shrink-0 items-end">
               {([
                 { id: 'meta-prompts', label: 'POSTURES' },
-                { id: 'profile',      label: 'MON PROFIL' },
                 { id: 'sources',      label: 'MES SOURCES' },
                 { id: 'data',         label: 'MES DONNÉES' },
               ] as const).map(({ id, label }) => (
@@ -433,191 +360,18 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                   {label}
                 </button>
               ))}
+              <a
+                href="/profile"
+                className="px-0 py-3 mr-6 border-b-2 border-transparent text-[#8A8A8A] hover:text-[#3A3A3A] transition-all"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', textDecoration: 'none' }}
+              >
+                MON PROFIL →
+              </a>
             </div>
 
             {/* Tab content — scrollable */}
             <div className="overflow-y-auto nl-scroll flex-1 px-6 py-5">
               {settingsTab === 'meta-prompts' && <MetaPromptsPanel />}
-
-              {settingsTab === 'profile' && (
-                <div className="space-y-6">
-                  <div>
-                    <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-sm)', color: '#5A5A5A', lineHeight: '1.6' }}>
-                      Ces informations permettent à NouveLLM d&apos;adapter ses réponses à votre contexte professionnel.
-                      Elles restent privées et ne sont jamais partagées.
-                    </p>
-                  </div>
-
-                  {profileLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="w-5 h-5 border-2 border-[#D8D8D8] border-t-[#00068D] rounded-full animate-spin" />
-                    </div>
-                  ) : (
-                    <div className="space-y-5">
-                      {/* Discipline */}
-                      <div>
-                        <label
-                          htmlFor="profile-discipline"
-                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }}
-                          className="block mb-1.5"
-                        >
-                          Spécialité académique
-                        </label>
-                        <input
-                          id="profile-discipline"
-                          type="text"
-                          value={discipline}
-                          onChange={(e) => setDiscipline(e.target.value)}
-                          placeholder="ex : Traductologie, Littérature comparée…"
-                          maxLength={200}
-                          className="w-full px-3.5 py-2.5 rounded-lg border border-[#D8D8D8] bg-white focus:outline-none focus:border-[#2B2EB8] focus:ring-1 focus:ring-[#2B2EB8] transition-all"
-                          style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D', minHeight: 44 }}
-                        />
-                      </div>
-
-                      {/* Statut */}
-                      <div>
-                        <label
-                          htmlFor="profile-role"
-                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }}
-                          className="block mb-1.5"
-                        >
-                          Statut
-                        </label>
-                        <select
-                          id="profile-role"
-                          value={roleExact}
-                          onChange={(e) => setRoleExact(e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-lg border border-[#D8D8D8] bg-white focus:outline-none focus:border-[#2B2EB8] focus:ring-1 focus:ring-[#2B2EB8] transition-all appearance-none"
-                          style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: roleExact ? '#0D0D0D' : '#8A8A8A', minHeight: 44 }}
-                        >
-                          <option value="">— Choisir —</option>
-                          {ROLE_OPTIONS.map((r) => (
-                            <option key={r} value={r} style={{ color: '#0D0D0D' }}>{r}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* UFR */}
-                      <div>
-                        <label
-                          htmlFor="profile-ufr"
-                          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }}
-                          className="block mb-1.5"
-                        >
-                          UFR / Composante
-                        </label>
-                        <select
-                          id="profile-ufr"
-                          value={ufr}
-                          onChange={(e) => setUfr(e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-lg border border-[#D8D8D8] bg-white focus:outline-none focus:border-[#2B2EB8] focus:ring-1 focus:ring-[#2B2EB8] transition-all appearance-none"
-                          style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: ufr ? '#0D0D0D' : '#8A8A8A', minHeight: 44 }}
-                        >
-                          <option value="">— Choisir —</option>
-                          {UFR_OPTIONS.map((u) => (
-                            <option key={u} value={u} style={{ color: '#0D0D0D' }}>{u}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Niveaux d'enseignement */}
-                      <div>
-                        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }} className="mb-2">
-                          Niveaux d&apos;enseignement
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {NIVEAUX_OPTIONS.map((n) => {
-                            const checked = niveaux.includes(n)
-                            return (
-                              <button
-                                key={n}
-                                type="button"
-                                onClick={() => toggleNiveau(n)}
-                                className="px-3 py-2 rounded-lg border transition-all"
-                                style={{
-                                  minHeight: 44,
-                                  fontFamily: 'Gilroy, sans-serif',
-                                  fontWeight: checked ? 800 : 300,
-                                  fontSize: 'var(--text-sm)',
-                                  borderColor: checked ? '#2B2EB8' : '#D8D8D8',
-                                  background: checked ? '#E8E9F8' : '#FAFAFA',
-                                  color: checked ? '#00068D' : '#5A5A5A',
-                                }}
-                              >
-                                {n}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Langues de travail */}
-                      <div>
-                        <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.06em', color: '#8A8A8A', textTransform: 'uppercase' }} className="mb-2">
-                          Langues de travail
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {LANGUES_OPTIONS.map((l) => {
-                            const checked = langues.includes(l)
-                            return (
-                              <button
-                                key={l}
-                                type="button"
-                                onClick={() => toggleLangue(l)}
-                                className="px-3 py-2 rounded-lg border transition-all"
-                                style={{
-                                  minHeight: 44,
-                                  fontFamily: 'Gilroy, sans-serif',
-                                  fontWeight: checked ? 800 : 300,
-                                  fontSize: 'var(--text-sm)',
-                                  letterSpacing: '0.04em',
-                                  borderColor: checked ? '#2B2EB8' : '#D8D8D8',
-                                  background: checked ? '#E8E9F8' : '#FAFAFA',
-                                  color: checked ? '#00068D' : '#5A5A5A',
-                                }}
-                              >
-                                {l.toUpperCase()}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Feedback + Submit */}
-                      <div className="space-y-2 pt-1">
-                        {profileError && (
-                          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#dc2626' }}>
-                            {profileError}
-                          </p>
-                        )}
-                        {profileSaved && (
-                          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-[#E8F5E9] border border-[#4CAF50]">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
-                            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#2E7D32' }}>Profil enregistré.</p>
-                          </div>
-                        )}
-                        <button
-                          onClick={handleProfileSave}
-                          disabled={profileSaving}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all disabled:opacity-50"
-                          style={{
-                            background: '#00068D',
-                            color: 'white',
-                            fontFamily: 'Gilroy, sans-serif',
-                            fontWeight: 800,
-                            fontSize: 'var(--text-xs)',
-                            letterSpacing: '0.06em',
-                            minHeight: 44,
-                          }}
-                        >
-                          {profileSaving ? 'Enregistrement…' : 'ENREGISTRER LE PROFIL'}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
 
               {settingsTab === 'sources' && (
                 <div className="space-y-6">

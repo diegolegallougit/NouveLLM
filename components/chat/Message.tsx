@@ -4,6 +4,7 @@ import { useState } from 'react'
 import SourcesBlock from './SourcesBlock'
 import ProcessingState from './ProcessingState'
 import { sanitizeHtml } from '@/lib/sanitize'
+import NLLogo from '@/components/ui/NLLogo'
 
 export interface Source {
   title: string
@@ -148,14 +149,8 @@ export default function Message({ message, userName = 'Vous', userInitials = 'V'
 
       {/* Desktop: avatar + text + action bar */}
       <div className="hidden md:flex gap-4 items-start group">
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 relative"
-          style={{ background: '#00068D' }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-            <path d="M12 3v18M3 12h18" />
-            <path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" />
-          </svg>
+        <div className="mt-1 relative flex-shrink-0">
+          <NLLogo size={32} />
         </div>
 
         <div className="flex-1 min-w-0 pt-1">

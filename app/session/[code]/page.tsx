@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Message, { MessageData } from '@/components/chat/Message'
+import NLLogo from '@/components/ui/NLLogo'
 
 interface SessionAgent {
   id: string
@@ -105,7 +106,7 @@ export default function SessionPage() {
 
   function joinAsGuest() {
     if (!guestFirstName.trim() || !guestLastName.trim()) return
-    const id = crypto.randomUUID()
+    const id = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
     const payload = { firstName: guestFirstName.trim(), lastName: guestLastName.trim(), id, sessionCode: code }
     try { sessionStorage.setItem('guest_session', JSON.stringify(payload)) } catch { /* ignore */ }
     setGuestId(id)
@@ -284,9 +285,7 @@ export default function SessionPage() {
         <div className="bg-white rounded-2xl border border-[#D8D8D8] p-8 max-w-md w-full space-y-6">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#00068D' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg>
-            </div>
+            <NLLogo size={28} />
             <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.9rem', color: '#00068D', letterSpacing: '0.04em' }}>NouveLLM</span>
           </div>
 
@@ -379,9 +378,7 @@ export default function SessionPage() {
       <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6">
         <div className="bg-white rounded-2xl border border-[#D8D8D8] p-8 max-w-md w-full space-y-6">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#00068D' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M12 3v18M3 12h18" /><path d="M5.6 5.6l12.8 12.8M5.6 18.4l12.8-12.8" /></svg>
-            </div>
+            <NLLogo size={40} />
             <div>
               <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.1rem', color: '#0D0D0D' }}>
                 {sessionInfo.name}
