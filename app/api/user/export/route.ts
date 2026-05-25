@@ -99,7 +99,7 @@ export async function GET() {
 
   // meta-prompts.md
   if (metaPrompts.length > 0) {
-    const lines = ['# Mes méta-prompts\n']
+    const lines = ['# Mes postures\n']
     for (const mp of metaPrompts) {
       lines.push(`## ${mp.title}`)
       if (mp.description) lines.push(`*${mp.description}*`)

@@ -63,7 +63,7 @@ function MPRow({ mp, canEdit = false, canDuplicate = true, activeId, working, ed
           placeholder="Description (optionnelle)" className="w-full px-3 py-1.5 text-sm rounded-lg border border-[#D8D8D8] focus:outline-none"
           style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
         <textarea value={form.content} onChange={e => onFormChange({ content: e.target.value })}
-          placeholder="Contenu du méta-prompt…" rows={4}
+          placeholder="Contenu de la posture…" rows={4}
           className="w-full px-3 py-1.5 text-sm rounded-lg border border-[#D8D8D8] focus:outline-none resize-none"
           style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
         <div className="flex items-center gap-2">
@@ -205,7 +205,7 @@ export default function MetaPromptsPanel() {
   }
 
   async function deleteMP(id: string) {
-    if (!confirm('Supprimer ce méta-prompt ?')) return
+    if (!confirm('Supprimer cette posture ?')) return
     setWorking(id)
     try {
       await fetch(`/api/meta-prompts/${id}`, { method: 'DELETE' })
@@ -295,11 +295,11 @@ export default function MetaPromptsPanel() {
       )}
 
       {/* Personal */}
-      <SectionHeader label="─── Mes méta-prompts ───" />
+      <SectionHeader label="─── Mes postures ───" />
       {data.personal.length === 0 && !creating && (
         <div className="rounded-xl px-3 py-3 space-y-2.5 mt-1" style={{ background: '#F2F2F2' }}>
           <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#5A5A5A', lineHeight: 1.55 }}>
-            Un méta-prompt est une posture permanente que vous activez pour adapter le ton et le style de l&apos;assistant. Exemple : <em>Rédaction académique SHS</em>, <em>Ton institutionnel Sorbonne Nouvelle</em>.
+            Une posture adapte le ton et le style de l&apos;assistant. Activez-en une pour personnaliser le comportement de l&apos;assistant. Exemple : <em>Rédaction académique SHS</em>, <em>Ton institutionnel Sorbonne Nouvelle</em>.
           </p>
           {data.institutional.length > 0 && (
             <button
@@ -307,7 +307,7 @@ export default function MetaPromptsPanel() {
               className="block text-left hover:underline"
               style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.75rem', color: '#2B2EB8', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
             >
-              Voir les méta-prompts institutionnels disponibles →
+              Voir les postures institutionnelles disponibles →
             </button>
           )}
           <button
@@ -316,7 +316,7 @@ export default function MetaPromptsPanel() {
             style={{ borderColor: '#00068D', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.78rem', color: '#00068D', letterSpacing: '0.04em' }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            Créer un méta-prompt
+            Créer une posture
           </button>
         </div>
       )}
@@ -326,7 +326,7 @@ export default function MetaPromptsPanel() {
       {creating ? (
         <div className="border border-[#2B2EB8] rounded-xl p-3 space-y-2 bg-[#F8F8FF] mt-2">
           <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            placeholder="Titre du méta-prompt *"
+            placeholder="Titre de la posture *"
             className="w-full px-3 py-1.5 text-sm rounded-lg border border-[#D8D8D8] focus:outline-none focus:ring-1 focus:ring-[#2B2EB8]"
             style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }} autoFocus />
           <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -334,7 +334,7 @@ export default function MetaPromptsPanel() {
             className="w-full px-3 py-1.5 text-sm rounded-lg border border-[#D8D8D8] focus:outline-none"
             style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
           <textarea value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-            placeholder="Contenu du méta-prompt — instructions, contexte, rôle…" rows={5}
+            placeholder="Contenu de la posture — instructions, contexte, rôle…" rows={5}
             className="w-full px-3 py-1.5 text-sm rounded-lg border border-[#D8D8D8] focus:outline-none resize-none"
             style={{ fontFamily: 'Source Serif Pro, Georgia, serif' }} />
           <div className="flex items-center justify-between">
@@ -359,7 +359,7 @@ export default function MetaPromptsPanel() {
         <button onClick={() => { setCreating(true); setEditingId(null); setForm({ title: '', description: '', content: '', isPublic: false }) }}
           className="w-full mt-2 py-2 rounded-xl border-2 border-dashed border-[#D8D8D8] text-xs text-[#8A8A8A] hover:border-[#2B2EB8] hover:text-[#00068D] transition-all"
           style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
-          + Créer un méta-prompt
+          + Créer une posture
         </button>
       ) : null}
     </div>

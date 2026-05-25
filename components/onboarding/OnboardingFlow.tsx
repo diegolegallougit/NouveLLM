@@ -338,7 +338,7 @@ export default function OnboardingFlow({ onComplete, userName }: OnboardingFlowP
                   Adoptez une posture de travail
                 </h1>
                 <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.88rem', color: '#5A5A5A', lineHeight: 1.65 }} className="mt-2">
-                  Un méta-prompt adapte le ton et le style de l'assistant. Vous pouvez en changer à tout moment.
+                  Une posture adapte le ton et le style de l'assistant. Vous pouvez en changer à tout moment.
                 </p>
               </div>
 

@@ -419,7 +419,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
             {/* Tab bar */}
             <div className="flex border-b border-[#D8D8D8] px-6 flex-shrink-0">
               {([
-                { id: 'meta-prompts', label: 'MÉTA-PROMPTS' },
+                { id: 'meta-prompts', label: 'POSTURES' },
                 { id: 'profile',      label: 'MON PROFIL' },
                 { id: 'sources',      label: 'MES SOURCES' },
                 { id: 'data',         label: 'MES DONNÉES' },
@@ -821,7 +821,7 @@ export default function Header({ userName = 'Utilisateur', userRole = 'EC', user
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
                       </svg>
                       <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#3A3A3A' }}>
-                        Exporter toutes mes données <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>(conversations, méta-prompts, espaces — .zip)</span>
+                        Exporter toutes mes données <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>(conversations, postures, espaces — .zip)</span>
                       </span>
                     </button>
                   </div>

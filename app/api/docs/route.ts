@@ -378,8 +378,8 @@ const spec = {
     },
     '/meta-prompts': {
       get: {
-        summary: 'Méta-prompts disponibles (institutionnels, partagés, personnels)',
-        tags: ['Méta-prompts'],
+        summary: 'Postures disponibles (institutionnelles, partagées, personnelles)',
+        tags: ['Postures'],
         responses: {
           200: {
             content: {

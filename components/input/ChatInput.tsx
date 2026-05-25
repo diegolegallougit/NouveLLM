@@ -159,11 +159,11 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   function handleTextChange(value: string) {
     setText(value)
 
-    // Detect @ or # triggers
-    const lastAt = value.lastIndexOf('@')
-    const lastHash = value.lastIndexOf('#')
+    const lastAt    = value.lastIndexOf('@')
+    const lastHash  = value.lastIndexOf('#')
+    const lastSlash = value.lastIndexOf('/')
 
-    if (lastAt > lastHash && lastAt >= 0) {
+    if (lastAt > lastHash && lastAt > lastSlash && lastAt >= 0) {
       const afterAt = value.slice(lastAt + 1)
       if (!afterAt.includes(' ') && !afterAt.includes('\n')) {
         setPaletteMode('agent')
@@ -172,11 +172,20 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
       }
     }
 
-    if (lastHash > lastAt && lastHash >= 0) {
+    if (lastHash > lastAt && lastHash > lastSlash && lastHash >= 0) {
       const afterHash = value.slice(lastHash + 1)
       if (!afterHash.includes(' ') && !afterHash.includes('\n')) {
         setPaletteMode('source')
         setPaletteQuery(afterHash)
+        return
+      }
+    }
+
+    if (lastSlash > lastAt && lastSlash > lastHash && lastSlash >= 0) {
+      const afterSlash = value.slice(lastSlash + 1)
+      if (!afterSlash.includes(' ') && !afterSlash.includes('\n')) {
+        setPaletteMode('posture')
+        setPaletteQuery('')
         return
       }
     }
@@ -228,6 +237,14 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
   function handleSelectMetaPrompt(mp: MetaPromptItem) {
     onActivateMetaPrompt?.(mp.id, mp.title)
     setPopoverOpen(false)
+  }
+
+  function handleSelectPosture(mp: MetaPromptItem) {
+    const lastSlash = text.lastIndexOf('/')
+    const before = lastSlash >= 0 ? text.slice(0, lastSlash) : text
+    setText(before.trim() ? before : '')
+    onActivateMetaPrompt?.(mp.id, mp.title)
+    setPaletteMode(null)
   }
 
   function handleRemoveAgent() {
@@ -338,7 +355,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
                       <button
                         key={mp.id}
                         type="button"
-                        onClick={() => { onActivateMetaPrompt?.(mp.id, mp.title); setPaletteMode(null) }}
+                        onClick={() => handleSelectPosture(mp)}
                         className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-[#FEF0E8] transition-all flex items-center justify-between gap-2"
                       >
                         <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D', lineHeight: '1.3' }}>
@@ -654,7 +671,7 @@ export default function ChatInput({ agents, sources, onSend, disabled, preselect
               </button>
               {/* / Posture */}
               <button
-                onClick={() => setPaletteMode('posture')}
+                onClick={() => { setText((t) => t + '/'); setPaletteMode('posture'); setPaletteQuery(''); textareaRef.current?.focus() }}
                 style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '3px 8px', borderRadius: 6, border: '0.5px solid var(--color-border)', background: '#F2F2F2', fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', color: '#5A5A5A', cursor: 'pointer' }}
                 title="Choisir une posture (/)"
                 aria-label="Choisir une posture"
