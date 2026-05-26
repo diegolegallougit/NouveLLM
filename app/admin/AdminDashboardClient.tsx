@@ -26,14 +26,14 @@ export interface AdminDashboardProps {
 function StatCard({ label, value, sub, color = '#00068D' }: { label: string; value: string | number; sub?: string; color?: string }) {
   return (
     <div className="bg-white rounded-xl border border-[#D8D8D8] px-5 py-4">
-      <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#8A8A8A' }}>
+      <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#8A8A8A' }}>
         {label}
       </p>
-      <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.8rem', color, letterSpacing: '-0.02em' }} className="mt-1">
+      <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xl)', color, letterSpacing: '-0.02em' }} className="mt-1">
         {value}
       </p>
       {sub && (
-        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }} className="mt-0.5">
+        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A' }} className="mt-0.5">
           {sub}
         </p>
       )}
@@ -50,10 +50,10 @@ export default function AdminDashboardClient({
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>
+          <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>
             Tableau de bord
           </h1>
-          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#8A8A8A' }}>
+          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A' }}>
             Métriques agrégées · {monthLabel}
           </p>
         </div>
@@ -81,7 +81,7 @@ export default function AdminDashboardClient({
         {/* Top 5 agents */}
         <div className="bg-white rounded-xl border border-[#D8D8D8] overflow-hidden">
           <div className="px-5 py-3 border-b border-[#D8D8D8]">
-            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.04em', color: '#0D0D0D', textTransform: 'uppercase' }}>
+            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#0D0D0D', textTransform: 'uppercase' }}>
               Top 5 agents
             </h2>
           </div>
@@ -90,7 +90,7 @@ export default function AdminDashboardClient({
               <thead>
                 <tr className="border-b border-[#F2F2F2]">
                   {['Agent', 'Sessions', 'Tokens', '👍 / 👎'].map((h) => (
-                    <th key={h} className="px-4 py-2 text-left" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.62rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>
+                    <th key={h} className="px-4 py-2 text-left" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>
                       {h}
                     </th>
                   ))}
@@ -106,21 +106,21 @@ export default function AdminDashboardClient({
                     return (
                       <tr key={s.agentUsed} className="border-b border-[#F2F2F2] hover:bg-[#FAFAFA]">
                         <td className="px-4 py-2.5">
-                          <span className="nl-token-agent text-[10px]">@{s.agentUsed}</span>
+                          <span className="nl-token-agent" style={{ fontSize: 'var(--text-2xs)' }}>@{s.agentUsed}</span>
                         </td>
-                        <td className="px-4 py-2.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#0D0D0D' }}>
+                        <td className="px-4 py-2.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
                           {s.sessionsCount}
                         </td>
-                        <td className="px-4 py-2.5" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#5A5A5A' }}>
+                        <td className="px-4 py-2.5" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#5A5A5A' }}>
                           {s.tokensSum > 1000 ? `${(s.tokensSum / 1000).toFixed(0)}k` : s.tokensSum}
                         </td>
                         <td className="px-4 py-2.5">
                           {total > 0 ? (
-                            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.8rem', color: '#5A5A5A' }}>
+                            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#5A5A5A' }}>
                               {fb.positive} / {fb.negative}
                             </span>
                           ) : (
-                            <span style={{ fontSize: '0.75rem', color: '#C8C8C8' }}>—</span>
+                            <span style={{ fontSize: 'var(--text-xs)', color: '#C8C8C8' }}>—</span>
                           )}
                         </td>
                       </tr>
@@ -135,7 +135,7 @@ export default function AdminDashboardClient({
         {/* Tokens by group */}
         <div className="bg-white rounded-xl border border-[#D8D8D8] overflow-hidden">
           <div className="px-5 py-3 border-b border-[#D8D8D8]">
-            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.04em', color: '#0D0D0D', textTransform: 'uppercase' }}>
+            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#0D0D0D', textTransform: 'uppercase' }}>
               Tokens par groupe
             </h2>
           </div>
@@ -144,7 +144,7 @@ export default function AdminDashboardClient({
               <thead>
                 <tr className="border-b border-[#F2F2F2]">
                   {['Groupe', 'Tokens ce mois'].map((h) => (
-                    <th key={h} className="px-4 py-2 text-left" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.62rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>
+                    <th key={h} className="px-4 py-2 text-left" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A' }}>
                       {h}
                     </th>
                   ))}
@@ -158,10 +158,10 @@ export default function AdminDashboardClient({
                     .sort((a, b) => b[1] - a[1])
                     .map(([grp, tokens]) => (
                       <tr key={grp} className="border-b border-[#F2F2F2] hover:bg-[#FAFAFA]">
-                        <td className="px-4 py-2.5" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#0D0D0D' }}>
+                        <td className="px-4 py-2.5" style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
                           {grp}
                         </td>
-                        <td className="px-4 py-2.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#2B2EB8' }}>
+                        <td className="px-4 py-2.5" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#2B2EB8' }}>
                           {tokens > 1000 ? `${(tokens / 1000).toFixed(0)}k` : tokens}
                         </td>
                       </tr>
@@ -176,10 +176,10 @@ export default function AdminDashboardClient({
       {/* Queue d'indexation */}
       <div className="bg-white rounded-xl border border-[#D8D8D8] overflow-hidden">
         <div className="px-5 py-3 border-b border-[#D8D8D8] flex items-center justify-between">
-          <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.04em', color: '#0D0D0D', textTransform: 'uppercase' }}>
+          <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#0D0D0D', textTransform: 'uppercase' }}>
             Queue d&apos;indexation
           </h2>
-          <Link href="/api/admin/indexing-queue" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.62rem', color: '#8A8A8A', letterSpacing: '0.04em' }}>
+          <Link href="/api/admin/indexing-queue" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A', letterSpacing: '0.04em' }}>
             JSON →
           </Link>
         </div>
@@ -191,8 +191,8 @@ export default function AdminDashboardClient({
             { label: 'Échecs cumulés', value: failedJobs, color: failedJobs > 0 ? '#EF4444' : '#8A8A8A' },
           ].map(({ label, value, color }) => (
             <div key={label} className="px-5 py-4">
-              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.62rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#8A8A8A' }}>{label}</p>
-              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.8rem', color, letterSpacing: '-0.02em' }} className="mt-1">{value}</p>
+              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#8A8A8A' }}>{label}</p>
+              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xl)', color, letterSpacing: '-0.02em' }} className="mt-1">{value}</p>
             </div>
           ))}
         </div>
@@ -201,7 +201,7 @@ export default function AdminDashboardClient({
       {/* Intégrations */}
       <div className="bg-white rounded-xl border border-[#D8D8D8] overflow-hidden">
         <div className="px-5 py-3 border-b border-[#D8D8D8]">
-          <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.04em', color: '#0D0D0D', textTransform: 'uppercase' }}>
+          <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#0D0D0D', textTransform: 'uppercase' }}>
             Intégrations
           </h2>
         </div>

@@ -120,19 +120,18 @@ export default function SessionsPage() {
         {/* Header */}
         <div className="flex items-start sm:items-center justify-between gap-3 flex-wrap">
           <div>
-            <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'clamp(1.1rem, 4vw, 1.3rem)', color: '#0D0D0D' }}>
+            <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>
               Mes Séances
             </h1>
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#8A8A8A' }}>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A' }}>
               {active.length} séance{active.length !== 1 ? 's' : ''} active{active.length !== 1 ? 's' : ''}
             </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
             <Link href="/"
-              className="flex items-center gap-1.5 px-4 rounded-lg transition-all hover:bg-[#D0D2F0]"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#00068D', background: '#E8E9F8', minHeight: 40, borderRadius: 8 }}
+              className="flex items-center gap-1.5 px-4 rounded-lg transition-all hover:bg-[#E8E9F8]"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#00068D', background: '#E8E9F8', minHeight: 40 }}
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M19 12H5M5 12l7-7M5 12l7 7" /></svg>
               ← Retour
             </Link>
             <button
@@ -173,16 +172,16 @@ export default function SessionsPage() {
                 <path d="M59 71 C59 67 63 65 68 65 C73 65 77 67 77 71" fill="#E8E9F8" stroke="#00068D" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
             </div>
-            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.15rem', color: '#0D0D0D', marginBottom: '0.6rem' }}>
+            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-md)', color: '#0D0D0D', marginBottom: '0.6rem' }}>
               Créez votre première Séance IA
             </h2>
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.88rem', color: '#5A5A5A', maxWidth: '28rem', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#5A5A5A', maxWidth: '28rem', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
               Une Séance IA permet de partager un agent configuré avec vos étudiants via un lien. Les échanges sont tracés et exportables.
             </p>
             <button
               onClick={() => router.push('/sessions/new')}
               className="inline-flex items-center gap-2 px-5 py-3 min-h-[44px] rounded-xl transition-all hover:opacity-90"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', background: '#00068D', color: '#fff', letterSpacing: '0.04em' }}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
               Nouvelle Séance
@@ -190,7 +189,7 @@ export default function SessionsPage() {
             <div className="mt-3">
               <Link
                 href="/sessions/new"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: '0.78rem', color: '#2B2EB8' }}
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', color: '#2B2EB8' }}
                 className="hover:underline"
               >
                 Voir les scénarios disponibles →
@@ -219,7 +218,7 @@ export default function SessionsPage() {
         {/* Closed sessions */}
         {closed.length > 0 && (
           <div className="space-y-3">
-            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#C8C8C8', paddingLeft: '0.25rem' }}>
+            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#C8C8C8', paddingLeft: '0.25rem' }}>
               Séances fermées
             </p>
             {closed.map(s => (
@@ -238,8 +237,8 @@ export default function SessionsPage() {
       </div>
     </div>
     {toast && (
-      <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-md text-[12px] whitespace-nowrap ${toast.type === 'success' ? 'bg-[#E8F5E9] border border-[#A5D6A7] text-[#2E7D32]' : 'bg-red-50 border border-red-200 text-red-700'}`}
-        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+      <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-md whitespace-nowrap ${toast.type === 'success' ? 'bg-[#E8F5E9] border border-[#A5D6A7] text-[#2E7D32]' : 'bg-red-50 border border-red-200 text-red-700'}`}
+        style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
         {toast.type === 'success' ? '✓' : '⚠'} {toast.message}
       </div>
     )}
@@ -269,27 +268,27 @@ function SessionCard({
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.95rem', color: '#0D0D0D' }}>
+            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-base)', color: '#0D0D0D' }}>
               {s.name}
             </span>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${STATUS_STYLES[s.status]}`} style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+            <span className={`px-2 py-0.5 rounded-full border ${STATUS_STYLES[s.status]}`} style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
               {STATUS_LABELS[s.status]}
             </span>
             {isExpired && s.status !== 'CLOSED' && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full border bg-red-50 text-red-500 border-red-200" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+              <span className="px-2 py-0.5 rounded-full border bg-red-50 text-red-500 border-red-200" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                 Expirée
               </span>
             )}
           </div>
           <div className="flex items-center gap-4 mb-3">
             <span className="font-mono text-xs bg-[#F2F2F2] px-2 py-0.5 rounded text-[#5A5A5A]">{s.code}</span>
-            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }}>
+            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>
               {s.participantCount} connecté{s.participantCount !== 1 ? 's' : ''}{s.maxParticipants ? ` / ${s.maxParticipants}` : ''}
             </span>
-            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }}>
+            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>
               {formatTokens(s.tokens)} tokens
             </span>
-            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }}>
+            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>
               Expire le {formatDate(s.validUntil)}
             </span>
           </div>
@@ -297,12 +296,12 @@ function SessionCard({
           {(s.agents.length > 0 || s.sources.length > 0) && (
             <div className="flex flex-wrap gap-1.5">
               {s.agents.map(a => (
-                <span key={a.slug} className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-[#E8E9F8] text-[#00068D]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+                <span key={a.slug} className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#E8E9F8] text-[#00068D]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>
                   {a.icon} {a.label}
                 </span>
               ))}
               {s.sources.map(src => (
-                <span key={src.slug} className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-[#F2F2F2] text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+                <span key={src.slug} className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#F2F2F2] text-[#5A5A5A]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>
                   {src.icon} {src.label}
                 </span>
               ))}
@@ -315,14 +314,14 @@ function SessionCard({
             <>
               <button
                 onClick={() => onDashboard(s.id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#2B2EB8] bg-[#E8E9F8] text-[11px] hover:bg-[#D4D5F5] transition-colors"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#00068D' }}>
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#2B2EB8] bg-[#E8E9F8] hover:bg-[#D4D5F5] transition-colors"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#00068D', fontSize: 'var(--text-2xs)' }}>
                 Dashboard
               </button>
               <button
                 onClick={() => onCopy(s.code)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-[11px] hover:bg-[#F2F2F2] transition-colors"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, color: '#5A5A5A' }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#D8D8D8] hover:bg-[#F2F2F2] transition-colors"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, color: '#5A5A5A', fontSize: 'var(--text-2xs)' }}
               >
                 {copied === s.code
                   ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
@@ -333,24 +332,24 @@ function SessionCard({
               <button
                 onClick={() => onAction(s.id, 'suspend')}
                 disabled={working === s.id}
-                className="px-3 py-1.5 rounded-lg border text-[11px] disabled:opacity-50 transition-colors hover:bg-[#F2F2F2]"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, borderColor: '#D8D8D8', color: '#5A5A5A' }}
+                className="px-3 py-1.5 rounded-lg border disabled:opacity-50 transition-colors hover:bg-[#F2F2F2]"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, borderColor: '#D8D8D8', color: '#5A5A5A', fontSize: 'var(--text-2xs)' }}
               >
                 {s.status === 'SUSPENDED' ? 'RÉACTIVER' : 'SUSPENDRE'}
               </button>
               <button
                 onClick={() => onAction(s.id, 'duplicate')}
                 disabled={working === s.id}
-                className="px-3 py-1.5 rounded-lg border text-[11px] disabled:opacity-50 transition-colors hover:bg-[#F2F2F2]"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, borderColor: '#D8D8D8', color: '#5A5A5A' }}
+                className="px-3 py-1.5 rounded-lg border disabled:opacity-50 transition-colors hover:bg-[#F2F2F2]"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, borderColor: '#D8D8D8', color: '#5A5A5A', fontSize: 'var(--text-2xs)' }}
               >
                 DUPLIQUER
               </button>
               <button
                 onClick={() => onAction(s.id, 'close')}
                 disabled={working === s.id}
-                className="px-3 py-1.5 rounded-lg border border-red-200 text-red-500 text-[11px] disabled:opacity-50 hover:bg-red-50 transition-colors"
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+                className="px-3 py-1.5 rounded-lg border border-red-200 text-red-500 disabled:opacity-50 hover:bg-red-50 transition-colors"
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
               >
                 FERMER
               </button>
@@ -360,8 +359,8 @@ function SessionCard({
             <button
               onClick={() => onAction(s.id, 'duplicate')}
               disabled={working === s.id}
-              className="px-3 py-1.5 rounded-lg border text-[11px] disabled:opacity-50 transition-colors hover:bg-[#F2F2F2]"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, borderColor: '#D8D8D8', color: '#5A5A5A' }}
+              className="px-3 py-1.5 rounded-lg border disabled:opacity-50 transition-colors hover:bg-[#F2F2F2]"
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, borderColor: '#D8D8D8', color: '#5A5A5A', fontSize: 'var(--text-2xs)' }}
             >
               DUPLIQUER
             </button>

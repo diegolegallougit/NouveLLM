@@ -258,7 +258,7 @@ export default function SessionPage() {
           <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1rem', color: '#0D0D0D' }}>
             {isClosed ? 'Séance terminée' : isFull ? 'Séance complète' : 'Séance introuvable'}
           </h2>
-          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#8A8A8A' }}>
+          <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A' }}>
             {isClosed
               ? "Cette séance a été fermée par l'enseignant."
               : isFull
@@ -286,21 +286,21 @@ export default function SessionPage() {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <NLLogo size={28} />
-            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.9rem', color: '#00068D', letterSpacing: '0.04em' }}>NouveLLM</span>
+            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#00068D', letterSpacing: '0.04em' }}>NouveLLM</span>
           </div>
 
           {/* Activity info */}
           <div className="space-y-1">
-            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Séance</p>
+            <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#8A8A8A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Séance</p>
             <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.1rem', color: '#0D0D0D' }}>{sessionInfo.name}</h1>
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#8A8A8A' }}>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>
               {sessionInfo.ecName && `Proposée par ${sessionInfo.ecName} · `}
               Expire le {new Date(sessionInfo.validUntil).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
             </p>
           </div>
 
           {sessionInfo.description && (
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#5A5A5A', lineHeight: 1.6 }}>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#5A5A5A', lineHeight: 1.6 }}>
               {sessionInfo.description}
             </p>
           )}
@@ -309,13 +309,13 @@ export default function SessionPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-[#E8E8E8]" />
-              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }}>Participer sans compte</span>
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>Participer sans compte</span>
               <div className="flex-1 h-px bg-[#E8E8E8]" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Prénom *</label>
+                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Prénom *</label>
                 <input
                   type="text"
                   value={guestFirstName}
@@ -327,7 +327,7 @@ export default function SessionPage() {
                 />
               </div>
               <div className="space-y-1">
-                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Nom *</label>
+                <label style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Nom *</label>
                 <input
                   type="text"
                   value={guestLastName}
@@ -355,7 +355,7 @@ export default function SessionPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-[#E8E8E8]" />
-              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A' }}>Vous avez un compte NouveLLM ?</span>
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>Vous avez un compte NouveLLM ?</span>
               <div className="flex-1 h-px bg-[#E8E8E8]" />
             </div>
             <a
@@ -384,7 +384,7 @@ export default function SessionPage() {
                 {sessionInfo.name}
               </h1>
               {sessionInfo.ecName && (
-                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#8A8A8A' }}>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A' }}>
                   Activité proposée par {sessionInfo.ecName}
                 </p>
               )}
@@ -392,14 +392,14 @@ export default function SessionPage() {
           </div>
 
           {sessionInfo.description && (
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#5A5A5A', lineHeight: 1.6 }}>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#5A5A5A', lineHeight: 1.6 }}>
               {sessionInfo.description}
             </p>
           )}
 
           <div className="flex flex-wrap gap-2">
             {sessionInfo.agents.map(a => (
-              <span key={a.slug} className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg bg-[#E8E9F8] text-[#00068D]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+              <span key={a.slug} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#E8E9F8] text-[#00068D]" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                 {a.icon} {a.label}
               </span>
             ))}
@@ -410,10 +410,10 @@ export default function SessionPage() {
             const vb = VISIBILITY_BANNERS[sessionInfo.visibility ?? 0]
             return (
               <div className="rounded-lg px-4 py-2.5 border" style={{ background: vb.bg, borderColor: vb.border }}>
-                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: vb.color }}>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: vb.color }}>
                   {vb.icon} {vb.text}
                 </p>
-                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#8A8A8A', marginTop: '0.25rem', fontStyle: 'italic' }}>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', marginTop: '0.25rem', fontStyle: 'italic' }}>
                   Cette séance ne donne pas lieu à une notation.
                 </p>
               </div>
@@ -452,27 +452,27 @@ export default function SessionPage() {
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00068D" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
           </div>
           <div className="flex-1 min-w-0">
-            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.72rem', color: '#00068D', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#00068D', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Séance : {sessionInfo.name}
             </span>
             {sessionInfo.ecName && (
-              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A', marginLeft: '0.75rem' }}>
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A', marginLeft: '0.75rem' }}>
                 {sessionInfo.ecName}
               </span>
             )}
           </div>
           {isGuest && guestFirstName && (
-            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A' }}>
+            <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>
               {guestFirstName} {guestLastName}
             </span>
           )}
-          <span className="font-mono text-[10px] bg-[#F2F2F2] px-2 py-0.5 rounded text-[#5A5A5A]">{sessionInfo.code}</span>
+          <span className="font-mono bg-[#F2F2F2] px-2 py-0.5 rounded text-[#5A5A5A]" style={{ fontSize: 'var(--text-2xs)' }}>{sessionInfo.code}</span>
           {isGuest && messages.length > 0 && (
             <button
               onClick={exportMarkdown}
               title="Exporter la conversation"
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#D8D8D8] hover:border-[#00068D] hover:text-[#00068D] transition-all"
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', color: '#5A5A5A', letterSpacing: '0.04em', textTransform: 'uppercase' }}
             >
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
               Exporter
@@ -484,9 +484,9 @@ export default function SessionPage() {
           const vb = VISIBILITY_BANNERS[sessionInfo.visibility ?? 0]
           return (
             <div className="px-5 py-1.5 flex items-center gap-2" style={{ background: vb.bg, borderTop: `1px solid ${vb.border}` }}>
-              <span style={{ fontSize: '0.7rem' }}>{vb.icon}</span>
-              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: vb.color }}>{vb.text}</span>
-              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#8A8A8A', marginLeft: '0.5rem' }}>· Cette séance ne donne pas lieu à une notation.</span>
+              <span style={{ fontSize: 'var(--text-2xs)' }}>{vb.icon}</span>
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: vb.color }}>{vb.text}</span>
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A', marginLeft: '0.5rem' }}>· Cette séance ne donne pas lieu à une notation.</span>
             </div>
           )
         })()}
@@ -499,8 +499,8 @@ export default function SessionPage() {
             <button
               key={agent.slug}
               onClick={() => setSelectedAgent(agent)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] whitespace-nowrap transition-all flex-shrink-0 ${selectedAgent?.slug === agent.slug ? 'bg-[#00068D] text-white' : 'bg-[#F2F2F2] text-[#5A5A5A] hover:bg-[#E8E9F8] hover:text-[#00068D]'}`}
-              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full whitespace-nowrap transition-all flex-shrink-0 ${selectedAgent?.slug === agent.slug ? 'bg-[#00068D] text-white' : 'bg-[#F2F2F2] text-[#5A5A5A] hover:bg-[#E8E9F8] hover:text-[#00068D]'}`}
+              style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}
             >
               {agent.icon} {agent.label}
             </button>
@@ -512,7 +512,7 @@ export default function SessionPage() {
       <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
         {messages.length === 0 && (
           <div className="text-center pt-8">
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.9rem', color: '#C8C8C8' }}>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#C8C8C8' }}>
               {sessionInfo.description ?? 'Posez votre première question…'}
             </p>
           </div>
@@ -525,7 +525,7 @@ export default function SessionPage() {
 
       {/* Input */}
       <div className="border-t border-[#D8D8D8] bg-white px-5 py-4">
-        <div className="flex items-end gap-3 max-w-3xl mx-auto">
+        <div className="flex items-end gap-3 max-w-4xl mx-auto">
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}

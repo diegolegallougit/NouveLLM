@@ -157,7 +157,7 @@ export default function SessionDashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] p-6">
-      <div className="max-w-3xl mx-auto space-y-5">
+      <div className="max-w-4xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center gap-3">
           <button onClick={() => router.push('/sessions')} className="p-2 rounded-lg hover:bg-[#F2F2F2] transition-colors">
@@ -165,24 +165,24 @@ export default function SessionDashboardPage() {
           </button>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>{session.name}</h1>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full border ${session.status === 'ACTIVE' ? 'bg-[#E8F5E9] text-[#2E7D32] border-[#A5D6A7]' : session.status === 'SUSPENDED' ? 'bg-[#FFF8E1] text-[#F57F17] border-[#FFD54F]' : 'bg-[#F2F2F2] text-[#8A8A8A] border-[#D8D8D8]'}`}
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+              <h1 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>{session.name}</h1>
+              <span className={`px-2 py-0.5 rounded-full border ${session.status === 'ACTIVE' ? 'bg-[#E8F5E9] text-[#2E7D32] border-[#A5D6A7]' : session.status === 'SUSPENDED' ? 'bg-[#FFF8E1] text-[#F57F17] border-[#FFD54F]' : 'bg-[#F2F2F2] text-[#8A8A8A] border-[#D8D8D8]'}`}
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                 {session.status === 'ACTIVE' ? 'Active' : session.status === 'SUSPENDED' ? 'Suspendue' : 'Fermée'}
               </span>
               {isExpired && session.status !== 'CLOSED' && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full border bg-red-50 text-red-500 border-red-200"
-                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>Expirée</span>
+                <span className="px-2 py-0.5 rounded-full border bg-red-50 text-red-500 border-red-200"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>Expirée</span>
               )}
             </div>
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.8rem', color: '#8A8A8A' }}>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A' }}>
               Code : <span className="font-mono font-bold">{session.code}</span> · Créée le {formatDate(session.createdAt)}
             </p>
           </div>
           <button
             onClick={exportSession}
-            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#D8D8D8] text-[11px] hover:bg-[#F2F2F2] transition-colors"
-            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#5A5A5A' }}
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#D8D8D8] hover:bg-[#F2F2F2] transition-colors"
+            style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, color: '#5A5A5A', fontSize: 'var(--text-2xs)' }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
             EXPORTER
@@ -198,48 +198,48 @@ export default function SessionDashboardPage() {
             { label: 'Tokens', value: formatTokens(session.tokens) },
           ].map(stat => (
             <div key={stat.label} className="bg-white rounded-xl border border-[#D8D8D8] p-4 text-center">
-              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.4rem', color: '#0D0D0D' }}>{stat.value}</p>
-              <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#8A8A8A' }}>{stat.label}</p>
+              <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>{stat.value}</p>
+              <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>{stat.label}</p>
             </div>
           ))}
         </div>
-        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.7rem', color: '#C8C8C8', fontStyle: 'italic', marginTop: '-0.5rem' }}>
+        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#C8C8C8', fontStyle: 'italic', marginTop: '-0.5rem' }}>
           Les participants invités (sans compte) ne sont pas comptabilisés dans ces statistiques.
         </p>
 
         {/* Analytics — niveau 1+ */}
         {session.visibility >= 1 && analytics && (
           <div className="bg-white rounded-xl border border-[#D8D8D8] p-5">
-            <h2 className="mb-4" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>
+            <h2 className="mb-4" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>
               📊 Activité de la session (anonyme)
             </h2>
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="text-center">
-                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>
+                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>
                   {analytics.activeStudents}{analytics.maxParticipants ? `/${analytics.maxParticipants}` : ''}
                 </p>
-                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#8A8A8A' }}>Étudiants actifs</p>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>Étudiants actifs</p>
               </div>
               <div className="text-center">
-                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>{analytics.totalMessages}</p>
-                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#8A8A8A' }}>Messages envoyés</p>
+                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>{analytics.totalMessages}</p>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>Messages envoyés</p>
               </div>
               <div className="text-center">
-                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '1.3rem', color: '#0D0D0D' }}>
+                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-lg)', color: '#0D0D0D' }}>
                   {analytics.avgDurationMin > 0 ? `${analytics.avgDurationMin} min` : '—'}
                 </p>
-                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.72rem', color: '#8A8A8A' }}>Durée moy. / étudiant</p>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#8A8A8A' }}>Durée moy. / étudiant</p>
               </div>
             </div>
             {analytics.keywords.length > 0 && (
               <div className="mb-3">
-                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A', marginBottom: '0.5rem' }}>
+                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8A8A8A', marginBottom: '0.5rem' }}>
                   Thèmes les plus abordés
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {analytics.keywords.map(kw => (
-                    <span key={kw} className="px-2 py-0.5 rounded-full text-[11px] bg-[#E8E9F8] text-[#00068D]"
-                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800 }}>
+                    <span key={kw} className="px-2 py-0.5 rounded-full bg-[#E8E9F8] text-[#00068D]"
+                      style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)' }}>
                       #{kw}
                     </span>
                   ))}
@@ -248,8 +248,8 @@ export default function SessionDashboardPage() {
             )}
             {analytics.blockingMoments > 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FFF8E1] border border-[#FFD54F]">
-                <span style={{ fontSize: '0.75rem' }}>⚠️</span>
-                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#7A5200' }}>
+                <span style={{ fontSize: 'var(--text-xs)' }}>⚠️</span>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#7A5200' }}>
                   {analytics.blockingMoments} moment{analytics.blockingMoments > 1 ? 's' : ''} de blocage détecté{analytics.blockingMoments > 1 ? 's' : ''}
                 </p>
               </div>
@@ -262,10 +262,10 @@ export default function SessionDashboardPage() {
           <div className="bg-white rounded-xl border border-red-200 p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.88rem', color: '#0D0D0D' }}>
+                <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>
                   💡 Déclencher la Phase 2
                 </p>
-                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#8A8A8A', marginTop: '0.2rem' }}>
+                <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A', marginTop: '0.2rem' }}>
                   Envoie le signal &quot;[PHASE 2]&quot; à toutes les conversations actives.
                   L&apos;IA révèle alors ce qu&apos;elle avait dit d&apos;inexact.
                 </p>
@@ -273,8 +273,8 @@ export default function SessionDashboardPage() {
               <button
                 onClick={triggerPhase2}
                 disabled={broadcasting || broadcastDone}
-                className={`flex-shrink-0 ml-4 px-5 py-2.5 rounded-xl text-[11px] disabled:opacity-60 transition-all ${broadcastDone ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#A5D6A7]' : 'bg-red-600 text-white hover:bg-red-700'}`}
-                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em' }}>
+                className={`flex-shrink-0 ml-4 px-5 py-2.5 rounded-xl disabled:opacity-60 transition-all ${broadcastDone ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#A5D6A7]' : 'bg-red-600 text-white hover:bg-red-700'}`}
+                style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, letterSpacing: '0.04em', fontSize: 'var(--text-2xs)' }}>
                 {broadcastDone ? '✓ PHASE 2 ENVOYÉE' : broadcasting ? 'Envoi…' : 'DÉCLENCHER PHASE 2'}
               </button>
             </div>
@@ -285,19 +285,19 @@ export default function SessionDashboardPage() {
         <div className="grid grid-cols-2 gap-4">
           {/* Scenario info */}
           <div className="bg-white rounded-xl border border-[#D8D8D8] p-5 space-y-3">
-            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Scénario</h2>
+            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Scénario</h2>
             {scenarioMeta ? (
               <div className="flex items-center gap-2">
                 <span className="text-xl">{scenarioMeta.icon}</span>
-                <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#0D0D0D' }}>{scenarioMeta.label}</span>
+                <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>{scenarioMeta.label}</span>
               </div>
             ) : (
-              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.82rem', color: '#8A8A8A', fontStyle: 'italic' }}>Non spécifié</span>
+              <span style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#8A8A8A', fontStyle: 'italic' }}>Non spécifié</span>
             )}
             <div className="flex flex-wrap gap-1">
               {session.agents.map(a => (
-                <span key={a.slug} className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-[#E8E9F8] text-[#00068D]"
-                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300 }}>
+                <span key={a.slug} className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#E8E9F8] text-[#00068D]"
+                  style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-2xs)' }}>
                   {a.icon} {a.label}
                 </span>
               ))}
@@ -306,14 +306,14 @@ export default function SessionDashboardPage() {
 
           {/* Visibility */}
           <div className="bg-white rounded-xl border border-[#D8D8D8] p-5 space-y-2">
-            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Visibilité</h2>
+            <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Visibilité</h2>
             <div className="flex items-center gap-2">
               <span className="text-xl">{visInfo.icon}</span>
-              <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#0D0D0D' }}>{visInfo.label}</span>
+              <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-sm)', color: '#0D0D0D' }}>{visInfo.label}</span>
             </div>
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.78rem', color: '#8A8A8A' }}>{visInfo.description}</p>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#8A8A8A' }}>{visInfo.description}</p>
             {session.visibility === 0 && (
-              <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.75rem', color: '#5A5A5A', fontStyle: 'italic' }}>
+              <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-xs)', color: '#5A5A5A', fontStyle: 'italic' }}>
                 Les conversations sont confidentielles — aucun accès.
               </p>
             )}
@@ -323,22 +323,22 @@ export default function SessionDashboardPage() {
         {/* Consigne + prompt */}
         {session.studentConsigne && (
           <div className="bg-white rounded-xl border border-[#D8D8D8] p-5">
-            <h2 className="mb-2" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Consigne étudiants</h2>
-            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.85rem', color: '#3A3A3A', lineHeight: 1.6 }}>{session.studentConsigne}</p>
+            <h2 className="mb-2" style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Consigne étudiants</h2>
+            <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)', color: '#3A3A3A', lineHeight: 1.6 }}>{session.studentConsigne}</p>
           </div>
         )}
 
         {session.systemPrompt && (
           <div className="bg-white rounded-xl border border-[#D8D8D8] p-5">
             <button className="flex items-center justify-between w-full" onClick={() => setPromptOpen(v => !v)}>
-              <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Prompt pédagogique</h2>
+              <h2 style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#5A5A5A' }}>Prompt pédagogique</h2>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" strokeWidth="2.5" className={`transition-transform ${promptOpen ? 'rotate-180' : ''}`}>
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </button>
             {promptOpen && (
-              <pre className="mt-3 text-[11px] bg-[#FAFAFA] rounded-lg p-3 whitespace-pre-wrap border border-[#F2F2F2] max-h-64 overflow-auto"
-                style={{ fontFamily: 'Source Serif Pro, Georgia, serif', color: '#3A3A3A', lineHeight: 1.6 }}>
+              <pre className="mt-3 bg-[#FAFAFA] rounded-lg p-3 whitespace-pre-wrap border border-[#F2F2F2] max-h-64 overflow-auto"
+                style={{ fontFamily: 'Source Serif Pro, Georgia, serif', color: '#3A3A3A', lineHeight: 1.6, fontSize: 'var(--text-2xs)' }}>
                 {session.systemPrompt}
               </pre>
             )}
@@ -347,8 +347,8 @@ export default function SessionDashboardPage() {
 
         {/* Session link */}
         <div className="bg-[#E8E9F8] rounded-xl p-4">
-          <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: '0.68rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#00068D', marginBottom: '0.4rem' }}>Lien de la session</p>
-          <p className="font-mono text-[12px] text-[#00068D] break-all">
+          <p style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 800, fontSize: 'var(--text-2xs)', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#00068D', marginBottom: '0.4rem' }}>Lien de la session</p>
+          <p className="font-mono text-[#00068D] break-all" style={{ fontSize: 'var(--text-2xs)' }}>
             {typeof window !== 'undefined' ? `${window.location.origin}/session/${session.code}` : `/session/${session.code}`}
           </p>
         </div>

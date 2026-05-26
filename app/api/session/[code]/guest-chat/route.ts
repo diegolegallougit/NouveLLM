@@ -7,7 +7,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
 
   const courseSession = await prisma.courseSession.findUnique({
     where: { code },
-    select: { id: true, status: true, scenarioSlug: true, agents: { include: { agent: { select: { slug: true, difyApiKey: true, label: true } } } } },
+    select: {
+      id: true,
+      status: true,
+      scenarioSlug: true,
+      agents: { include: { agent: { select: { slug: true, difyApiKey: true, label: true } } } },
+      sources: { include: { source: { select: { difyDatasetId: true } } } },
+    },
   })
 
   if (!courseSession) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
@@ -55,6 +61,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
   let dbConvId = conversationId
   let dbConversation: { id: string; difyConvId: string | null } | null = null
 
+  // Ensure the guest user exists in DB (prevents FK violation)
+  if (guestId) {
+    await prisma.user.upsert({
+      where: { id: guestId },
+      create: {
+        id: guestId,
+        email: `${guestId}@guest.nouvellm`,
+        name: 'Invité',
+        role: 'EC',
+      },
+      update: {},
+    })
+  }
+
   if (dbConvId) {
     dbConversation = await prisma.conversation.findUnique({ where: { id: dbConvId }, select: { id: true, difyConvId: true } })
   }
@@ -80,12 +100,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
   // Pass the Dify conversation id if we already know one
   const difyConversationId = dbConversation?.difyConvId ?? conversationId
 
+  const sourceDatasetIds = courseSession.sources
+    .map(s => s.source.difyDatasetId)
+    .filter(Boolean) as string[]
+
   const difyResponse = await streamDifyChat({
     apiKey,
     query: message,
     conversationId: difyConversationId,
     userId: guestId,
     inputs,
+    datasetIds: sourceDatasetIds.length > 0 ? sourceDatasetIds : undefined,
   })
 
   if (!difyResponse.ok || !difyResponse.body) {
@@ -96,6 +121,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
   let fullText = ''
   let difyNewConvId: string | undefined
   let retrieverResources: DifySource[] = []
+  let totalTokens: number | undefined
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -126,6 +152,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
               } else if (event.event === 'message_end') {
                 if (event.conversation_id) difyNewConvId = event.conversation_id
                 if (event.metadata?.retriever_resources) retrieverResources = event.metadata.retriever_resources
+                if (event.metadata?.usage?.total_tokens) totalTokens = event.metadata.usage.total_tokens
               } else if (event.event === 'error') {
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', message: event.message })}\n\n`))
               }
@@ -140,6 +167,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
 
       // ── Persist assistant message ────────────────────────────
       if (fullText.length > 0) {
+        const tokenCount = totalTokens ?? Math.ceil(fullText.length / 4)
         await prisma.message.create({
           data: {
             conversationId: dbConvId!,
@@ -147,6 +175,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
             content: fullText,
             agentUsed: agentSlug ?? null,
             sources: sources.length > 0 ? JSON.stringify(sources) : null,
+            tokenCount,
           },
         })
       }

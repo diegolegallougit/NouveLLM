@@ -120,14 +120,14 @@ export default function ProcessingState({ agentSlug, sourceMode }: { agentSlug?:
           )}
           <span
             className={i < currentStep ? 'text-[#8A8A8A]' : 'text-[#3A3A3A]'}
-            style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: '0.8rem' }}
+            style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-sm)' }}
           >
             {step}
           </span>
         </div>
       ))}
       {sourceModeConfig?.note && (
-        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 11, color: '#5A5A6A', marginTop: 6 }}>
+        <p style={{ fontFamily: 'Source Serif Pro, Georgia, serif', fontSize: 'var(--text-2xs)', color: '#5A5A6A', marginTop: 6 }}>
           {sourceModeConfig.note}
         </p>
       )}

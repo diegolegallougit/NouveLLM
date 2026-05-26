@@ -210,7 +210,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId: session.user.id,
         agentSlug: agentSlug ?? null,
-        title: message.slice(0, 60),
+        title: message === '__init__' ? null : message.slice(0, 60),
         courseSessionId: courseSessionId ?? null,
       },
     })
@@ -228,14 +228,16 @@ export async function POST(req: NextRequest) {
   // source_mode is injected after the reset so it applies on every turn
   inputs.source_mode = sourceMode ?? 'usn'
 
-  // Save user message
-  await prisma.message.create({
-    data: {
-      conversationId: dbConvId,
-      role: 'USER',
-      content: message,
-    },
-  })
+  // Save user message (skip silent init trigger)
+  if (message !== '__init__') {
+    await prisma.message.create({
+      data: {
+        conversationId: dbConvId,
+        role: 'USER',
+        content: message,
+      },
+    })
+  }
 
   // Call Dify streaming API
   let difyResponse: Response
@@ -303,6 +305,14 @@ export async function POST(req: NextRequest) {
                 const chunk = event.answer || ''
                 fullText += chunk
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', text: chunk })}\n\n`))
+              } else if (event.event === 'agent_message') {
+                const chunk = event.answer || ''
+                fullText += chunk
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', text: chunk })}
+
+`))
+              } else if (event.event === 'agent_thought') {
+                // pensées internes de l'agent — ignorées
               } else if (event.event === 'node_finished') {
                 const nodeType = event.data?.node_type
                 if (nodeType === 'knowledge-retrieval') {

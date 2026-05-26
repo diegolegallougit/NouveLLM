@@ -24,9 +24,10 @@ interface Props {
   needsOnboarding?: boolean
   discipline?: string
   initialConversationId?: string
+  initialAgent?: string
 }
 
-export default function ConversationPage({ userName, userRole, userInitials, needsOnboarding = false, discipline, initialConversationId }: Props) {
+export default function ConversationPage({ userName, userRole, userInitials, needsOnboarding = false, discipline, initialConversationId, initialAgent }: Props) {
   const [agents, setAgents] = useState<AgentConfig[]>([])
   const [sources, setSources] = useState<SourceConfig[]>([])
   const [messages, setMessages] = useState<MessageData[]>([])
@@ -44,6 +45,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef<number | null>(null)
+  const autoInitAgentRef = useRef<string | null>(initialAgent ?? null)
 
   const handleOnboardingComplete = useCallback(() => {
     setOnboardingDone(true)
@@ -87,6 +89,10 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         setSources([...institutionalSources, ...folderSources])
       } else {
         setSources(institutionalSources)
+      }
+
+      if (initialAgent) {
+        setPendingAgent(initialAgent)
       }
 
       if (initialConversationId) {
@@ -175,7 +181,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   }
 
   const handleSend = useCallback(
-    async (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File, prebuiltInputs?: Record<string, string>, sourceMode?: string) => {
+    async (message: string, agentSlug?: string, sourceSlugs?: string[], file?: File, prebuiltInputs?: Record<string, string>, sourceMode?: string, isInit = false) => {
       if (isStreaming) return
 
       // Upload file first if provided
@@ -219,7 +225,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
         sourceMode,
       }
 
-      setMessages((prev) => [...prev, userMsg, streamingMsg])
+      setMessages((prev) => isInit ? [...prev, streamingMsg] : [...prev, userMsg, streamingMsg])
 
       if (uploadFailed) {
         setMessages((prev) =>
@@ -374,6 +380,13 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
     },
     [isStreaming, conversationId]
   )
+
+  useEffect(() => {
+    if (!autoInitAgentRef.current || agents.length === 0 || isStreaming) return
+    const slug = autoInitAgentRef.current
+    autoInitAgentRef.current = null
+    handleSend('__init__', slug, undefined, undefined, undefined, undefined, true)
+  }, [agents, handleSend, isStreaming])
 
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden">

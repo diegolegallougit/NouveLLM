@@ -5,7 +5,11 @@ import ConversationPage from './ConversationPage'
 
 export const dynamic = 'force-dynamic'
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ agent?: string }>
+}) {
   const session = await auth()
   if (!session?.user?.id) redirect('/login')
 
@@ -16,6 +20,8 @@ export default async function HomePage() {
     where: { id: user.id },
     select: { onboarded: true, role: true, discipline: true },
   })
+
+  const resolvedParams = await searchParams
 
   const initials = (user.name || user.email || 'U')
     .split(' ')
@@ -32,6 +38,7 @@ export default async function HomePage() {
       userId={user.id}
       needsOnboarding={!dbUser?.onboarded}
       discipline={dbUser?.discipline ?? undefined}
+      initialAgent={resolvedParams.agent}
     />
   )
 }

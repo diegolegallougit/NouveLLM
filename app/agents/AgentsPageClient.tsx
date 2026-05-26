@@ -43,7 +43,7 @@ const FAMILIES = [
     agents: [
       { slug: 'analyse', label: 'Analyse de document',   desc: 'Analyse critique, thèmes, comparaison corpus', soon: false },
       { slug: null,      label: 'Analyse de données',    desc: 'Tableaux, statistiques, visualisation', soon: true },
-      { slug: null,      label: 'Concepteur de séances', desc: 'Conception de scénarios pédagogiques', soon: true },
+      { slug: 'concepteur-seances', label: 'Concepteur de séances', desc: 'Conçoit des séances pédagogiques et produit le JSON importable', soon: false },
     ],
   },
 ]
