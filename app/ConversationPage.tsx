@@ -39,6 +39,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
   const [onboardingDone, setOnboardingDone] = useState(false)
   const [showRoutingPanel, setShowRoutingPanel] = useState(false)
   const [pendingAgent, setPendingAgent] = useState<string | null | undefined>(undefined)
+  const [stickyAgent, setStickyAgent] = useState<string | null>(null)
   const [sourceMode, setSourceMode] = useState<'usn' | 'academic' | 'web' | 'all'>('usn')
   const [sourceSheetOpen, setSourceSheetOpen] = useState(false)
   const [activeMetaPrompt, setActiveMetaPrompt] = useState<{ id: string; title: string } | null>(null)
@@ -93,6 +94,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
 
       if (initialAgent) {
         setPendingAgent(initialAgent)
+        setStickyAgent(initialAgent)
       }
 
       if (initialConversationId) {
@@ -526,7 +528,7 @@ export default function ConversationPage({ userName, userRole, userInitials, nee
               agents={agents}
               sources={sources}
               onSend={(msg, agent, srcs, file, prebuiltInputs) => {
-                setPendingAgent(undefined)
+                if (!stickyAgent) setPendingAgent(undefined)
                 handleSend(msg, agent, srcs, file, prebuiltInputs, sourceMode)
               }}
               disabled={isStreaming}
