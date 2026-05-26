@@ -4,7 +4,7 @@ const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001'
 const EMAIL = process.env.TEST_EMAIL!
 const PASSWORD = process.env.TEST_PASSWORD!
 
-test('auto-init: /?agent=analyse déclenche message IA sans saisie utilisateur', async ({ page }) => {
+test('auto-init: /?agent=concepteur-seances déclenche message IA sans saisie utilisateur', async ({ page }) => {
   // ── Login ──
   await page.goto(`${BASE}/login`)
   await page.fill('input[type="email"]', EMAIL)
@@ -13,7 +13,7 @@ test('auto-init: /?agent=analyse déclenche message IA sans saisie utilisateur',
   await page.waitForURL(`${BASE}/`, { timeout: 15_000 })
 
   // ── Navigate with preselected agent ──
-  await page.goto(`${BASE}/?agent=analyse`)
+  await page.goto(`${BASE}/?agent=concepteur-seances`)
 
   // ── Wait for streaming indicator or assistant message ──
   // ProcessingState or message content appearing in the chat area
