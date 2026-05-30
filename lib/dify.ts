@@ -1,5 +1,5 @@
 const DIFY_BASE_URL = process.env.DIFY_BASE_URL || 'http://172.19.0.13:5001'
-const DIFY_TTFB_TIMEOUT_MS = 30_000
+const DIFY_TTFB_TIMEOUT_MS = 90_000
 
 export interface DifySource {
   document_name: string

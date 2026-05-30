@@ -1,0 +1,3 @@
+{
+  "/api/spaces/[id]/folders/route": "app/api/spaces/[id]/folders/route.js"
+}

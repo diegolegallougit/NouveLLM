@@ -1,0 +1,3 @@
+{
+  "/api/admin/webhook/dify/route": "app/api/admin/webhook/dify/route.js"
+}

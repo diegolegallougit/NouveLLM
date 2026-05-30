@@ -1,0 +1,3 @@
+{
+  "/api/responsable/[groupId]/csv-import/route": "app/api/responsable/[groupId]/csv-import/route.js"
+}

@@ -116,21 +116,26 @@ export async function POST(req: NextRequest) {
   }
 
   // Resolve agent API key and inputs
-  let apiKey = process.env.DIFY_IIIAAS_API_KEY || ''
+  let apiKey = ''
   let agentLabel: string | undefined
   let inputs: Record<string, unknown> = {}
 
   if (agentSlug) {
     const agent = await prisma.agent.findUnique({ where: { slug: agentSlug } })
-    if (agent) {
-      apiKey = agent.difyApiKey
-      agentLabel = agent.label
-      if (prebuiltInputs && Object.keys(prebuiltInputs).length > 0) {
-        inputs = prebuiltInputs
-      } else {
-        const inputBuilder = AGENT_INPUTS[agentSlug]
-        if (inputBuilder) inputs = inputBuilder(message, uploadedFileId ?? undefined)
-      }
+    if (!agent) {
+      console.error(`[chat] Agent not found: ${agentSlug}`)
+      return new Response(
+        `data: ${JSON.stringify({ type: 'error', message: `Agent '${agentSlug}' non configuré` })}\n\n`,
+        { status: 400, headers: { 'Content-Type': 'text/event-stream' } }
+      )
+    }
+    apiKey = agent.difyApiKey
+    agentLabel = agent.label
+    if (prebuiltInputs && Object.keys(prebuiltInputs).length > 0) {
+      inputs = prebuiltInputs
+    } else {
+      const inputBuilder = AGENT_INPUTS[agentSlug]
+      if (inputBuilder) inputs = inputBuilder(message, uploadedFileId ?? undefined)
     }
   }
 
@@ -153,6 +158,19 @@ export async function POST(req: NextRequest) {
         if (overrideKey) apiKey = overrideKey
       }
     }
+  }
+
+  if (!apiKey) {
+    // Conversation générique sans agent spécifique → IIIAAS v3 par défaut
+    apiKey = process.env.DIFY_IIIAAS_API_KEY || ''
+  }
+  if (!apiKey) {
+    // Ne devrait jamais arriver si .env est complet
+    console.error('[chat] No API key configured')
+    return new Response(
+      `data: ${JSON.stringify({ type: 'error', message: 'Aucune clé API configurée' })}\n\n`,
+      { status: 500, headers: { 'Content-Type': 'text/event-stream' } }
+    )
   }
 
   // Resolve institutional source slugs → Dify dataset IDs
@@ -239,10 +257,26 @@ export async function POST(req: NextRequest) {
     })
   }
 
+  async function streamWithRetry(
+    params: Parameters<typeof streamDifyChat>[0],
+    retries = 1
+  ): Promise<Response> {
+    try {
+      return await streamDifyChat(params)
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : ''
+      if (retries > 0 && (errMsg.includes('TTFB_TIMEOUT') || errMsg.includes('IDLE_TIMEOUT'))) {
+        console.warn('[chat] Retry after:', errMsg)
+        return streamWithRetry(params, retries - 1)
+      }
+      throw e
+    }
+  }
+
   // Call Dify streaming API
   let difyResponse: Response
   try {
-    difyResponse = await streamDifyChat({
+    difyResponse = await streamWithRetry({
       apiKey,
       query: message,
       conversationId: difyConvId,

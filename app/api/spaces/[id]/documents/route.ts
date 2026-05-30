@@ -123,7 +123,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     resolvedFolderId = folder?.id ?? null
   }
 
-  // ── Personal space — store locally, no indexing ──────────────────────────────
+  // ── Personal space — store locally + upload to Dify for chat reference ──────
   if (!spaceGroup) {
     const docId = randomUUID()
     const useOriginal = !pipeline.content || pipeline.method === 'pdf-dify-native'
@@ -142,15 +142,38 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Erreur lors de l'enregistrement du fichier." }, { status: 500 })
     }
 
+    // Upload vers Dify /v1/files/upload pour référencement dans le chat
+    let difyFileId: string | null = null
+    try {
+      const difyForm = new FormData()
+      difyForm.append('file', new File([fileBuffer], file.name, { type: file.type }))
+      difyForm.append('user', session.user.id)
+      const res = await fetch(`${DIFY_BASE_URL}/v1/files/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${process.env.DIFY_IIIAAS_API_KEY || ''}` },
+        body: difyForm,
+        signal: AbortSignal.timeout(15000),
+      })
+      if (res.ok) {
+        const data = await res.json() as { id?: string }
+        difyFileId = data.id ?? null
+      } else {
+        const errBody = await res.text().catch(() => '')
+        console.warn('[upload] Dify /v1/files/upload error:', res.status, errBody.slice(0, 200))
+      }
+    } catch (err) {
+      console.warn('[upload] Dify /v1/files/upload non-blocking failed:', err)
+    }
+
     const doc = await prisma.spaceDocument.create({
       data: {
         id: docId, name: file.name, displayName: null, description: null,
-        folderId: resolvedFolderId, spaceId, difyFileId: null, storedFilename,
+        folderId: resolvedFolderId, spaceId, difyFileId, storedFilename,
         uploadedById: session.user.id, size: file.size, mimeType: file.type || null,
         visibleFrom: new Date(), visibleUntil: defaultVisibleUntil(), isVisible: true,
         diplomeSlug: null, anneeUniv: currentAnneeUniv(),
         metadata: JSON.stringify({ hasText: pipeline.hasText, method: pipeline.method, targetDatasetId: null }),
-        indexingStatus: 'no_index',
+        indexingStatus: difyFileId ? 'completed' : 'no_index',
       },
       include: { folder: true },
     })

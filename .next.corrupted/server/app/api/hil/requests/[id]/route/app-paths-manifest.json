@@ -1,0 +1,3 @@
+{
+  "/api/hil/requests/[id]/route": "app/api/hil/requests/[id]/route.js"
+}

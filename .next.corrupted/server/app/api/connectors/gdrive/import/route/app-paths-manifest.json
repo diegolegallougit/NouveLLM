@@ -1,0 +1,3 @@
+{
+  "/api/connectors/gdrive/import/route": "app/api/connectors/gdrive/import/route.js"
+}

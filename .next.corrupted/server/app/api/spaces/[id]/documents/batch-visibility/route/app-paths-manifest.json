@@ -1,0 +1,3 @@
+{
+  "/api/spaces/[id]/documents/batch-visibility/route": "app/api/spaces/[id]/documents/batch-visibility/route.js"
+}

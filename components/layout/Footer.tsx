@@ -22,14 +22,13 @@ interface Survey {
 interface FooterProps {
   userRole?: string
   tokenCount?: number
-  tokenLimit?: number
 }
 
-export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2000000 }: FooterProps) {
+export default function Footer({ userRole = 'EC', tokenCount = 0 }: FooterProps) {
   const isStudent = userRole === 'STUDENT'
 
-  const [quota, setQuota] = useState<{ available: number; pct: number } | null>(null)
-  const [ecUsage, setEcUsage] = useState<number | null>(null)
+  const [quota, setQuota] = useState<{ available: number; pct: number; quotaTokens: number } | null>(null)
+  const [ecUsage, setEcUsage] = useState<{ tokensUsed: number; quotaTokens: number } | null>(null)
   const [pendingSurveys, setPendingSurveys] = useState<Survey[]>([])
   const [activeSurvey, setActiveSurvey] = useState<Survey | null>(null)
 
@@ -37,16 +36,18 @@ export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2
     if (isStudent) {
       fetch('/api/quota')
         .then((r) => r.json())
-        .then((data) => setQuota({ available: data.available, pct: data.pct }))
+        .then((data) => setQuota({ available: data.available, pct: data.pct, quotaTokens: data.quotaTokens }))
         .catch(() => null)
       fetch('/api/surveys')
         .then((r) => r.json())
         .then((data) => setPendingSurveys(data.surveys ?? []))
         .catch(() => null)
     } else {
-      fetch('/api/usage')
-        .then((r) => r.json())
-        .then((data) => setEcUsage(data.tokensUsed ?? null))
+      Promise.all([
+        fetch('/api/usage').then(r => r.json()),
+        fetch('/api/quota').then(r => r.json()),
+      ])
+        .then(([usage, quotaData]) => setEcUsage({ tokensUsed: usage.tokensUsed ?? 0, quotaTokens: quotaData.quotaTokens ?? 2000000 }))
         .catch(() => null)
     }
   }, [isStudent])
@@ -57,7 +58,7 @@ export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2
     // Refresh quota after token earn
     fetch('/api/quota')
       .then((r) => r.json())
-      .then((data) => setQuota({ available: data.available, pct: data.pct }))
+      .then((data) => setQuota({ available: data.available, pct: data.pct, quotaTokens: data.quotaTokens }))
       .catch(() => null)
   }
 
@@ -166,14 +167,14 @@ export default function Footer({ userRole = 'EC', tokenCount = 0, tokenLimit = 2
           ) : (
             <div className="flex items-center gap-2">
               <span style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 300, fontSize: 'var(--text-xs)', letterSpacing: '0.04em', color: '#8A8A8A' }}>
-                Ce mois : {ecUsage !== null ? (ecUsage > 999 ? `${(ecUsage / 1000).toFixed(0)}k` : ecUsage) : '…'} / 2 000k tokens
+                Ce mois : {ecUsage !== null ? (ecUsage.tokensUsed > 999 ? `${(ecUsage.tokensUsed / 1000).toFixed(0)}k` : ecUsage.tokensUsed) : '…'} / {ecUsage !== null ? (ecUsage.quotaTokens > 999 ? `${(ecUsage.quotaTokens / 1000).toFixed(0)}k` : ecUsage.quotaTokens) : '…'} tokens
               </span>
               <div className="w-16 h-1.5 rounded-full bg-[#D8D8D8] overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{
-                    width: `${ecUsage !== null ? Math.min(100, Math.round((ecUsage / 2000000) * 100)) : 0}%`,
-                    background: ecUsage !== null && ecUsage / 2000000 > 0.8 ? '#dc2626' : ecUsage !== null && ecUsage / 2000000 > 0.6 ? '#f97316' : '#00068D',
+                    width: `${ecUsage !== null ? Math.min(100, Math.round((ecUsage.tokensUsed / ecUsage.quotaTokens) * 100)) : 0}%`,
+                    background: ecUsage !== null && ecUsage.tokensUsed / ecUsage.quotaTokens > 0.8 ? '#dc2626' : ecUsage !== null && ecUsage.tokensUsed / ecUsage.quotaTokens > 0.6 ? '#f97316' : '#00068D',
                   }}
                 />
               </div>

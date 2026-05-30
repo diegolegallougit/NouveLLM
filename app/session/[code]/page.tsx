@@ -445,6 +445,19 @@ export default function SessionPage() {
   // Chat interface
   return (
     <div className="flex flex-col h-screen bg-[#FAFAFA]">
+      {/* Lien retour accueil */}
+      {!isGuest && (
+        <a
+          href="/"
+          className="fixed top-4 left-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/90 border border-[#D8D8D8] text-[#5A5A5A] hover:text-[#00068D] hover:border-[#00068D] transition-all shadow-sm"
+          style={{ fontFamily: 'Gilroy, sans-serif', fontWeight: 600, fontSize: 'var(--text-xs)' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Retour à l'accueil
+        </a>
+      )}
       {/* Session banner */}
       <div className="border-b border-[#D8D8D8] bg-white">
         <div className="flex items-center gap-3 px-5 py-2.5">
