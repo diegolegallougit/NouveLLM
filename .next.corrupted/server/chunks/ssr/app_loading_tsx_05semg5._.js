@@ -1,3 +1,0 @@
-module.exports=[563588,a=>{"use strict";var b=a.i(907997);a.s(["default",0,function(){return(0,b.jsxs)("div",{className:"min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F2F2F2]",children:[(0,b.jsx)("span",{className:"nl-spinner"}),(0,b.jsx)("p",{style:{fontFamily:"Gilroy, sans-serif",fontWeight:300,fontSize:"var(--text-xs)",color:"#8A8A8A"},children:"Chargement…"})]})}])},345538,a=>{a.n(a.i(563588))}];
-
-//# sourceMappingURL=app_loading_tsx_05semg5._.js.map

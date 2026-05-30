@@ -30,3 +30,7 @@ tsconfig.tsbuildinfo
 # Misc
 .DS_Store
 *.log
+.next.corrupted/
+test-results/
+AUDIT-*.md
+*.log

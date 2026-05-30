@@ -1,3 +1,0 @@
-{
-  "/api/spaces/[id]/documents/[docId]/visibility/route": "app/api/spaces/[id]/documents/[docId]/visibility/route.js"
-}
