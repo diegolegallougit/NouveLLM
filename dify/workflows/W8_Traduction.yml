@@ -1,0 +1,472 @@
+app:
+  description: Traduction spécialisée avec terminologie disciplinaire SHS et glossaire
+  icon: 🌐
+  icon_background: '#EFF1F5'
+  icon_type: emoji
+  mode: advanced-chat
+  name: W8 — Traduction SHS
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: kurokobo/file_tools:0.0.2@8bde7b4d2c30cf22e8f6ce851572af244f7a5776addab94330b820dc2160726c
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai_api_compatible:0.0.53@a0dfb462961a03c6a6415d4185043185b01017c64da93cf82a9e5ecaf59f8ed0
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/wikipedia:0.0.8@c9f3723fc727af0e1e69e3a085badf0b6b1b8b27be941b03244ddb5ebc991b1f
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .pdf
+      - .docx
+      - .txt
+      - .md
+      allowed_file_types:
+      - document
+      allowed_file_upload_methods:
+      - local_file
+      enabled: false
+      number_limits: 3
+    opening_statement: Bonjour ! Je traduis vos textes SHS avec terminologie spécialisée.
+      Collez le texte, choisissez la langue cible et le public.
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: qc
+      id: e-start-qc
+      source: start
+      sourceHandle: source
+      target: qc
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: tool
+      id: e-qc-wiki_terms
+      source: qc
+      sourceHandle: t-struct
+      target: wiki_terms
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: llm
+      id: e-qc-llm_simple
+      source: qc
+      sourceHandle: q-simple
+      target: llm_simple
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: answer
+      id: e-qc-ans_hors
+      source: qc
+      sourceHandle: h-sujet
+      target: ans_hors
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: tool
+        targetType: llm
+      id: e-wiki_terms-llm_trad
+      source: wiki_terms
+      sourceHandle: source
+      target: llm_trad
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: tool
+      id: e-llm_trad-file_trad
+      source: llm_trad
+      sourceHandle: source
+      target: file_trad
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: tool
+        targetType: answer
+      id: e-file_trad-ans_trad
+      source: file_trad
+      sourceHandle: source
+      target: ans_trad
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e-llm_simple-ans_simple
+      source: llm_simple
+      sourceHandle: source
+      target: ans_simple
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: Début
+        type: start
+        variables:
+        - label: Texte à traduire
+          max_length: 5000
+          required: true
+          type: paragraph
+          variable: texte
+        - label: Langue cible
+          max_length: 50
+          options:
+          - anglais
+          - espagnol
+          - italien
+          - allemand
+          - portugais
+          - arabe
+          required: true
+          type: select
+          variable: langue_cible
+        - label: Public cible
+          max_length: 50
+          options:
+          - académique
+          - étudiant
+          - grand public
+          - professionnel
+          required: true
+          type: select
+          variable: public_cible
+        - default: ''
+          label: Contexte système (profil EC)
+          max_length: 5000
+          required: false
+          type: paragraph
+          variable: system_context
+        - default: ''
+          label: Contexte utilisateur (profil EC)
+          max_length: 5000
+          required: false
+          type: paragraph
+          variable: user_context
+      height: 220
+      id: start
+      position:
+        x: 30
+        y: 200
+      positionAbsolute:
+        x: 30
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        classes:
+        - id: q-simple
+          name: question simple
+        - id: t-struct
+          name: tâche de traduction
+        - id: h-sujet
+          name: hors sujet
+        desc: ''
+        instructions: ''
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        query_variable_selector:
+        - sys
+        - query
+        selected: false
+        title: Classification
+        type: question-classifier
+      height: 189
+      id: qc
+      position:
+        x: 320
+        y: 200
+      positionAbsolute:
+        x: 320
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        desc: ''
+        error_strategy: fail-branch
+        plugin_unique_identifier: langgenius/wikipedia:0.0.6@0a69d1a491b6ee847fc119dcc8c8852c8b467eb6eda3015cc9b564740506fe42
+        provider_id: langgenius/wikipedia/wikipedia
+        provider_name: langgenius/wikipedia/wikipedia
+        provider_type: plugin
+        selected: false
+        title: Terminologie Wikipedia
+        tool_configurations: {}
+        tool_label: WikipediaSearch
+        tool_name: wikipedia_search
+        tool_parameters:
+          language:
+            type: mixed
+            value: fr
+          query:
+            type: mixed
+            value: '{{#sys.query#}} terminologie SHS'
+        type: tool
+      height: 98
+      id: wiki_terms
+      position:
+        x: 620
+        y: 300
+      positionAbsolute:
+        x: 620
+        y: 300
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: false
+          variable_selector: null
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          query_prompt_template: null
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.2
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: 'Tu es IIIAAS, assistant de traduction spécialisé en Sciences Humaines
+            et Sociales de l''Université [Institution] (Paris 3). Tu traduis avec
+            précision tout en respectant la terminologie disciplinaire SHS. Fournis
+            toujours : 1) La traduction complète 2) Un glossaire des termes techniques
+            traduits 3) Des notes sur les choix terminologiques importants.
+
+            {% if system_context and system_context != "" %}
+
+            Posture active : {{system_context}}
+
+            {% endif %}
+
+            {% if user_context and user_context != "" %}
+
+            Contexte utilisateur : {{user_context}}
+
+            {% endif %}'
+        - role: user
+          text: 'Texte à traduire vers {{#start.langue_cible#}} (public cible : {{#start.public_cible#}})
+            :
+
+
+            {{#start.texte#}}
+
+
+            Terminologie de référence Wikipedia :
+
+            {{#wiki_terms.text#}}
+
+
+            Produis la traduction avec glossaire et notes.'
+        selected: false
+        title: Traduction
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: llm_trad
+      position:
+        x: 950
+        y: 250
+      positionAbsolute:
+        x: 950
+        y: 250
+      type: custom
+      width: 243
+    - data:
+        desc: ''
+        error_strategy: fail-branch
+        plugin_unique_identifier: kurokobo/file_tools:0.0.2@8bde7b4d2c30cf22e8f6ce851572af244f7a5776addab94330b820dc2160726c
+        provider_id: kurokobo/file_tools/file_tools
+        provider_name: kurokobo/file_tools/file_tools
+        provider_type: plugin
+        selected: false
+        title: Export traduction
+        tool_configurations: {}
+        tool_label: Save as File
+        tool_name: save_as_file
+        tool_parameters:
+          content:
+            type: variable
+            value:
+            - llm_trad
+            - text
+          filename:
+            type: mixed
+            value: traduction.txt
+          format:
+            type: mixed
+            value: link
+          mime_type:
+            type: mixed
+            value: text/plain
+        type: tool
+      height: 98
+      id: file_trad
+      position:
+        x: 1250
+        y: 250
+      positionAbsolute:
+        x: 1250
+        y: 250
+      type: custom
+      width: 243
+    - data:
+        answer: '{{#llm_trad.text#}}
+
+
+          ---
+
+          📎 {{#file_trad.link#}}'
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_trad
+      position:
+        x: 1550
+        y: 250
+      positionAbsolute:
+        x: 1550
+        y: 250
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: false
+          variable_selector: null
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          query_prompt_template: null
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.2
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: 'Tu es IIIAAS, assistant de traduction USN. Réponds à la question.
+
+            {% if system_context and system_context != "" %}
+
+            Posture active : {{system_context}}
+
+            {% endif %}
+
+            {% if user_context and user_context != "" %}
+
+            Contexte utilisateur : {{user_context}}
+
+            {% endif %}'
+        - role: user
+          text: '{{#sys.query#}}'
+        selected: false
+        title: Réponse simple
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: llm_simple
+      position:
+        x: 620
+        y: 100
+      positionAbsolute:
+        x: 620
+        y: 100
+      type: custom
+      width: 243
+    - data:
+        answer: '{{#llm_simple.text#}}'
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_simple
+      position:
+        x: 900
+        y: 100
+      positionAbsolute:
+        x: 900
+        y: 100
+      type: custom
+      width: 243
+    - data:
+        answer: ⚠️ Fournissez un texte à traduire et choisissez la langue cible.
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_hors
+      position:
+        x: 620
+        y: 500
+      positionAbsolute:
+        x: 620
+        y: 500
+      type: custom
+      width: 243
+  rag_pipeline_variables: []

@@ -1,0 +1,144 @@
+app:
+  description: Agent libre pour enseignants-chercheurs USN — test
+  icon: 🤖
+  icon_background: '#E3F2FD'
+  icon_type: null
+  mode: agent-chat
+  name: W_AgentLibre_TEST
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai_api_compatible:0.0.53@a0dfb462961a03c6a6415d4185043185b01017c64da93cf82a9e5ecaf59f8ed0
+    version: null
+kind: app
+model_config:
+  agent_mode:
+    enabled: true
+    max_iteration: 5
+    strategy: function_call
+    strategy_labels: []
+    tools:
+    - enabled: true
+      provider_id: a0000000-0000-4000-8000-000000000001
+      provider_name: Proxy Académique USN
+      provider_type: api
+      tool_label: Recherche Académique
+      tool_name: recherche_academique
+      tool_parameters: {}
+    - provider_id: webscraper
+      provider_name: webscraper
+      provider_type: builtin
+      tool_label: Web Scraper
+      tool_name: webscraper
+  annotation_reply:
+    enabled: false
+  chat_prompt_config: {}
+  completion_prompt_config: {}
+  dataset_configs:
+    datasets:
+      datasets:
+      - enabled: true
+        id: 27b128ca-4493-407d-9848-20096e4d4d2e
+      - enabled: true
+        id: a1111111-0001-4000-8000-000000000001
+      strategy: router
+    retrieval_model:
+      reranking_enable: true
+      reranking_model:
+        reranking_model: default
+        reranking_provider: default
+      score_threshold: 0.0
+      score_threshold_enabled: false
+      search_method: semantic_search
+      top_k: 5
+  dataset_query_variable: null
+  external_data_tools: []
+  file_upload:
+    image:
+      detail: high
+      enabled: false
+      number_limits: 3
+      transfer_methods:
+      - remote_url
+      - local_file
+  model:
+    completion_params:
+      max_tokens: 2000
+      preference: speed
+      request_timeout: 60
+      temperature: 0.6
+    mode: chat
+    name: deepseek-v4-flash
+    provider: langgenius/openai_api_compatible/openai_api_compatible
+  more_like_this:
+    enabled: false
+  opening_statement: ''
+  pre_prompt: 'Tu es un assistant IA pour les enseignants-chercheurs de l''Universite
+    [Institution].
+
+    Tu es polyvalent, direct et precis. Tu t''adaptes au besoin sans le faire reformuler.
+
+
+    Tu as acces a des outils que tu utilises quand c''est pertinent:
+
+    - Lecture d''URL (webscraper): pour analyser le contenu d''une page web ou d''un
+    PDF en ligne
+
+    - Recherche academique (HAL/OpenAlex): pour les questions de recherche, bibliographies,
+    etat de l art
+
+    - Base de connaissances USN: pour les questions sur les formations et ressources
+    de l universite
+
+    - Base de connaissances INTEGRIA: pour les questions sur le projet de recherche
+    INTEGRIA
+
+
+    Note technique : l''outil de lecture d''URL s''appelle exactement "webscraper"
+
+    avec le parametre "url". Ne jamais appeler "lecture_url" ou "web_reader"
+
+    — ces noms n''existent pas.
+
+
+    REGLE OUTILS :
+
+    N''utilise la recherche academique (recherche_academique) que si la question
+
+    demande explicitement des travaux, publications, auteurs ou etat de l art.
+
+    Pour les questions de conseil pedagogique, de raisonnement ou de methode —
+
+    reponds directement depuis tes connaissances sans chercher.
+
+
+    Quand tu utilises un outil, sois transparent - dis brievement ce que tu cherches.
+
+    Quand tu cites une source, fournis le lien exact retourne par l outil.
+
+    Ne cite jamais une source que tu n as pas consultee via un outil.
+
+
+    Ton d''un collegue expert: direct, sans ceremonial.
+
+    Ne commence jamais par: Bonjour, Bien sur, Absolument, Certainement.'
+  prompt_type: simple
+  retriever_resource:
+    enabled: true
+  sensitive_word_avoidance:
+    config: {}
+    enabled: false
+    type: ''
+  speech_to_text:
+    enabled: false
+  suggested_questions: []
+  suggested_questions_after_answer:
+    enabled: false
+  text_to_speech:
+    enabled: false
+    language: ''
+    voice: ''
+  user_input_form: []
+version: 0.6.0

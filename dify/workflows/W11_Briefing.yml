@@ -1,0 +1,405 @@
+app:
+  description: Préparation de notes de briefing pour les réunions institutionnelles
+    USN
+  icon: 📅
+  icon_background: '#EFF1F5'
+  icon_type: emoji
+  mode: advanced-chat
+  name: W11 — Briefing réunion
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai_api_compatible:0.0.53@a0dfb462961a03c6a6415d4185043185b01017c64da93cf82a9e5ecaf59f8ed0
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .pdf
+      - .docx
+      - .txt
+      - .md
+      allowed_file_types:
+      - document
+      allowed_file_upload_methods:
+      - local_file
+      enabled: false
+      number_limits: 3
+    opening_statement: Bonjour ! Je prépare vos briefings de réunion. Donnez-moi le
+      sujet, les participants et les documents de référence.
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: qc
+      id: e-start-qc
+      source: start
+      sourceHandle: source
+      target: qc
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: knowledge-retrieval
+      id: e-qc-kb_brief
+      source: qc
+      sourceHandle: t-struct
+      target: kb_brief
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: llm
+      id: e-qc-llm_simple
+      source: qc
+      sourceHandle: q-simple
+      target: llm_simple
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: answer
+      id: e-qc-ans_hors
+      source: qc
+      sourceHandle: h-sujet
+      target: ans_hors
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: e-kb_brief-llm_brief
+      source: kb_brief
+      sourceHandle: source
+      target: llm_brief
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e-llm_brief-ans_brief
+      source: llm_brief
+      sourceHandle: source
+      target: ans_brief
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e-llm_simple-ans_simple
+      source: llm_simple
+      sourceHandle: source
+      target: ans_simple
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: Début
+        type: start
+        variables:
+        - label: Sujet de la réunion
+          max_length: 500
+          required: true
+          type: text-input
+          variable: sujet
+        - label: Participants
+          max_length: 500
+          required: true
+          type: text-input
+          variable: participants
+        - label: Documents à préparer
+          max_length: 1000
+          required: false
+          type: paragraph
+          variable: documents
+        - default: ''
+          label: Contexte système (profil EC)
+          max_length: 5000
+          required: false
+          type: paragraph
+          variable: system_context
+        - default: ''
+          label: Contexte utilisateur (profil EC)
+          max_length: 5000
+          required: false
+          type: paragraph
+          variable: user_context
+      height: 200
+      id: start
+      position:
+        x: 30
+        y: 200
+      positionAbsolute:
+        x: 30
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        classes:
+        - id: q-simple
+          name: question simple
+        - id: t-struct
+          name: tâche structurée
+        - id: h-sujet
+          name: hors sujet
+        dataset:
+          dataset_id: a0000001-0000-4000-8000-000000000003
+          dataset_name: Ressources pedagogiques publiques
+        desc: ''
+        instructions: ''
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        query_variable_selector:
+        - sys
+        - query
+        selected: false
+        title: Classification
+        type: question-classifier
+      height: 189
+      id: qc
+      position:
+        x: 320
+        y: 200
+      positionAbsolute:
+        x: 320
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        dataset_ids:
+        - kgthqvyxe7/ejRH67y09wnzRBAmPp11C8s/vQrq5AdM6r4YnpgvS45aANmewX+9e
+        desc: ''
+        error_strategy: fail-branch
+        multiple_retrieval_config:
+          reranking_enable: true
+          reranking_mode: reranking_model
+          reranking_model:
+            model: BAAI/bge-reranker-v2-m3
+            provider: langgenius/openai_api_compatible/openai_api_compatible
+          score_threshold: 0.5
+          score_threshold_enabled: true
+          top_k: 5
+          weights: null
+        query_variable_selector:
+        - sys
+        - query
+        retrieval_mode: multiple
+        selected: false
+        title: Recherche documentaire
+        type: knowledge-retrieval
+      height: 98
+      id: kb_brief
+      position:
+        x: 620
+        y: 300
+      positionAbsolute:
+        x: 620
+        y: 300
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - kb_brief
+          - result
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          query_prompt_template: null
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.3
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: 'Tu es IIIAAS, assistant de préparation de réunions de l''Université
+            [Institution] (Paris 3). Tu rédiges des notes de briefing structurées
+            : ordre du jour, points clés, questions à préparer, documents de référence.
+            Sois concis et actionnable.
+
+            {% if system_context and system_context != "" %}
+
+            Posture active : {{system_context}}
+
+            {% endif %}
+
+            {% if user_context and user_context != "" %}
+
+            Contexte utilisateur : {{user_context}}
+
+            {% endif %}'
+        - role: user
+          text: 'Prépare un briefing pour une réunion sur : {{#start.sujet#}}
+
+            Participants : {{#start.participants#}}
+
+            Documents de référence : {{#start.documents#}}
+
+
+            Contexte documentaire :
+
+            {{#kb_brief.result#}}
+
+
+            Produis : 1) Ordre du jour suggéré 2) Points clés à aborder 3) Questions
+            à préparer 4) Documents à apporter'
+        selected: false
+        title: Rédaction briefing
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: llm_brief
+      position:
+        x: 900
+        y: 200
+      positionAbsolute:
+        x: 900
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        answer: '{{#llm_brief.text#}}'
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_brief
+      position:
+        x: 1200
+        y: 200
+      positionAbsolute:
+        x: 1200
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: false
+          variable_selector: null
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          query_prompt_template: null
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.3
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: 'Tu es IIIAAS, assistant USN. Réponds brièvement.
+
+            {% if system_context and system_context != "" %}
+
+            Posture active : {{system_context}}
+
+            {% endif %}
+
+            {% if user_context and user_context != "" %}
+
+            Contexte utilisateur : {{user_context}}
+
+            {% endif %}'
+        - role: user
+          text: '{{#sys.query#}}'
+        selected: false
+        title: Réponse simple
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: llm_simple
+      position:
+        x: 620
+        y: 100
+      positionAbsolute:
+        x: 620
+        y: 100
+      type: custom
+      width: 243
+    - data:
+        answer: '{{#llm_simple.text#}}'
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_simple
+      position:
+        x: 900
+        y: 100
+      positionAbsolute:
+        x: 900
+        y: 100
+      type: custom
+      width: 243
+    - data:
+        answer: ⚠️ Précisez le sujet et les participants pour que je prépare le briefing.
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_hors
+      position:
+        x: 620
+        y: 500
+      positionAbsolute:
+        x: 620
+        y: 500
+      type: custom
+      width: 243
+  rag_pipeline_variables: []

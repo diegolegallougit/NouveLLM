@@ -1,0 +1,1670 @@
+app:
+  description: 'Bibliographies SHS auto-enrichissantes : KB2 → éval qualité → HAL/ArXiv/CAIRN/OpenEdition
+    → upload KB2'
+  icon: 📚
+  icon_background: '#EFF1F5'
+  icon_type: emoji
+  mode: advanced-chat
+  name: W2 — Bibliographie annotée
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/arxiv:0.0.7@ec33c6b3ca5b1e4d5a4d3384ee853099fb4a57eaaecb5ad122e777952b74f475
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai_api_compatible:0.0.53@a0dfb462961a03c6a6415d4185043185b01017c64da93cf82a9e5ecaf59f8ed0
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .pdf
+      - .docx
+      - .txt
+      - .md
+      allowed_file_types:
+      - document
+      allowed_file_upload_methods:
+      - local_file
+      enabled: false
+      number_limits: 3
+    opening_statement: "Bonjour. Je construis des bibliographies annotées à partir\
+      \ de sources académiques réelles — HAL, OpenAlex, ArXiv, Semantic Scholar. Pas\
+      \ depuis ma mémoire.\n\nTrois choses déterminent la qualité du résultat :\n\n\
+      — L'usage : un syllabus de cours ne demande pas les mêmes références qu'une\
+      \ recension de recherche. Choisissez précisément.\n\n— La discipline : \"SHS\"\
+      \ ne suffit pas. \"Traductologie\", \"Didactique du FLE\", \"Études cinématographiques\"\
+      \ — plus c'est précis, meilleures sont les sources retournées.\n\n— Le sujet\
+      \ : une question de recherche vaut mieux qu'un thème général.\n ✗ \"L'IA dans\
+      \ l'éducation\"\n ✓ \"Impact des LLM sur les pratiques d'évaluation en licence\
+      \ de lettres\"\n\nSi les sources disponibles sont insuffisantes sur votre sujet,\
+      \ je vous le dis et je propose une stratégie de recherche complémentaire."
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: qc
+      id: e-start-qc
+      source: start
+      sourceHandle: source
+      target: qc
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: knowledge-retrieval
+      id: e-qc-kb_biblio
+      source: qc
+      sourceHandle: t-struct
+      target: kb_biblio
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: llm
+      id: e-qc-llm_simple
+      source: qc
+      sourceHandle: q-simple
+      target: llm_simple
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: answer
+      id: e-qc-ans_hors
+      source: qc
+      sourceHandle: h-sujet
+      target: ans_hors
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: knowledge-retrieval
+        targetType: code
+      id: e-kb_biblio-code_eval
+      source: kb_biblio
+      sourceHandle: source
+      target: code_eval
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: if-else
+      id: e-code_eval-if_ext
+      source: code_eval
+      sourceHandle: source
+      target: if_ext
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: llm
+      id: e-if_ext-llm_bib_no
+      source: if_ext
+      sourceHandle: 'false'
+      target: llm_bib_no
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e-llm_bib_no-ans_bib_no
+      source: llm_bib_no
+      sourceHandle: source
+      target: ans_bib_no
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: llm
+      id: e-if_ext-llm_reform
+      source: if_ext
+      sourceHandle: 'true'
+      target: llm_reform
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: http-request
+      id: e-if_ext-http_hal
+      source: if_ext
+      sourceHandle: 'true'
+      target: http_hal
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: tool
+        targetType: code
+      id: e-arxiv_search-code_dedup
+      source: arxiv_search
+      sourceHandle: source
+      target: code_dedup
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: e-http_hal-code_dedup
+      source: http_hal
+      sourceHandle: source
+      target: code_dedup
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: http-request
+      id: e-code_dedup-http_kb2
+      source: code_dedup
+      sourceHandle: source
+      target: http_kb2
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: llm
+      id: e-code_dedup-llm_bib_yes
+      source: code_dedup
+      sourceHandle: source
+      target: llm_bib_yes
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e-llm_bib_yes-ans_bib_yes
+      source: llm_bib_yes
+      sourceHandle: source
+      target: ans_bib_yes
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e-llm_simple-ans_simple
+      source: llm_simple
+      sourceHandle: source
+      target: ans_simple
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: code
+      id: e-start-parse
+      source: start
+      sourceHandle: source
+      target: parse_sources
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: question-classifier
+      id: e-parse-qc
+      source: parse_sources
+      sourceHandle: source
+      target: qc
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: e-openalex-dedup
+      source: openalex
+      sourceHandle: source
+      target: code_dedup
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: e-semantic-dedup
+      source: semantic_scholar
+      sourceHandle: source
+      target: code_dedup
+      targetHandle: target
+      type: custom
+    - id: edge_ifext_ifopenalex
+      source: if_ext
+      sourceHandle: 'true'
+      target: if_openalex
+      targetHandle: target
+    - id: edge_ifext_ifsemantic
+      source: if_ext
+      sourceHandle: 'true'
+      target: if_semantic
+      targetHandle: target
+    - id: edge_ifopenalex_openalex
+      source: if_openalex
+      sourceHandle: 'true'
+      target: openalex
+      targetHandle: target
+    - id: edge_ifopenalex_false_codededup
+      source: if_openalex
+      sourceHandle: 'false'
+      target: code_dedup
+      targetHandle: target
+    - id: edge_ifsemantic_semantic
+      source: if_semantic
+      sourceHandle: 'true'
+      target: semantic_scholar
+      targetHandle: target
+    - id: edge_ifsemantic_false_codededup
+      source: if_semantic
+      sourceHandle: 'false'
+      target: code_dedup
+      targetHandle: target
+    - id: edge_llm_to_parse
+      source: llm_reform
+      sourceHandle: source
+      target: parse_queries
+      targetHandle: target
+    - id: edge_parse_to_arxiv
+      source: parse_queries
+      sourceHandle: source
+      target: arxiv_search
+      targetHandle: target
+    - id: edge_parse_to_hal
+      source: parse_queries
+      sourceHandle: source
+      target: http_hal
+      targetHandle: target
+    - id: edge_parse_to_openalex
+      source: parse_queries
+      sourceHandle: source
+      target: openalex
+      targetHandle: target
+    nodes:
+    - data:
+        desc: Sujet + sources preferes
+        selected: false
+        title: Début
+        type: start
+        variables:
+        - label: Pour quel usage ?
+          options:
+          - syllabus de cours
+          - recension de recherche
+          - modèle pour étudiants
+          required: true
+          type: select
+          variable: usage
+        - label: Sujet ou question de recherche
+          max_length: 5000
+          required: true
+          type: paragraph
+          variable: sujet
+        - label: Discipline
+          max_length: 500
+          required: true
+          type: text-input
+          variable: discipline
+        - label: Niveau du public cible
+          options:
+          - L1
+          - L2
+          - L3
+          - M1
+          - M2
+          - Doctorat
+          - Recherche
+          required: true
+          type: select
+          variable: niveau
+        - default: 10-15
+          label: Nombre de références
+          options:
+          - 5-8
+          - 10-15
+          - 20-30
+          required: false
+          type: select
+          variable: nb_refs
+        - default: Français et anglais
+          label: Langue des références
+          options:
+          - Français prioritaire
+          - Anglais prioritaire
+          - Français et anglais
+          - Toutes langues
+          required: false
+          type: select
+          variable: langue_refs
+        - default: APA 7
+          label: Format de citation
+          options:
+          - APA 7
+          - Chicago
+          - MLA
+          - Libre
+          required: false
+          type: select
+          variable: style_citation
+        - default: ''
+          label: Contexte système
+          max_length: 5000
+          required: false
+          type: paragraph
+          variable: system_context
+        - default: ''
+          label: Profil utilisateur
+          max_length: 5000
+          required: false
+          type: paragraph
+          variable: user_context
+      height: 220
+      id: start
+      position:
+        x: 30
+        y: 400
+      positionAbsolute:
+        x: 30
+        y: 400
+      type: custom
+      width: 243
+    - data:
+        classes:
+        - id: q-simple
+          name: question simple
+        - id: t-struct
+          name: tâche structurée
+        - id: h-sujet
+          name: hors sujet
+        dataset:
+          dataset_id: a0000001-0000-4000-8000-000000000001
+          dataset_name: Academique SHS - Sources verifiables
+        desc: ''
+        instructions: ''
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        query_variable_selector:
+        - sys
+        - query
+        selected: false
+        title: Classification
+        type: question-classifier
+      height: 189
+      id: qc
+      position:
+        x: 320
+        y: 400
+      positionAbsolute:
+        x: 320
+        y: 400
+      type: custom
+      width: 243
+    - data:
+        dataset_ids:
+        - mViAvcfKs3r6bs2KOEvdfQsd+VlBWgi6oEjufQgMt1zI856CtBEEgpAqcfyUL2ys
+        desc: ''
+        error_strategy: fail-branch
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: reranking_model
+          score_threshold: 0.5
+          score_threshold_enabled: false
+          top_k: 5
+          weights: null
+        query_variable_selector:
+        - sys
+        - query
+        retrieval_mode: multiple
+        selected: false
+        title: Recherche documentaire
+        type: knowledge-retrieval
+      height: 98
+      id: kb_biblio
+      position:
+        x: 620
+        y: 400
+      positionAbsolute:
+        x: 620
+        y: 400
+      type: custom
+      width: 243
+    - data:
+        code: "def main(kb_result) -> dict:\n    import re\n    # KB retrieval returns\
+          \ a list of {content, score} dicts — convert to formatted text\n    if isinstance(kb_result,\
+          \ list):\n        parts = []\n        for i, item in enumerate(kb_result,\
+          \ 1):\n            if isinstance(item, dict):\n                content =\
+          \ item.get(\"content\", str(item))\n                score = item.get(\"\
+          score\", None)\n                s = f\"[{i}]\" + (f\" (score: {score:.3f})\"\
+          \ if isinstance(score, float) else \"\")\n                parts.append(s\
+          \ + \"\\n\" + content)\n            else:\n                parts.append(str(item))\n\
+          \        kb_text = \"\\n\\n\".join(parts)\n    else:\n        kb_text =\
+          \ str(kb_result) if kb_result else \"\"\n    refs = re.findall(r'\\[\\d+\\\
+          ]', kb_text)\n    unique_count = len(set(refs))\n    if unique_count ==\
+          \ 0:\n        paragraphs = [p.strip() for p in kb_text.split('\\n\\n') if\
+          \ len(p.strip()) > 50]\n        unique_count = max(1, len(paragraphs) //\
+          \ 3)\n    needs_external = \"true\" if unique_count < 5 else \"false\"\n\
+          \    return {\n        \"needs_external\": needs_external,\n        \"ref_count\"\
+          : unique_count,\n        \"kb_result\": kb_text,\n        \"summary_note\"\
+          : \"\",\n    }\n"
+        code_language: python3
+        desc: ''
+        error_strategy: fail-branch
+        outputs:
+          kb_result:
+            type: string
+          needs_external:
+            type: string
+          ref_count:
+            type: number
+          summary_note:
+            type: string
+        selected: false
+        title: Évaluation qualité KB
+        type: code
+        variables:
+        - value_selector:
+          - kb_biblio
+          - result
+          variable: kb_result
+      height: 148
+      id: code_eval
+      position:
+        x: 920
+        y: 400
+      positionAbsolute:
+        x: 920
+        y: 400
+      type: custom
+      width: 243
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: a29acf31-4f81-4738-ba6d-f3f888bd066e
+            value: 'true'
+            varType: string
+            variable_selector:
+            - code_eval
+            - needs_external
+          id: 'true'
+          logical_operator: and
+        desc: ''
+        selected: false
+        title: Recherche externe ?
+        type: if-else
+      height: 126
+      id: if_ext
+      position:
+        x: 1220
+        y: 400
+      positionAbsolute:
+        x: 1220
+        y: 400
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: false
+          variable_selector: null
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          query_prompt_template: null
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            max_tokens: 1000
+            temperature: 0.3
+          mode: chat
+          name: deepseek-v4-flash
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: 'Tu es un bibliothécaire expert en sciences humaines et sociales à
+            l''Université [Institution].
+
+            Tu construis des bibliographies académiques de qualité pour des enseignants-chercheurs.
+
+
+            TON RÔLE SELON L''USAGE DEMANDÉ
+
+
+            Si usage = "syllabus de cours" :
+
+            - Sélectionne les références les plus accessibles et pédagogiquement utiles
+
+            - Organise par thèmes correspondant à la progression d''un cours
+
+            - Privilégie les textes en accès libre ou disponibles à la BU USN
+
+            - Annotation centrée sur : pourquoi lire ce texte dans ce cours, à quel
+            moment, pour quel niveau
+
+
+            Si usage = "recension de recherche" :
+
+            - Privilégie les articles de revues à comité de lecture et les ouvrages
+            de référence
+
+            - Couvre les débats et les positions contradictoires dans la littérature
+
+            - Inclus les textes fondateurs et les développements récents
+
+            - Annotation centrée sur : contribution au débat, position de l''auteur,
+            limites identifiées
+
+
+            Si usage = "modèle pour étudiants" :
+
+            - Construis une bibliographie exemplaire que les étudiants pourront imiter
+
+            - Mélange intentionnellement sources francophones et anglophones si pertinent
+
+            - Annotation pédagogique : montre comment évaluer une source, pas seulement
+            la décrire
+
+
+            FORMAT DE CHAQUE RÉFÉRENCE
+
+
+            Pour APA 7 :
+
+            Nom, P. (Année). *Titre*. Éditeur/Revue. https://doi.org/...
+
+            > Annotation (2-3 phrases) : résumé de l''argument principal + pertinence
+            pour le sujet + niveau de lecture recommandé
+
+
+            Pour Chicago :
+
+            Nom, Prénom. "Titre." *Revue* volume, no. numéro (année) : pages. URL/DOI.
+
+            > Annotation (2-3 phrases)
+
+
+            Pour MLA :
+
+            Nom, Prénom. "Titre." *Revue*, vol. X, no. Y, année, pp. X-X. URL/DOI.
+
+            > Annotation (2-3 phrases)
+
+
+            RÈGLES ABSOLUES
+
+            - Ne cite JAMAIS une référence absente du contexte documentaire fourni
+
+            - Si une référence n''a pas d''URL/DOI vérifiable dans le contexte, écris
+            "URL non disponible"
+
+            - N''invente aucune référence depuis ta mémoire
+
+            - Si le contexte est insuffisant, dis-le et indique quelles sources auraient
+            été pertinentes
+
+            - Organise thématiquement, pas alphabétiquement
+
+            - Termine par "Pour aller plus loin" avec 1-2 pistes de recherche complémentaire
+
+
+            EXPLOITATION DU PROFIL UTILISATEUR
+
+            {% if user_context and user_context != "" %}
+
+            Profil de l''EC : {{user_context}}
+
+            Utilise ce profil pour adapter le registre, prioriser les sources dans
+            sa discipline, éviter de proposer des textes qu''il connaît probablement
+            déjà.
+
+            {% else %}
+
+            Aucun profil disponible. Travaille depuis les paramètres du formulaire
+            uniquement.
+
+            {% endif %}
+
+
+            {% if system_context and system_context != "" %}
+
+            Posture active : {{system_context}}
+
+            {% endif %}
+
+
+            Termine TOUJOURS ta réponse par cette ligne exacte :
+
+
+            ---
+
+            *Tapez "plus de références" pour 5 sources supplémentaires, "Chicago"
+            ou "MLA" pour changer le format, ou "sources anglophones" pour élargir
+            aux publications internationales.*'
+        - role: user
+          text: 'Construis une bibliographie annotée pour la demande suivante.
+
+
+            Usage : {{#start.usage#}}
+
+            Sujet : {{#start.sujet#}}
+
+            Discipline : {{#start.discipline#}}
+
+            Niveau : {{#start.niveau#}}
+
+            Nombre de références : {{#start.nb_refs#}}
+
+            Langue : {{#start.langue_refs#}}
+
+            Format de citation : {{#start.style_citation#}}
+
+
+            Sources documentaires USN disponibles :
+
+            {{#kb_biblio.result#}}
+
+
+            Note : aucune source externe retournée. Si les sources USN sont insuffisantes,
+            signale-le et propose une stratégie de recherche complémentaire.'
+        selected: false
+        title: Synthèse bibliographique (KB)
+        type: llm
+        variables:
+        - value_selector:
+          - start
+          - style_citation
+          variable: style_citation
+        - value_selector:
+          - start
+          - user_context
+          variable: user_context
+        - value_selector:
+          - start
+          - system_context
+          variable: system_context
+        vision:
+          enabled: false
+      height: 98
+      id: llm_bib_no
+      position:
+        x: 1520
+        y: 200
+      positionAbsolute:
+        x: 1520
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        answer: '{{#llm_bib_no.text#}}'
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_bib_no
+      position:
+        x: 1820
+        y: 200
+      positionAbsolute:
+        x: 1820
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: false
+          variable_selector: null
+        desc: ''
+        error_strategy: fail-branch
+        memory: null
+        model:
+          completion_params:
+            max_tokens: 200
+            temperature: 0.1
+          mode: chat
+          name: deepseek-v4-flash
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: 'Tu es un expert en recherche documentaire académique en sciences
+            humaines et sociales.
+
+            Ta mission : reformuler une requête de recherche en plusieurs versions
+            optimisées
+
+            pour différentes bases de données académiques.
+
+
+            Produis UNIQUEMENT un objet JSON valide, sans markdown, sans explication,
+            sans texte autour.
+
+
+            Format de sortie obligatoire :
+
+            {
+
+            "query_hal": "2 ou 3 mots-clés disciplinaires en français UNIQUEMENT —
+            pas une phrase, pas de noms propres d''auteurs, pas de niveaux éducatifs
+            (L1, L3, Master). Exemples corrects : ''skopos traduction'', ''fonctionnalisme
+            didactique'', ''traduction spécialisée terminologie''. Exemples incorrects
+            : ''théories fonctionnalistes traduction skopos Nord Reiss Vermeer pédagogie
+            L3''",
+
+            "query_openalex": "requête optimisée pour OpenAlex en anglais — traduction
+            précise des concepts SHS, termes de la littérature internationale",
+
+            "query_openedition": "",
+
+            "query_arxiv": "requête optimisée pour ArXiv en anglais — uniquement si
+            la discipline a une littérature ArXiv pertinente, sinon chaîne vide",
+
+            "concepts_cles": ["liste", "des", "concepts", "principaux", "en", "français"]
+
+            }
+
+
+            Règles :
+
+            - Termes exacts de la littérature académique, pas de traductions approximatives
+
+            - Pour disciplines purement francophones : query_arxiv = ""
+
+            - Pour disciplines avec littérature internationale : fournis une query_arxiv
+            solide
+
+            - concepts_cles en français, 3 à 5 termes précis'
+        - role: user
+          text: 'Sujet : {{#start.sujet#}}
+
+            Discipline : {{#start.discipline#}}
+
+            Niveau public cible : {{#start.niveau#}}
+
+            Langue des références : {{#start.langue_refs#}}'
+        selected: false
+        title: Reformulation ArXiv (EN)
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: llm_reform
+      position:
+        x: 1220
+        y: 100
+      positionAbsolute:
+        x: 1220
+        y: 100
+      type: custom
+      width: 243
+    - data:
+        desc: ''
+        error_strategy: fail-branch
+        plugin_unique_identifier: langgenius/arxiv:0.0.5@681f5448933b32e9c276ea9c19c72f415c6bcbb0bc403323aa247b62b7ccc21e
+        provider_id: langgenius/arxiv/arxiv
+        provider_name: langgenius/arxiv/arxiv
+        provider_type: plugin
+        selected: false
+        title: ArXiv Search
+        tool_configurations: {}
+        tool_label: Arxiv Search
+        tool_name: arxiv_search
+        tool_parameters:
+          query:
+            type: variable
+            value:
+            - parse_queries
+            - query_arxiv
+        type: tool
+      height: 98
+      id: arxiv_search
+      position:
+        x: 1520
+        y: 100
+      positionAbsolute:
+        x: 1520
+        y: 100
+      type: custom
+      width: 243
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data: ''
+          type: none
+        desc: ''
+        error_strategy: default-value
+        headers: ''
+        method: GET
+        params: ''
+        retry_config:
+          enabled: false
+          exponential_backoff:
+            enabled: false
+            max_interval: 10000
+            multiplier: 2
+          max_retries: 1
+          retry_interval: 1000
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: HAL-SHS API
+        type: http-request
+        url: https://api.archives-ouvertes.fr/search/?q={{#parse_queries.query_hal#}}&fq=openAccess_bool:true&fl=title_s,authFullName_s,publicationDate_s,abstract_s,uri_s&rows=8&wt=json&sort=producedDate_tdate
+          desc
+      height: 148
+      id: http_hal
+      position:
+        x: 1220
+        y: 600
+      positionAbsolute:
+        x: 1220
+        y: 600
+      type: custom
+      width: 243
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data: ''
+          type: none
+        desc: ''
+        error_strategy: fail-branch
+        headers: ''
+        method: GET
+        params: ''
+        retry_config:
+          enabled: false
+          exponential_backoff:
+            enabled: false
+            max_interval: 10000
+            multiplier: 2
+          max_retries: 1
+          retry_interval: 1000
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: CAIRN API
+        type: http-request
+        url: ''
+      height: 148
+      id: http_cairn
+      position:
+        x: 1220
+        y: 780
+      positionAbsolute:
+        x: 1220
+        y: 780
+      type: custom
+      width: 243
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data: ''
+          type: none
+        desc: ''
+        error_strategy: fail-branch
+        headers: ''
+        method: GET
+        params: ''
+        retry_config:
+          enabled: false
+          exponential_backoff:
+            enabled: false
+            max_interval: 10000
+            multiplier: 2
+          max_retries: 1
+          retry_interval: 1000
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: OpenEdition API
+        type: http-request
+        url: ''
+      height: 148
+      id: http_oe
+      position:
+        x: 1220
+        y: 960
+      positionAbsolute:
+        x: 1220
+        y: 960
+      type: custom
+      width: 243
+    - data:
+        code: "def main(arxiv_body: str, hal_body: str, cairn_body: str,\n       \
+          \  openedition_body: str, kb_result, nb_refs: str,\n         openalex_body:\
+          \ str, semantic_body: str,\n         style_citation: str, concepts_cles:\
+          \ str) -> dict:\n    import json, re\n    # Handle kb_result — can be list\
+          \ (Dify KB chunks) or string\n    kb_str = \"\"\n    if isinstance(kb_result,\
+          \ list):\n        for chunk in kb_result:\n            if isinstance(chunk,\
+          \ dict):\n                kb_str += chunk.get('content', '') + '\\n\\n'\n\
+          \            elif chunk:\n                kb_str += str(chunk) + '\\n\\\
+          n'\n    elif kb_result:\n        kb_str = str(kb_result)\n    else:\n  \
+          \      kb_str = \"\"\n    \n    arxiv_body = arxiv_body or \"\"\n    hal_body\
+          \ = hal_body or \"\"\n    cairn_body = cairn_body or \"\"\n    openedition_body\
+          \ = openedition_body or \"\"\n    openalex_body = openalex_body or \"\"\n\
+          \    semantic_body = semantic_body or \"\"\n    sections = []\n\n    # ArXiv\n\
+          \    if arxiv_body and len(arxiv_body.strip()) > 30:\n        arxiv_ids\
+          \ = re.findall(r'(?:arxiv.org/(?:abs|pdf)/|arXiv:)(\\\\d{4}\\.\\\\d{4,5})',\
+          \ arxiv_body, re.IGNORECASE)\n        seen = set()\n        url_block =\
+          \ []\n        for aid in arxiv_ids:\n            if aid not in seen:\n \
+          \               seen.add(aid)\n                url_block.append(f'https://arxiv.org/abs/{aid}')\n\
+          \        if url_block:\n            sections.append(f\"## ArXiv\\n\\n\"\
+          \ + '\\n'.join(url_block))\n\n    # HAL\n    if hal_body and len(hal_body.strip())\
+          \ > 30:\n        try:\n            hal_data = json.loads(hal_body)\n   \
+          \         hal_docs = hal_data.get('response', {}).get('docs', [])\n    \
+          \        if hal_docs:\n                hal_refs = []\n                for\
+          \ d in hal_docs[:5]:\n                    t = d.get('title_s', [''])[0]\
+          \ if isinstance(d.get('title_s'), list) else d.get('title_s', '')\n    \
+          \                a = ', '.join(d.get('authFullName_s', []))[:80]\n     \
+          \               y = str(d.get('publicationDate_s', ''))[:4]\n          \
+          \          u = d.get('uri_s', '')\n                    hal_refs.append(f\"\
+          - {t} ({y}) — {a}\" + (f' — {u}' if u else ''))\n                if hal_refs:\n\
+          \                    sections.append(f\"## HAL-SHS\\n\\n\" + '\\n'.join(hal_refs[:5]))\n\
+          \        except:\n            pass\n\n    # OpenAlex\n    if openalex_body\
+          \ and len(openalex_body.strip()) > 30:\n        try:\n            oa = json.loads(openalex_body)\n\
+          \            papers = oa.get('results', [])\n            oa_refs = []\n\
+          \            for p in papers[:5]:\n                t = p.get('title', p.get('display_name',\
+          \ ''))\n                y = str(p.get('publication_year', ''))\n       \
+          \         a = ', '.join(x.get('author',{}).get('display_name','') for x\
+          \ in p.get('authorships',[]))[:80]\n                u = (p.get('primary_location',{})\
+          \ or {}).get('landing_page_url','')\n                oa_refs.append(f\"\
+          - {t} ({y}) — {a}\" + (f' — {u}' if u else ''))\n            if oa_refs:\n\
+          \                sections.append(f\"## OpenAlex\\n\\n\" + '\\n'.join(oa_refs[:5]))\n\
+          \        except:\n            pass\n\n    # Semantic Scholar\n    if semantic_body\
+          \ and len(semantic_body.strip()) > 30:\n        try:\n            ss = json.loads(semantic_body)\n\
+          \            ss_papers = ss.get('data', [])\n            ss_refs = []\n\
+          \            for p in ss_papers[:5]:\n                t = p.get('title',\
+          \ '')\n                y = str(p.get('year', ''))\n                a = ',\
+          \ '.join(x.get('name','') for x in p.get('authors',[]))[:80]\n         \
+          \       u = p.get('url', '')\n                ss_refs.append(f\"- {t} ({y})\
+          \ — {a}\" + (f' — {u}' if u else ''))\n            if ss_refs:\n       \
+          \         sections.append(f\"## Semantic Scholar\\n\\n\" + '\\n'.join(ss_refs[:5]))\n\
+          \        except:\n            pass\n\n    # KB result (always included if\
+          \ available)\n    if kb_str and len(kb_str.strip()) > 30:\n        sections.append(f\"\
+          ## Publications KB SHS\\n\\n{kb_str}\")\n\n    combined = '\\n\\n'.join(sections)\n\
+          \    return {\n        \"combined_refs\": combined,\n        \"new_count\"\
+          : len(sections),\n        \"summary_note\": f\"{len(sections)} sources documentaires\"\
+          ,\n        \"upload_payload\": \"{}\",\n        \"style_citation\": style_citation\
+          \ or \"APA 7\"\n    }"
+        code_language: python3
+        desc: ''
+        error_strategy: fail-branch
+        outputs:
+          combined_refs:
+            type: string
+          new_count:
+            type: number
+          style_citation:
+            type: string
+          summary_note:
+            type: string
+          upload_payload:
+            type: string
+        selected: false
+        title: Fusion & déduplication
+        type: code
+        variables:
+        - value_selector:
+          - arxiv_search
+          - result
+          variable: arxiv_body
+        - value_selector:
+          - http_hal
+          - body
+          variable: hal_body
+        - value_selector:
+          - http_cairn
+          - body
+          variable: cairn_body
+        - value_selector:
+          - http_oe
+          - body
+          variable: openedition_body
+        - value_selector:
+          - kb_biblio
+          - result
+          variable: kb_result
+        - value_selector:
+          - start
+          - nb_refs
+          variable: nb_refs
+        - value_selector:
+          - openalex
+          - body
+          variable: openalex_body
+        - value_selector:
+          - semantic_scholar
+          - body
+          variable: semantic_body
+        - value_selector:
+          - start
+          - style_citation
+          variable: style_citation
+        - value_selector:
+          - parse_queries
+          - concepts_cles
+          variable: concepts_cles
+      height: 200
+      id: code_dedup
+      position:
+        x: 1820
+        y: 580
+      positionAbsolute:
+        x: 1820
+        y: 580
+      type: custom
+      width: 243
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data: '{{#code_dedup.upload_payload#}}'
+          type: raw-text
+        desc: ''
+        error_strategy: default-value
+        headers: 'Authorization: Dataset dataset-fqoDNKbLF1d1NxR4bt6oiiJ3
+
+          Content-Type: application/json'
+        method: POST
+        params: ''
+        retry_config:
+          enabled: false
+          exponential_backoff:
+            enabled: false
+            max_interval: 10000
+            multiplier: 2
+          max_retries: 1
+          retry_interval: 1000
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: Upload KB2
+        type: http-request
+        url: http://nginx/v1/datasets/0175621b-bb0c-49ab-9ae3-cd05819d10ca/document/create_by_text
+      height: 148
+      id: http_kb2
+      position:
+        x: 2120
+        y: 580
+      positionAbsolute:
+        x: 2120
+        y: 580
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: false
+          variable_selector: null
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          query_prompt_template: null
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            max_tokens: 1500
+            temperature: 0.3
+          mode: chat
+          name: deepseek-v4-flash
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: 'Tu es un bibliothécaire expert en sciences humaines et sociales à
+            l''Université [Institution].
+
+            Tu construis des bibliographies académiques de qualité pour des enseignants-chercheurs.
+
+
+            TON RÔLE SELON L''USAGE DEMANDÉ
+
+
+            Si usage = "syllabus de cours" :
+
+            - Sélectionne les références les plus accessibles et pédagogiquement utiles
+
+            - Organise par thèmes correspondant à la progression d''un cours
+
+            - Privilégie les textes en accès libre ou disponibles à la BU USN
+
+            - Annotation centrée sur : pourquoi lire ce texte dans ce cours, à quel
+            moment, pour quel niveau
+
+
+            Si usage = "recension de recherche" :
+
+            - Privilégie les articles de revues à comité de lecture et les ouvrages
+            de référence
+
+            - Couvre les débats et les positions contradictoires dans la littérature
+
+            - Inclus les textes fondateurs et les développements récents
+
+            - Annotation centrée sur : contribution au débat, position de l''auteur,
+            limites identifiées
+
+
+            Si usage = "modèle pour étudiants" :
+
+            - Construis une bibliographie exemplaire que les étudiants pourront imiter
+
+            - Mélange intentionnellement sources francophones et anglophones si pertinent
+
+            - Annotation pédagogique : montre comment évaluer une source, pas seulement
+            la décrire
+
+
+            FORMAT DE CHAQUE RÉFÉRENCE
+
+
+            Pour APA 7 :
+
+            Nom, P. (Année). *Titre*. Éditeur/Revue. https://doi.org/...
+
+            > Annotation (2-3 phrases) : résumé de l''argument principal + pertinence
+            pour le sujet + niveau de lecture recommandé
+
+
+            Pour Chicago :
+
+            Nom, Prénom. "Titre." *Revue* volume, no. numéro (année) : pages. URL/DOI.
+
+            > Annotation (2-3 phrases)
+
+
+            Pour MLA :
+
+            Nom, Prénom. "Titre." *Revue*, vol. X, no. Y, année, pp. X-X. URL/DOI.
+
+            > Annotation (2-3 phrases)
+
+
+            RÈGLES ABSOLUES
+
+            - Ne cite JAMAIS une référence absente du contexte documentaire fourni
+
+            - Si une référence n''a pas d''URL/DOI vérifiable dans le contexte, écris
+            "URL non disponible"
+
+            - N''invente aucune référence depuis ta mémoire
+
+            - Si le contexte est insuffisant, dis-le et indique quelles sources auraient
+            été pertinentes
+
+            - Organise thématiquement, pas alphabétiquement
+
+            - Termine par "Pour aller plus loin" avec 1-2 pistes de recherche complémentaire
+
+
+            EXPLOITATION DU PROFIL UTILISATEUR
+
+            {% if user_context and user_context != "" %}
+
+            Profil de l''EC : {{user_context}}
+
+            Utilise ce profil pour adapter le registre, prioriser les sources dans
+            sa discipline, éviter de proposer des textes qu''il connaît probablement
+            déjà.
+
+            {% else %}
+
+            Aucun profil disponible. Travaille depuis les paramètres du formulaire
+            uniquement.
+
+            {% endif %}
+
+
+            {% if system_context and system_context != "" %}
+
+            Posture active : {{system_context}}
+
+            {% endif %}
+
+
+            Termine TOUJOURS ta réponse par cette ligne exacte :
+
+
+            ---
+
+            *Tapez "plus de références" pour 5 sources supplémentaires, "Chicago"
+            ou "MLA" pour changer le format, ou "sources anglophones" pour élargir
+            aux publications internationales.*'
+        - role: user
+          text: 'Construis une bibliographie annotée pour la demande suivante.
+
+
+            Usage : {{#start.usage#}}
+
+            Sujet : {{#start.sujet#}}
+
+            Discipline : {{#start.discipline#}}
+
+            Niveau : {{#start.niveau#}}
+
+            Nombre de références : {{#start.nb_refs#}}
+
+            Langue : {{#start.langue_refs#}}
+
+            Format de citation : {{#start.style_citation#}}
+
+
+            Sources documentaires disponibles (KB USN + sources académiques externes)
+            :
+
+            {{#code_dedup.combined_refs#}}
+
+
+            Sélectionne les {{#start.nb_refs#}} références les plus pertinentes.
+
+            Ne complète pas avec des références de ta mémoire — travaille uniquement
+            depuis ce qui est fourni.'
+        selected: false
+        title: Synthèse bibliographique (enrichie)
+        type: llm
+        variables:
+        - value_selector:
+          - start
+          - style_citation
+          variable: style_citation
+        - value_selector:
+          - start
+          - user_context
+          variable: user_context
+        - value_selector:
+          - start
+          - system_context
+          variable: system_context
+        vision:
+          enabled: false
+      height: 98
+      id: llm_bib_yes
+      position:
+        x: 2120
+        y: 400
+      positionAbsolute:
+        x: 2120
+        y: 400
+      type: custom
+      width: 243
+    - data:
+        answer: '{{#llm_bib_yes.text#}}'
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_bib_yes
+      position:
+        x: 2420
+        y: 400
+      positionAbsolute:
+        x: 2420
+        y: 400
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: false
+          variable_selector: null
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          query_prompt_template: null
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.3
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: 'Tu es IIIAAS, assistant bibliographique USN. Réponds à la question.
+
+            {% if system_context and system_context != "" %}
+
+            Posture active : {{system_context}}
+
+            {% endif %}
+
+            {% if user_context and user_context != "" %}
+
+            Contexte utilisateur : {{user_context}}
+
+            {% endif %}'
+        - role: user
+          text: '{{#sys.query#}}'
+        selected: false
+        title: Réponse simple
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: llm_simple
+      position:
+        x: 620
+        y: 200
+      positionAbsolute:
+        x: 620
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        answer: '{{#llm_simple.text#}}'
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_simple
+      position:
+        x: 920
+        y: 200
+      positionAbsolute:
+        x: 920
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        answer: ⚠️ Pour construire une bibliographie, précisez le sujet et la discipline.
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_hors
+      position:
+        x: 620
+        y: 600
+      positionAbsolute:
+        x: 620
+        y: 600
+      type: custom
+      width: 243
+    - data:
+        code: "def main(user_context: str, langue_refs: str) -> dict:\n    ctx = (user_context\
+          \ or \"\").lower()\n    lang = (langue_refs or \"français et anglais\").lower()\n\
+          \n    # Sources activées selon le profil utilisateur\n    use_openalex =\
+          \ \"openalex\" in ctx or lang in [\"anglais prioritaire\", \"français et\
+          \ anglais\", \"toutes langues\"]\n    use_semantic = \"semantic\" in ctx\
+          \ or lang in [\"anglais prioritaire\", \"français et anglais\", \"toutes\
+          \ langues\"]\n    use_arxiv = \"arxiv\" in ctx or lang in [\"anglais prioritaire\"\
+          , \"toutes langues\"]\n    use_hal = True\n    use_openedition = False\n\
+          \n    return {\n        \"use_openalex\": use_openalex,\n        \"use_semantic\"\
+          : use_semantic,\n        \"use_arxiv\": use_arxiv,\n        \"use_hal\"\
+          : use_hal,\n        \"use_openedition\": use_openedition\n    }"
+        code_language: python3
+        desc: ''
+        error_strategy: fail-branch
+        outputs:
+          use_arxiv:
+            type: boolean
+          use_hal:
+            type: boolean
+          use_openalex:
+            type: boolean
+          use_openedition:
+            type: boolean
+          use_semantic:
+            type: boolean
+        title: Analyse sources utilisateur
+        type: code
+        variables:
+        - value_selector:
+          - start
+          - user_context
+          variable: user_context
+        - value_selector:
+          - start
+          - langue_refs
+          variable: langue_refs
+      height: 160
+      id: parse_sources
+      position:
+        x: 350
+        y: 50
+      positionAbsolute:
+        x: 350
+        y: 50
+      type: custom
+      width: 243
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data: ''
+          type: none
+        desc: Publications via OpenAlex
+        headers: 'User-Agent: NouveLLM-USN/1.0
+
+          Accept: application/json'
+        method: GET
+        params: ''
+        retry_config:
+          enabled: false
+          max_retries: 1
+          retry_interval: 1000
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: OpenAlex
+        type: http-request
+        url: https://api.${OPENALEX_URL}/works?search={{#parse_queries.query_openalex#}}&per_page=5&sort=publication_year:desc&mailto=${EMAIL}
+      height: 98
+      id: openalex
+      position:
+        x: 1050
+        y: 250
+      positionAbsolute:
+        x: 1050
+        y: 250
+      type: custom
+      width: 243
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data: ''
+          type: none
+        desc: Publications via Semantic Scholar
+        headers: 'User-Agent: NouveLLM-USN/1.0
+
+          Accept: application/json
+
+          x-api-key: s2k-1OGjgAD7xSIHvq9ywB7jPEQmWIIkcd46bRk9CSB7'
+        method: GET
+        params: ''
+        retry_config:
+          enabled: false
+          max_retries: 1
+          retry_interval: 1000
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: Semantic Scholar
+        type: http-request
+        url: https://api.semanticscholar.org/graph/v1/paper/search?query={{#start.sujet#}}&fields=title,authors,year,url&limit=5
+      height: 98
+      id: semantic_scholar
+      position:
+        x: 1050
+        y: 380
+      positionAbsolute:
+        x: 1050
+        y: 380
+      type: custom
+      width: 243
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: cond_openalex_01
+            value: 'true'
+            varType: boolean
+            variable_selector:
+            - parse_sources
+            - use_openalex
+          id: 'true'
+          logical_operator: and
+        conditions:
+        - comparison_operator: is
+          id: cond_openalex
+          value: 'true'
+          variable_selector:
+          - parse_sources
+          - use_openalex
+        desc: Activer si use_openalex == true
+        selected: false
+        title: OpenAlex ?
+        type: if-else
+      height: 126
+      id: if_openalex
+      position:
+        x: 1700
+        y: 200
+      positionAbsolute:
+        x: 1700
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: cond_semantic_01
+            value: 'true'
+            varType: boolean
+            variable_selector:
+            - parse_sources
+            - use_semantic
+          id: 'true'
+          logical_operator: and
+        conditions:
+        - comparison_operator: is
+          id: cond_semantic
+          value: 'true'
+          variable_selector:
+          - parse_sources
+          - use_semantic
+        desc: Activer si use_semantic == true
+        selected: false
+        title: Semantic Scholar ?
+        type: if-else
+      height: 126
+      id: if_semantic
+      position:
+        x: 1700
+        y: 360
+      positionAbsolute:
+        x: 1700
+        y: 360
+      type: custom
+      width: 243
+    - data:
+        code: "import json\n\ndef main(llm_output: str) -> dict:\n    try:\n     \
+          \   text = (llm_output or \"{}\").strip()\n        if \"```\" in text:\n\
+          \            parts = text.split(\"```\")\n            for p in parts:\n\
+          \                p = p.strip().lstrip(\"json\").strip()\n              \
+          \  if p.startswith(\"{\"):\n                    text = p\n             \
+          \       break\n        data = json.loads(text)\n    except:\n        data\
+          \ = {}\n\n    query_hal = data.get(\"query_hal\", \"\")\n    concepts =\
+          \ data.get(\"concepts_cles\", [])\n\n    # Si query_hal a plus de 2 mots,\
+          \ garder seulement les 2 premiers\n    words = [w for w in query_hal.split()\
+          \ if w]\n    if len(words) > 2:\n        query_hal = \" \".join(words[:2])\n\
+          \n    return {\n        \"query_hal\": query_hal,\n        \"query_openalex\"\
+          : data.get(\"query_openalex\", \"\"),\n        \"query_arxiv\": data.get(\"\
+          query_arxiv\", \"\"),\n        \"query_openedition\": data.get(\"query_openedition\"\
+          , \"\"),\n        \"concepts_cles\": \" \".join(concepts) if concepts else\
+          \ \"\"\n    }"
+        code_language: python3
+        error_strategy: default-value
+        outputs:
+          concepts_cles:
+            type: string
+          query_arxiv:
+            type: string
+          query_hal:
+            type: string
+          query_openalex:
+            type: string
+          query_openedition:
+            type: string
+        title: Parse Query Rewriter
+        type: code
+        variables:
+        - value_selector:
+          - llm_reform
+          - text
+          variable: llm_output
+      id: parse_queries
+  rag_pipeline_variables: []

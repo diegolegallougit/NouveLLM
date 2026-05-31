@@ -1,0 +1,380 @@
+app:
+  description: 'RAG conditionnel : réponse directe (hors KB) ou analyse avec corpus
+    selon signal ANALYSE :'
+  icon: 🪞
+  icon_background: '#EFF1F5'
+  icon_type: emoji
+  mode: advanced-chat
+  name: W_Révélateur — Conformisme
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai_api_compatible:0.0.53@a0dfb462961a03c6a6415d4185043185b01017c64da93cf82a9e5ecaf59f8ed0
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .pdf
+      - .docx
+      - .txt
+      - .md
+      allowed_file_types:
+      - document
+      allowed_file_upload_methods:
+      - local_file
+      enabled: false
+      number_limits: 3
+    opening_statement: 'Bonjour ! Posez vos questions sur le sujet. Quand vous soumettez
+      votre analyse critique, préfixez-la par « ANALYSE : ».'
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: code
+      id: e-start-code_detect
+      source: start
+      sourceHandle: source
+      target: code_detect
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: if-else
+      id: e-code_detect-if_analyse
+      source: code_detect
+      sourceHandle: source
+      target: if_analyse
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: llm
+      id: e-if_analyse-llm_direct
+      source: if_analyse
+      sourceHandle: 'false'
+      target: llm_direct
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e-llm_direct-ans_direct
+      source: llm_direct
+      sourceHandle: source
+      target: ans_direct
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: e-if_analyse-kb_session
+      source: if_analyse
+      sourceHandle: 'true'
+      target: kb_session
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: e-kb_session-llm_analyse
+      source: kb_session
+      sourceHandle: source
+      target: llm_analyse
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e-llm_analyse-ans_analyse
+      source: llm_analyse
+      sourceHandle: source
+      target: ans_analyse
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: Début
+        type: start
+        variables: []
+      height: 53
+      id: start
+      position:
+        x: 30
+        y: 200
+      positionAbsolute:
+        x: 30
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        code: "def main(query: str) -> dict:\n    prefix = \"ANALYSE :\"\n    if query.strip().startswith(prefix):\n\
+          \        content = query.strip()[len(prefix):].strip()\n        return {\"\
+          content\": content, \"is_analysis\": \"true\"}\n    return {\"content\"\
+          : query, \"is_analysis\": \"false\"}\n"
+        code_language: python3
+        desc: ''
+        error_strategy: fail-branch
+        outputs:
+          content:
+            type: string
+          is_analysis:
+            type: string
+        selected: false
+        title: Détection ANALYSE
+        type: code
+        variables:
+        - value_selector:
+          - sys
+          - query
+          variable: query
+      height: 148
+      id: code_detect
+      position:
+        x: 320
+        y: 200
+      positionAbsolute:
+        x: 320
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: 3ece17d2-1c66-44ab-9358-e313c6db636e
+            value: 'true'
+            varType: string
+            variable_selector:
+            - code_detect
+            - is_analysis
+          id: 'true'
+          logical_operator: and
+        desc: ''
+        selected: false
+        title: Est une analyse ?
+        type: if-else
+      height: 126
+      id: if_analyse
+      position:
+        x: 620
+        y: 200
+      positionAbsolute:
+        x: 620
+        y: 200
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: false
+          variable_selector: null
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          query_prompt_template: null
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.4
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: '{{#sys.system_prompt#}}
+
+
+            INSTRUCTION CRITIQUE : Pour cette question, réponds UNIQUEMENT depuis
+            tes connaissances générales. N''utilise pas les documents de la session.
+            Donne une réponse académiquement convaincante.
+
+            {% if sys.system_context and sys.system_context != "" %}
+
+            Posture active : {{sys.system_context}}
+
+            {% endif %}
+
+            {% if sys.user_context and sys.user_context != "" %}
+
+            Contexte utilisateur : {{sys.user_context}}
+
+            {% endif %}'
+        - role: user
+          text: '{{#code_detect.content#}}'
+        selected: false
+        title: Réponse directe (sans KB)
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: llm_direct
+      position:
+        x: 900
+        y: 50
+      positionAbsolute:
+        x: 900
+        y: 50
+      type: custom
+      width: 243
+    - data:
+        answer: '{{#llm_direct.text#}}'
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_direct
+      position:
+        x: 1200
+        y: 50
+      positionAbsolute:
+        x: 1200
+        y: 50
+      type: custom
+      width: 243
+    - data:
+        dataset_ids:
+        - kgthqvyxe7/ejRH67y09wnzRBAmPp11C8s/vQrq5AdM6r4YnpgvS45aANmewX+9e
+        - tV4ObBw/8xkxXqlwuzBplkxDLkTbSq6mvQ7Fz75MCDPfL87PGpmAf45Ho++Qignb
+        desc: ''
+        error_strategy: fail-branch
+        multiple_retrieval_config:
+          reranking_enable: true
+          reranking_mode: reranking_model
+          reranking_model:
+            model: BAAI/bge-reranker-v2-m3
+            provider: langgenius/openai_api_compatible/openai_api_compatible
+          score_threshold: 0.5
+          score_threshold_enabled: true
+          top_k: 5
+          weights: null
+        query_variable_selector:
+        - sys
+        - query
+        retrieval_mode: multiple
+        selected: false
+        title: Recherche documentaire
+        type: knowledge-retrieval
+      height: 98
+      id: kb_session
+      position:
+        x: 900
+        y: 350
+      positionAbsolute:
+        x: 900
+        y: 350
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - kb_session
+          - result
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          query_prompt_template: null
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.3
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: '{{#sys.system_prompt#}}
+
+
+            L''étudiant soumet maintenant une analyse critique de tes réponses précédentes.
+            Utilise les documents du corpus pour approfondir son analyse avec des
+            questions précises. Ne te défends pas de tes biais — aide l''étudiant
+            à les nommer avec rigueur.
+
+            {% if sys.system_context and sys.system_context != "" %}
+
+            Posture active : {{sys.system_context}}
+
+            {% endif %}
+
+            {% if sys.user_context and sys.user_context != "" %}
+
+            Contexte utilisateur : {{sys.user_context}}
+
+            {% endif %}'
+        - role: user
+          text: '{{#code_detect.content#}}'
+        selected: false
+        title: Analyse avec corpus
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: llm_analyse
+      position:
+        x: 1200
+        y: 350
+      positionAbsolute:
+        x: 1200
+        y: 350
+      type: custom
+      width: 243
+    - data:
+        answer: '{{#llm_analyse.text#}}'
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 107
+      id: ans_analyse
+      position:
+        x: 1500
+        y: 350
+      positionAbsolute:
+        x: 1500
+        y: 350
+      type: custom
+      width: 243
+  rag_pipeline_variables: []

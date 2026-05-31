@@ -1,0 +1,547 @@
+app:
+  description: Conception de sujets d'examen LMD résistants à l'IA, avec analyse Bloom
+  icon: ✍️
+  icon_background: '#EFF1F5'
+  icon_type: emoji
+  mode: advanced-chat
+  name: W3 — Sujet d'examen
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai_api_compatible:0.0.53@a0dfb462961a03c6a6415d4185043185b01017c64da93cf82a9e5ecaf59f8ed0
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .pdf
+      - .docx
+      - .txt
+      - .md
+      allowed_file_types:
+      - document
+      allowed_file_upload_methods:
+      - local_file
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: "Bonjour. Je conçois des sujets d'examen ancrés dans votre\
+      \ cours — pas des sujets génériques que vos étudiants peuvent traiter avec ChatGPT\
+      \ sans avoir suivi vos enseignements.\n\nLa qualité du sujet dépend de deux\
+      \ choses que vous seul connaissez :\n\n— Ce que vous évaluez : formulez un acquis\
+      \ en termes d'action observable.\n ✗ \"Comprendre les théories de la traduction\"\
+      \n ✓ \"Mobiliser la théorie du skopos pour justifier un choix de traduction\
+      \ sur un texte donné\"\n\n— Ce que vos étudiants ont travaillé que ChatGPT n'a\
+      \ pas : textes distribués en cours, débats de TD, cas analysés ensemble. Plus\
+      \ vous êtes précis ici, plus le sujet sera résistant.\n\nRenseignez le formulaire.\
+      \ Je commence par évaluer si les informations permettent un sujet vraiment résistant,\
+      \ puis je produis le sujet avec une analyse concrète de sa robustesse."
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - Ce sujet est-il vraiment résistant si mes étudiants utilisent ChatGPT ?
+    - Propose une variante avec un document-support à analyser
+    - Comment rendre ce sujet résistant sans changer le format ?
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: qc
+      id: e-start-qc
+      source: start
+      sourceHandle: source
+      target: qc
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: knowledge-retrieval
+      id: e-qc-kb_exam
+      source: qc
+      sourceHandle: t-struct
+      target: kb_exam
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: llm
+      id: e-qc-llm_simple
+      source: qc
+      sourceHandle: q-simple
+      target: llm_simple
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: question-classifier
+        targetType: answer
+      id: e-qc-ans_hors
+      source: qc
+      sourceHandle: h-sujet
+      target: ans_hors
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: e-kb_exam-llm_exam
+      source: kb_exam
+      sourceHandle: source
+      target: llm_exam
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e-llm_exam-ans_exam
+      source: llm_exam
+      sourceHandle: source
+      target: ans_exam
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e-llm_simple-ans_simple
+      source: llm_simple
+      sourceHandle: source
+      target: ans_simple
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: Début
+        type: start
+        variables:
+        - label: Compétences visées
+          max_length: 1000
+          required: true
+          type: paragraph
+          variable: competences
+        - label: Contenu du cours
+          max_length: 2000
+          required: true
+          type: paragraph
+          variable: contenu_cours
+        - label: Niveau
+          max_length: 10
+          options:
+          - L1
+          - L2
+          - L3
+          - M1
+          - M2
+          required: true
+          type: select
+          variable: niveau
+        - label: Format d'examen
+          max_length: 50
+          options:
+          - dissertation
+          - commentaire de texte
+          - questions de cours
+          - étude de cas
+          - QCM
+          - exposé écrit
+          required: true
+          type: select
+          variable: format_exam
+        - default: ''
+          label: Contexte système (profil EC)
+          max_length: 5000
+          required: false
+          type: paragraph
+          variable: system_context
+        - default: ''
+          label: Contexte utilisateur (profil EC)
+          max_length: 5000
+          required: false
+          type: paragraph
+          variable: user_context
+      height: 187
+      id: start
+      position:
+        x: 30
+        y: 200
+      positionAbsolute:
+        x: 30
+        y: 200
+      type: custom
+      width: 242
+    - data:
+        classes:
+        - id: q-simple
+          name: question simple
+        - id: t-struct
+          name: conception examen
+        - id: h-sujet
+          name: hors sujet
+        dataset:
+          dataset_id: a0000001-0000-4000-8000-000000000003
+          dataset_name: Ressources pedagogiques publiques
+        desc: ''
+        instructions: ''
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        query_variable_selector:
+        - sys
+        - query
+        selected: false
+        title: Classification
+        type: question-classifier
+      height: 208
+      id: qc
+      position:
+        x: 320
+        y: 200
+      positionAbsolute:
+        x: 320
+        y: 200
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - kgthqvyxe7/ejRH67y09wnzRBAmPp11C8s/vQrq5AdM6r4YnpgvS45aANmewX+9e
+        - tV4ObBw/8xkxXqlwuzBplkxDLkTbSq6mvQ7Fz75MCDPfL87PGpmAf45Ho++Qignb
+        - mViAvcfKs3r6bs2KOEvdfQsd+VlBWgi6oEjufQgMt1zI856CtBEEgpAqcfyUL2ys
+        desc: ''
+        error_strategy: fail-branch
+        multiple_retrieval_config:
+          reranking_enable: true
+          reranking_mode: reranking_model
+          reranking_model:
+            model: BAAI/bge-reranker-v2-m3
+            provider: langgenius/openai_api_compatible/openai_api_compatible
+          score_threshold: 0.5
+          score_threshold_enabled: true
+          top_k: 5
+          weights: null
+        query_variable_selector:
+        - sys
+        - query
+        retrieval_mode: multiple
+        selected: false
+        title: Recherche documentaire
+        type: knowledge-retrieval
+      height: 146
+      id: kb_exam
+      position:
+        x: 630.2857055664062
+        y: 283.1428527832031
+      positionAbsolute:
+        x: 630.2857055664062
+        y: 283.1428527832031
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - kb_exam
+          - result
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          query_prompt_template: null
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.5
+          mode: chat
+          name: deepseek-v4-flash
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: 'Tu es IIIAAS, expert en conception d''évaluations à l''Université
+            [Institution] (Paris 3). Tu conçois des sujets d''examen conformes
+            au cadre LMD et aux niveaux Bloom, avec une attention particulière à la
+            résistance à l''IA générative. Pour chaque sujet, évalue : complexité
+            cognitive (niveau Bloom 1-6), originalité contextuelle, impossibilité
+            de délégation simple à une IA.
+
+
+            IMPORTANT : Produis TOUJOURS 3 variantes de sujets + analyse résistance
+            IA pour chacun.
+
+            ---
+
+
+            EXPLOITATION DU PROFIL UTILISATEUR
+
+
+            {% if user_context and user_context != "" %}
+
+            L''enseignant-chercheur qui te consulte a ce profil :
+
+            {{user_context}}
+
+
+            Utilise ces informations de façon active :
+
+            - Si sa discipline est identifiable, ancre tes exemples dans cette discipline
+
+            - Si ses niveaux d''enseignement sont connus, calibre le Bloom en conséquence
+
+            - Si son UFR est connue, mentionne-la dans le diagnostic d''ancrage pour
+            montrer que tu comprends son contexte institutionnel
+
+            - Ne lui redemande pas ce que tu sais déjà
+
+            {% else %}
+
+            Aucun profil utilisateur disponible.
+
+            Si la discipline ou le niveau n''est pas clairement identifiable depuis
+            le formulaire, pose une seule question de clarification avant de produire
+            quoi que ce soit.
+
+            {% endif %}
+
+
+
+            RÈGLE ABSOLUE pour toute référence citée : inclure systématiquement la
+            citation complète (auteur(s), année, titre, revue/éditeur) ET le lien
+            URL direct vers la source (DOI sous forme https://doi.org/..., lien HAL,
+            lien ArXiv https://arxiv.org/abs/..., lien OpenEdition, lien CAIRN). Si
+            le contexte fourni contient un champ ''URL:'' ou ''PDF:'', l''utiliser
+            tel quel. Si aucun lien n''est disponible dans le contexte, écrire ''URL
+            : lien non disponible''. Ne jamais citer une référence sans son URL.
+
+            {% if system_context and system_context != "" %}
+
+            Posture active : {{system_context}}
+
+            {% endif %}
+
+            {% if user_context and user_context != "" %}
+
+            Contexte utilisateur : {{user_context}}
+
+            {% endif %}
+
+
+            Si tu as effectivement retrouvé et utilisé des passages de documents dans
+            cette réponse grâce aux outils de recherche documentaire, cite-les avec
+            [1], [2], etc. juste après l''information citée.
+
+            Si tu réponds depuis tes connaissances générales sans avoir consulté de
+            documents, n''utilise JAMAIS de références numérotées.
+
+
+            Termine TOUJOURS ta réponse par cette ligne exacte, après la section POUR
+            ALLER PLUS LOIN :
+
+
+            ---
+
+            *Tapez "variante" pour un sujet dans un autre format, "plus difficile"
+            pour un niveau M2, ou "document-support" si vous souhaitez ancrer le sujet
+            dans un extrait de votre cours.*'
+        - role: user
+          text: 'Conçois des sujets d''examen pour :
+
+            Compétences visées : {{#start.competences#}}
+
+            Contenu du cours : {{#start.contenu_cours#}}
+
+            Niveau : {{#start.niveau#}} | Format : {{#start.format_exam#}}
+
+
+            Ressources pédagogiques USN :
+
+            {{#kb_exam.result#}}
+
+
+            Produis 3 variantes de sujets avec pour chacune :
+
+            - L''énoncé complet
+
+            - Le niveau Bloom ciblé
+
+            - Analyse de résistance IA (note /10 + justification)
+
+            - Barème indicatif'
+        selected: false
+        title: Conception sujets
+        type: llm
+        vision:
+          enabled: false
+      height: 124
+      id: llm_exam
+      position:
+        x: 905.7142639160156
+        y: 244
+      positionAbsolute:
+        x: 905.7142639160156
+        y: 244
+      selected: true
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#llm_exam.text#}}'
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 102
+      id: ans_exam
+      position:
+        x: 1200
+        y: 200
+      positionAbsolute:
+        x: 1200
+        y: 200
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: null
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          query_prompt_template: null
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.3
+          mode: chat
+          name: mistral-small-2503
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        prompt_template:
+        - role: system
+          text: 'Tu es IIIAAS, expert en évaluation USN. Réponds à la question.
+
+            {% if system_context and system_context != "" %}
+
+            Posture active : {{system_context}}
+
+            {% endif %}
+
+            {% if user_context and user_context != "" %}
+
+            Contexte utilisateur : {{user_context}}
+
+            {% endif %}
+
+
+            Si tu as effectivement retrouvé et utilisé des passages de documents dans
+            cette réponse grâce aux outils de recherche documentaire, cite-les avec
+            [1], [2], etc. juste après l''information citée.
+
+            Si tu réponds depuis tes connaissances générales sans avoir consulté de
+            documents, n''utilise JAMAIS de références numérotées.'
+        - role: user
+          text: '{{#sys.query#}}'
+        selected: false
+        title: Réponse simple
+        type: llm
+        vision:
+          enabled: false
+      height: 124
+      id: llm_simple
+      position:
+        x: 620
+        y: 100
+      positionAbsolute:
+        x: 620
+        y: 100
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#llm_simple.text#}}'
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 102
+      id: ans_simple
+      position:
+        x: 900
+        y: 100
+      positionAbsolute:
+        x: 900
+        y: 100
+      type: custom
+      width: 242
+    - data:
+        answer: ⚠️ Précisez les compétences, le contenu du cours, le niveau et le
+          format d'examen.
+        desc: ''
+        selected: false
+        title: Réponse
+        type: answer
+        variables: []
+      height: 132
+      id: ans_hors
+      position:
+        x: 637.4285736083984
+        y: 496
+      positionAbsolute:
+        x: 637.4285736083984
+        y: 496
+      selected: false
+      type: custom
+      width: 242
+    viewport:
+      x: -421.20416307250616
+      y: -151.68260696600026
+      zoom: 0.952425233547739
+  rag_pipeline_variables: []

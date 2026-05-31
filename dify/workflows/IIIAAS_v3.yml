@@ -1,0 +1,1516 @@
+app:
+  description: Chatflow universel — documents, URLs, KB et publications académiques
+  icon: 🧠
+  icon_background: '#E8E9F8'
+  icon_type: null
+  mode: advanced-chat
+  name: IIIAAS v3
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai_api_compatible:0.0.53@a0dfb462961a03c6a6415d4185043185b01017c64da93cf82a9e5ecaf59f8ed0
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    opening_statement: 'Bonjour. Posez votre question, collez un texte, partagez une
+      URL ou joignez un document.
+
+
+      Je m''adapte : analyse, recherche documentaire, redaction, traduction, questions
+      sur les formations USN ou le projet INTEGRIA.
+
+
+      En mode Académique, je cherche dans HAL et OpenAlex et cite mes sources.'
+    suggested_questions:
+    - Resume ce document et identifie les points cles
+    - Cherche des publications recentes sur [sujet] en mode Académique
+    - Aide-moi a reformuler ce paragraphe pour un public non specialiste
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: code
+      id: e1
+      source: start
+      sourceHandle: source
+      target: detect_input
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: document-extractor
+      id: e3
+      source: file_router
+      sourceHandle: 'true'
+      target: doc_extract
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: document-extractor
+        targetType: code
+      id: e4
+      source: doc_extract
+      sourceHandle: source
+      target: prompt_builder
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: if-else
+      id: e5
+      source: file_router
+      sourceHandle: 'false'
+      target: web_help_router
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: http-request
+      id: e6
+      source: url_router
+      sourceHandle: 'true'
+      target: jina_fetch
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: e7
+      source: jina_fetch
+      sourceHandle: source
+      target: prompt_builder
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: e8
+      source: url_router
+      sourceHandle: 'false'
+      target: knowledge
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: e9
+      source: url_router
+      sourceHandle: 'false'
+      target: usn_formations
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: knowledge-retrieval
+        targetType: code
+      id: e12
+      source: knowledge
+      sourceHandle: source
+      target: check_sources
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: knowledge-retrieval
+        targetType: code
+      id: e13
+      source: usn_formations
+      sourceHandle: source
+      target: check_sources
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: if-else
+      id: e16
+      source: check_sources
+      sourceHandle: source
+      target: route
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: code
+      id: e17
+      source: route
+      sourceHandle: 'true'
+      target: prompt_builder
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: http-request
+      id: e18
+      source: route
+      sourceHandle: 'false'
+      target: openalex
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: llm
+      id: e21
+      source: prompt_builder
+      sourceHandle: source
+      target: llm
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e22
+      source: llm
+      sourceHandle: source
+      target: answer
+      targetHandle: target
+      type: custom
+    - id: 1d2953b0-318d-4f3b-bb73-c026da05c1a1
+      source: academic_router
+      sourceHandle: 'false'
+      target: file_router
+      targetHandle: target
+    - data:
+        sourceType: if-else
+        targetType: llm
+      id: e_aca_rw
+      source: academic_router
+      sourceHandle: 'true'
+      target: query_rewriter_001
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: code
+      id: e_rw_pr
+      source: query_rewriter_001
+      sourceHandle: source
+      target: parse_rewriter_001
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: code
+        targetType: http-request
+      id: e_pr_prx
+      source: parse_rewriter_001
+      sourceHandle: source
+      target: openalex
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: e_5a01a22a
+      source: openalex
+      sourceHandle: source
+      target: rerank_academic
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: code
+      id: e_6eb3d996
+      source: rerank_academic
+      sourceHandle: source
+      target: prompt_builder
+      targetHandle: academic_xml
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: if-else
+      id: e_web_help_false
+      source: web_help_router
+      sourceHandle: 'false'
+      target: url_router
+      targetHandle: target
+      type: custom
+    - id: e_web_search
+      source: web_help_router
+      sourceHandle: 'true'
+      target: web_search
+      targetHandle: target
+    - id: e_web_fetch
+      source: web_search
+      sourceHandle: source
+      target: web_fetch
+      targetHandle: target
+    - id: e_web_to_prompt
+      source: web_fetch
+      sourceHandle: source
+      target: prompt_builder
+      targetHandle: web_xml
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: llm
+      id: e_detect_to_classifier
+      source: detect_input
+      sourceHandle: source
+      target: question_classifier
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: if-else
+      id: e_classifier_to_route
+      source: question_classifier
+      sourceHandle: source
+      target: route_direct
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: llm
+      id: e_route_true
+      source: route_direct
+      sourceHandle: 'true'
+      target: llm_direct
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: if-else
+      id: e_route_false
+      source: route_direct
+      sourceHandle: 'false'
+      target: academic_router
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: e_direct_to_answer
+      source: llm_direct
+      sourceHandle: source
+      target: answer
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: ''
+        title: Debut
+        type: start
+        variables:
+        - default: usn
+          label: Mode de recherche
+          options:
+          - usn
+          - academic
+          - web
+          - docs
+          required: false
+          type: select
+          variable: source_mode
+        - allowed_file_extensions:
+          - .pdf
+          - .docx
+          - .txt
+          - .md
+          - .jpg
+          - .jpeg
+          - .png
+          allowed_file_types:
+          - document
+          allowed_file_upload_methods:
+          - local_file
+          label: Document a analyser
+          required: false
+          type: file
+          variable: document
+        - default: ''
+          label: Filtre dossier personnel
+          required: false
+          type: text-input
+          variable: folder_filter
+        - default: ''
+          label: Profil utilisateur
+          max_length: 5000
+          required: false
+          type: paragraph
+          variable: user_context
+        - default: ''
+          label: Contexte système
+          max_length: 5000
+          required: false
+          type: paragraph
+          variable: system_context
+      height: 180
+      id: start
+      position:
+        x: 30
+        y: 250
+      positionAbsolute:
+        x: 30
+        y: 250
+      type: custom
+      width: 243
+    - data:
+        code: "def main(query: str, files: list, source_mode: str = \"usn\") -> dict:\n\
+          \    import re\n    has_file = len(files) > 0 if files else False\n    urls\
+          \ = re.findall(r'https?://[^\\s]+', query)\n    has_url = len(urls) > 0\n\
+          \    \n    is_academic_explicit = source_mode == \"academic\"\n    \n  \
+          \  academic_signals = [\n        r'\\btravaux?\\b', r'\\brecherche\\b',\
+          \ r'\\bpublications?\\b',\n        r'\\barticles?\\b', r'\\blitterature\\\
+          b',\n        r'\\bbibliograph\\w+\\b', r'\\bsources?\\b',\n        r'\\\
+          bétat de l.art\\b', r'\\bqui a ecrit\\b',\n        r'\\bqui travaille\\\
+          b',\n    ]\n    \n    is_academic_auto = False\n    if source_mode in (\"\
+          usn\", \"all\") and not has_file and not has_url:\n        query_lower =\
+          \ query.lower()\n        for pattern in academic_signals:\n            if\
+          \ re.search(pattern, query_lower, re.IGNORECASE):\n                is_academic_auto\
+          \ = True\n                break\n    \n    is_academic = is_academic_explicit\
+          \ or is_academic_auto\n    is_web = source_mode == \"web\"\n    is_docs\
+          \ = source_mode == \"docs\"\n    \n    if is_web and not has_url:\n    \
+          \    source_type = \"web_no_url\"\n    else:\n        source_type = \"file\"\
+          \ if has_file else (\"url\" if has_url else \"kb\")\n    \n    return {\n\
+          \        \"has_file\": has_file,\n        \"has_url\": has_url,\n      \
+          \  \"source_type\": source_type,\n        \"first_url\": urls[0] if urls\
+          \ else \"\",\n        \"is_academic\": is_academic,\n        \"is_academic_auto\"\
+          : is_academic_auto,\n        \"is_web\": is_web,\n        \"is_docs\": is_docs,\n\
+          \        \"source_mode\": source_mode,\n    }"
+        code_language: python3
+        desc: Fichier / URL / KB
+        error_strategy: fail-branch
+        outputs:
+          first_url:
+            type: string
+          has_file:
+            type: boolean
+          has_url:
+            type: boolean
+          is_academic:
+            type: boolean
+          is_academic_auto:
+            type: boolean
+          is_docs:
+            type: boolean
+          is_web:
+            type: boolean
+          source_mode:
+            type: string
+          source_type:
+            type: string
+        title: Detection entree
+        type: code
+        variables:
+        - value_selector:
+          - start
+          - sys.query
+          variable: query
+        - value_selector:
+          - start
+          - sys.files
+          variable: files
+        - value_selector:
+          - start
+          - source_mode
+          variable: source_mode
+      height: 160
+      id: detect_input
+      position:
+        x: 350
+        y: 250
+      positionAbsolute:
+        x: 350
+        y: 250
+      type: custom
+      width: 243
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: c_file
+            value: 'true'
+            varType: boolean
+            variable_selector:
+            - detect_input
+            - has_file
+          id: 'true'
+          logical_operator: and
+        desc: ''
+        error_strategy: fail-branch
+        selected: false
+        title: Fichier joint ?
+        type: if-else
+      height: 126
+      id: file_router
+      position:
+        x: 700
+        y: 100
+      positionAbsolute:
+        x: 700
+        y: 100
+      type: custom
+      width: 243
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: c_url
+            value: 'true'
+            varType: boolean
+            variable_selector:
+            - detect_input
+            - has_url
+          id: 'true'
+          logical_operator: and
+        desc: ''
+        error_strategy: fail-branch
+        selected: false
+        title: URL detectee ?
+        type: if-else
+      height: 126
+      id: url_router
+      position:
+        x: 700
+        y: 300
+      positionAbsolute:
+        x: 700
+        y: 300
+      type: custom
+      width: 243
+    - data:
+        desc: ''
+        error_strategy: fail-branch
+        title: Extraction document
+        type: document-extractor
+        variable_selector:
+        - start
+        - document
+      height: 98
+      id: doc_extract
+      position:
+        x: 1050
+        y: 30
+      positionAbsolute:
+        x: 1050
+        y: 30
+      type: custom
+      width: 243
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data: ''
+          type: none
+        desc: Lecture URL
+        headers: 'Accept: text/plain'
+        method: GET
+        params: ''
+        retry_config:
+          enabled: false
+          max_retries: 1
+          retry_interval: 1000
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: Jina Reader
+        type: http-request
+        url: https://r.jina.ai/{{#detect_input.first_url#}}
+      height: 98
+      id: jina_fetch
+      position:
+        x: 1050
+        y: 300
+      positionAbsolute:
+        x: 1050
+        y: 300
+      type: custom
+      width: 243
+    - data:
+        dataset:
+          dataset_id: a0000001-0000-4000-8000-000000000001
+          dataset_name: Academique SHS - Sources verifiables
+        dataset_ids:
+        - Bdhfu7UkX5JOD5TGGYUvmReAbFEGPv9AxeFqDpdFxxAac8A8mUTbuy4s5LYS8uUD
+        desc: Documentation INTEGRIA
+        error_strategy: fail-branch
+        multiple_retrieval_config:
+          reranking_enable: true
+          reranking_mode: reranking_model
+          reranking_model:
+            model: BAAI/bge-reranker-v2-m3
+            provider: langgenius/openai_api_compatible/openai_api_compatible
+          score_threshold: 0.4
+          score_threshold_enabled: true
+          top_k: 3
+          weights: null
+        query_variable_selector:
+        - start
+        - sys.query
+        reranking_enabled: true
+        reranking_model:
+          reranking_model_name: BAAI/bge-reranker-v2-m3
+          reranking_provider_name: langgenius/openai_api_compatible/openai_api_compatible
+        retrieval_mode: multiple
+        score_threshold: 0.3
+        score_threshold_enabled: true
+        title: KB3 INTEGRIA
+        top_k: 3
+        type: knowledge-retrieval
+      height: 98
+      id: knowledge
+      position:
+        x: 1050
+        y: 430
+      positionAbsolute:
+        x: 1050
+        y: 430
+      type: custom
+      width: 243
+    - data:
+        dataset:
+          dataset_id: a0000001-0000-4000-8000-000000000002
+          dataset_name: USN - Formations et diplomes (public)
+        dataset_ids:
+        - 88NOaExrhUEBWvpiUnHbIB4CJSCF0IZKBjulSWPHF/7YLc4jOB5LhGxqmPRsfqn5
+        desc: Descriptifs formations USN
+        error_strategy: fail-branch
+        multiple_retrieval_config:
+          reranking_enable: true
+          reranking_mode: reranking_model
+          reranking_model:
+            model: BAAI/bge-reranker-v2-m3
+            provider: langgenius/openai_api_compatible/openai_api_compatible
+          score_threshold: 0.4
+          score_threshold_enabled: true
+          top_k: 3
+          weights: null
+        query_variable_selector:
+        - start
+        - sys.query
+        reranking_enabled: false
+        reranking_model: null
+        retrieval_mode: multiple
+        score_threshold: 0.2
+        score_threshold_enabled: true
+        title: USN Formations
+        top_k: 1
+        type: knowledge-retrieval
+      height: 98
+      id: usn_formations
+      position:
+        x: 1050
+        y: 560
+      positionAbsolute:
+        x: 1050
+        y: 560
+      type: custom
+      width: 243
+    - data:
+        code: "def main(kb_integria, kb_formations):\n    all_items = []\n    total_score\
+          \ = 0.0\n    count = 0\n    for kb_result in [kb_integria, kb_formations]:\n\
+          \        if kb_result and isinstance(kb_result, list):\n            for\
+          \ item in kb_result:\n                if isinstance(item, dict):\n     \
+          \               content = item.get('content', '')\n                    metadata\
+          \ = item.get('metadata', {})\n                    score = metadata.get('score',\
+          \ 0) if isinstance(metadata, dict) else 0\n                    if isinstance(score,\
+          \ (int, float)):\n                        total_score += float(score)\n\
+          \                        count += 1\n                        all_items.append(content\
+          \ if content else str(item))\n    avg_score = total_score / count if count\
+          \ > 0 else 0.0\n    all_results = '\\\n\\\n---\\\n'.join(all_items)\n  \
+          \  has_results = avg_score >= 0.2\n    return {\"has_results\": has_results,\
+          \ \"all_results\": all_results, \"avg_score\": avg_score, \"doc_count\"\
+          : count}"
+        code_language: python3
+        desc: ''
+        error_strategy: fail-branch
+        outputs:
+          all_results:
+            type: string
+          avg_score:
+            type: number
+          doc_count:
+            type: number
+          has_results:
+            type: boolean
+        title: Verification sources KB
+        type: code
+        variables:
+        - label: KB INTEGRIA
+          required: false
+          type: array[object]
+          value_selector:
+          - knowledge
+          - result
+          variable: kb_integria
+        - label: KB Formations
+          required: false
+          type: array[object]
+          value_selector:
+          - usn_formations
+          - result
+          variable: kb_formations
+      height: 160
+      id: check_sources
+      position:
+        x: 1700
+        y: 480
+      positionAbsolute:
+        x: 1700
+        y: 480
+      type: custom
+      width: 243
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: c_kb
+            value: 'true'
+            varType: boolean
+            variable_selector:
+            - check_sources
+            - has_results
+          - comparison_operator: is
+            id: c_docs
+            value: 'true'
+            varType: boolean
+            variable_selector:
+            - detect_input
+            - is_docs
+          id: 'true'
+          logical_operator: or
+        desc: ''
+        error_strategy: fail-branch
+        selected: false
+        title: Sources trouvees ?
+        type: if-else
+      height: 126
+      id: route
+      position:
+        x: 2000
+        y: 480
+      positionAbsolute:
+        x: 2000
+        y: 480
+      type: custom
+      width: 243
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data: "{\n  \"query_hal\": \"{{#parse_rewriter_001.query_hal#}}\",\n  \"\
+            query_en\": \"{{#parse_rewriter_001.query_en#}}\",\n  \"max_results\"\
+            : 8\n}"
+          type: json
+        desc: Publications academiques
+        headers: 'Content-Type: application/json'
+        method: post
+        outputs:
+          body:
+            type: string
+          headers:
+            type: object
+          status_code:
+            type: number
+        params: ''
+        retry_config:
+          enabled: false
+          max_retries: 1
+          retry_interval: 1000
+        selected: false
+        timeout:
+          data: 30
+          type: single
+        title: Proxy academique (HAL+OpenAlex)
+        type: http-request
+        url: ${ACADEMIC_PROXY_URL}/search
+        variable_selector: []
+      height: 98
+      id: openalex
+      position:
+        x: 2000
+        y: 650
+      positionAbsolute:
+        x: 2000
+        y: 650
+      type: custom
+      width: 243
+    - data:
+        code: "import json as _json\nimport xml.etree.ElementTree as _ET\n\ndef main(source_type:\
+          \ str, query: str, doc_text: str, url_content: str, kb_results: str, academic_xml:\
+          \ str = \"\", folder_filter: str = \"\",\n    conversation_history: str\
+          \ = \"\", web_xml: str = \"\") -> dict:\n    context = \"\"\n    \n    if\
+          \ source_type == \"file\" and doc_text:\n        context = \"Document fourni\
+          \ :\\n\" + doc_text\n    elif source_type == \"url\" and url_content:\n\
+          \        context = \"Contenu de la page web :\\n\" + url_content\n    elif\
+          \ kb_results:\n        context = \"Contexte documentaire :\\n\" + kb_results\n\
+          \    \n    if academic_xml and academic_xml.strip():\n        try:\n   \
+          \         px = _json.loads(academic_xml)\n            xml_src = (px.get(\"\
+          xml\") or \"\").strip()\n            if xml_src:\n                try:\n\
+          \                    if not xml_src.startswith(\"<sources>\"):\n       \
+          \                 xml_src = \"<sources>\" + xml_src + \"</sources>\"\n \
+          \                   root = _ET.fromstring(xml_src)\n                   \
+          \ formatted = \"SOURCES ACADEMIQUES VERIFIEES :\\n\"\n                 \
+          \   for i, src in enumerate(root.findall(\".//source\"), 1):\n         \
+          \               titre = src.findtext(\"titre\", \"?\")\n               \
+          \         auteurs = src.findtext(\"auteurs\", \"?\")\n                 \
+          \       annee = src.findtext(\"annee\", \"?\")\n                       \
+          \ url = src.findtext(\"url\", \"\")\n                        resume = src.findtext(\"\
+          resume\", \"\")\n                        formatted += f\"\\n[{i}] {auteurs}\
+          \ ({annee}). {titre}.\\n URL EXACTE : {url}\\n\"\n                     \
+          \   if resume:\n                            formatted += f\" Resume : {resume[:150]}.\\\
+          n\"\n                    xml_src = formatted\n                except:\n\
+          \                    pass\n                if context:\n               \
+          \     context += \"\\n\\n\" + xml_src\n                else:\n         \
+          \           context = xml_src\n        except:\n            pass\n    \n\
+          \    if conversation_history:\n        try:\n            history = _json.loads(conversation_history)\n\
+          \            if isinstance(history, list):\n                recent = history[-10:]\n\
+          \                hist_lines = []\n                for m in recent:\n   \
+          \                 content = m.get(\"content\") or \"\"\n               \
+          \     if content:\n                        role = \"User\" if m.get(\"role\"\
+          ) == \"user\" else \"Assis\"\n                        hist_lines.append(role\
+          \ + \": \" + content[:200])\n                if hist_lines:\n          \
+          \          hist_block = \"[HISTORIQUE]\\n\" + \"\\n\".join(hist_lines) +\
+          \ \"\\n[/HISTORIQUE]\"\n                    context = hist_block + (\"\\\
+          n\\n\" + context if context else \"\")\n        except:\n            pass\n\
+          \    \n\n    if web_xml and web_xml.strip():\n        try:\n           \
+          \ wroot = _ET.fromstring(web_xml)\n            formatted = \"SOURCES WEB\
+          \ CONSULTEES :\\n\"\n            for i, src in enumerate(wroot.findall(\"\
+          .//source\"), 1):\n                url = src.findtext(\"url\", \"\")\n \
+          \               titre = src.findtext(\"titre\", \"?\")\n               \
+          \ contenu = src.findtext(\"contenu\", \"\")\n                source_attr\
+          \ = src.get(\"source\", \"web\")\n                formatted += f\"\\n[{i}]\
+          \ {titre}\\n\"\n                formatted += f\" URL EXACTE : {url}\\n\"\
+          \n                if contenu:\n                    formatted += f\" Contenu\
+          \ : {contenu[:200]}.\\n\"\n            if context:\n                context\
+          \ += \"\\n\\n\" + formatted\n            else:\n                context\
+          \ = formatted\n        except:\n            pass\n\n\n    # Si mode academique\
+          \ mais XML vide ou count = 0\n    if source_type == \"kb\" and not academic_xml\
+          \ or (academic_xml and academic_xml.strip()):\n        pass  # deja gere\
+          \ par le bloc ci-dessus\n    # En fait, verifier si le contexte academique\
+          \ est present\n    has_academic_context = bool(academic_xml and academic_xml.strip())\n\
+          \    if source_type == \"kb\" and has_academic_context:\n        try:\n\
+          \            import json as _jc\n            _px = _jc.loads(academic_xml)\n\
+          \            if _px.get(\"count\", 0) == 0:\n                disclaimer\
+          \ = \"\\n[AVERTISSEMENT : La recherche academique n'a pas retourne de resultats\
+          \ verifies pour cette requete. La reponse est basee uniquement sur les connaissances\
+          \ generales du modele.]\\n\"\n                context = disclaimer + context\
+          \ if context else disclaimer\n        except:\n            pass\n    \n\
+          \    # Injecter folder_filter si present\n    if folder_filter and folder_filter.strip():\n\
+          \        folder_info = (\n            \"\\n\\n[CONTEXTE DOSSIERS] L'utilisateur\
+          \ travaille depuis ses dossiers personnels : \"\n            + folder_filter.strip()\n\
+          \            + \". Privilégie les informations liees a ces dossiers.\"\n\
+          \        )\n        context = (context + folder_info) if context else folder_info\n\
+          \n\n    if context:\n        prompt = context + \"\\n\\nQuestion : \" +\
+          \ query\n    else:\n        prompt = query\n    \n    return {\"prompt\"\
+          : prompt, \"has_context\": bool(context)}"
+        code_language: python3
+        desc: ''
+        error_strategy: fail-branch
+        outputs:
+          has_context:
+            type: boolean
+          prompt:
+            type: string
+        title: Constructeur prompt
+        type: code
+        variables:
+        - value_selector:
+          - detect_input
+          - source_type
+          variable: source_type
+        - value_selector:
+          - start
+          - sys.query
+          variable: query
+        - value_selector:
+          - doc_extract
+          - text
+          variable: doc_text
+        - value_selector:
+          - jina_fetch
+          - body
+          variable: url_content
+        - value_selector:
+          - check_sources
+          - all_results
+          variable: kb_results
+        - value_selector:
+          - start
+          - sys.conversation_history
+          variable: conversation_history
+        - value_selector:
+          - rerank_academic
+          - reranked_xml
+          variable: academic_xml
+        - value_selector:
+          - start
+          - folder_filter
+          variable: folder_filter
+        - value_selector:
+          - web_fetch
+          - web_xml
+          variable: web_xml
+      height: 180
+      id: prompt_builder
+      position:
+        x: 1050
+        y: 160
+      positionAbsolute:
+        x: 1050
+        y: 160
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - check_sources
+          - all_results
+        desc: ''
+        error_strategy: fail-branch
+        memory:
+          role_prefix:
+            assistant: Assistant
+            user: Utilisateur
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            preference: speed
+            request_timeout: 30
+            temperature: 0.3
+          mode: chat
+          name: deepseek-v4-flash
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+          stream: true
+        prompt_template:
+        - role: system
+          text: 'Tu es l''assistant IA de l''[Universite], concu pour
+            les enseignants-chercheurs et personnels en sciences humaines et sociales.
+
+
+            Tu es polyvalent, precis et direct. Tu t''adaptes au besoin sans le faire
+            reformuler :
+
+            — une question factuelle → reponse concise et fiable
+
+            — une demande d''analyse → lecture structuree et critique
+
+            — un texte a travailler → traduction, correction, reformulation, resume
+
+            — une recherche documentaire → sources verifiees avec citations cliquables
+
+            — une tache de redaction → production adaptee au registre demande
+
+
+            TON ET STYLE
+
+            Ton d''un collegue expert : direct, sans ceremonial, sans formules d''introduction.
+
+            Ne commence jamais par : Bonjour, Bien sur, Absolument, Certainement,
+            Avec plaisir, Je suis ravi, Parfait, Tout a fait.
+
+            Commence directement par le contenu.
+
+            Adapte la longueur a la demande — concis pour une question simple, developpe
+            pour une analyse complexe.
+
+            Ecris toujours en francais sauf si l''EC ecrit dans une autre langue ou
+            demande explicitement une autre langue.
+
+
+            EXPLOITATION DU PROFIL UTILISATEUR
+
+            {% if user_context and user_context != "" %}
+
+            Profil de l''EC : {{user_context}}
+
+            Utilise ce profil silencieusement pour :
+
+            — adapter le niveau de technicite et les exemples disciplinaires
+
+            — anticiper les besoins probables selon la discipline et l''UFR
+
+            — eviter de proposer des notions que l''EC maitrise probablement deja
+
+            — calibrer le registre (chercheur vs enseignant vs gestionnaire)
+
+            Ne jamais mentionner explicitement le profil dans la reponse.
+
+            {% endif %}
+
+
+            SOURCES ACADEMIQUES
+
+            Quand des sources academiques sont presentes dans le contexte :
+
+            1. Utilise-les comme base principale de la reponse
+
+            2. Cite avec le format : [N] Auteurs (Annee). Titre. [Voir la source](URL_EXACTE)
+
+            3. Conserve EXACTEMENT les numeros [N] tels qu''ils apparaissent dans
+            le contexte — ne renumeroter jamais
+
+            4. Ne jamais inventer une URL ni une reference
+
+
+            Si les sources sont insuffisantes pour la question, complete dans un bloc
+            separe :
+
+            ---
+
+            Pistes complementaires (connaissances generales, non verifiees documentairement)
+            :
+
+            Sans format bibliographique formel. Sans URL.
+
+
+            SOURCES DOCUMENTAIRES USN
+
+            Quand des documents USN sont presents dans le contexte :
+
+            — utilise-les pour repondre aux questions sur les formations, procedures,
+            diplomes USN
+
+            — cite le document source de façon naturelle ("selon la charte des examens
+            USN...")
+
+            — ne jamais extrapoler au-dela de ce que le document dit
+
+
+            REGLES DE LANGAGE
+
+            Ne jamais utiliser l''expression "vos dossiers", "dans vos dossiers",
+            "vos documents personnels" ou toute paraphrase similaire.
+
+            Utilise precisement les termes du contexte : "documents USN", "sources
+            academiques", "le contexte fourni".
+
+            Seul le bloc [CONTEXTE DOSSIERS] dans le prompt autorise la reference
+            aux dossiers de l''utilisateur.
+
+
+            REGLE ABSOLUE ANTI-HALLUCINATION
+
+            Le format [N] Auteurs (Annee). Titre. [Voir la source](URL) est reserve
+            aux sources
+
+            presentes dans le contexte avec une URL verifiee.
+
+            Pour les connaissances generales : pas de format bibliographique, pas
+            d''URL.
+
+
+            {% if system_context and system_context != "" %}
+
+            Posture active : {{system_context}}
+
+            {% endif %}'
+        - role: user
+          text: '{{#prompt_builder.prompt#}}
+
+
+            REGLE ABSOLUE — SOURCES ACADEMIQUES :
+
+
+            Quand des balises <source> sont presentes dans le contexte, tu DOIS obligatoirement
+            :
+
+
+            1. Utiliser ces sources comme base principale de ta reponse — pas tes
+            connaissances internes
+
+
+            2. Citer chaque source utilisee avec ce format exact :
+
+            [N] Auteurs (Annee). Titre. [Voir la source](URL)
+
+            ou URL est le contenu exact de la balise <url>
+
+
+            3. Ne JAMAIS inventer, modifier ou completer une URL
+
+
+            4. Si les sources du contexte sont insuffisantes, ajouter un bloc separe
+            :
+
+            ---
+
+            Pistes complementaires (non verifiees documentairement) :
+
+            [connaissances generales ici, sans format [N] Auteur (Annee)]
+
+            Ne jamais melanger ce bloc avec les citations verifiees.
+
+
+            INTERDIT : repondre uniquement depuis tes connaissances si des <source>
+            sont presentes.
+
+
+            SOURCES WEB :
+
+            Quand la section "SOURCES WEB CONSULTEES :" est presente, traite-la comme
+            les sources academiques mais avec mention explicite "[Source Web]" apres
+            chaque URL.'
+        title: Generation reponse
+        type: llm
+        vision:
+          enabled: false
+      height: 220
+      id: llm
+      position:
+        x: 1400
+        y: 160
+      positionAbsolute:
+        x: 1400
+        y: 160
+      type: custom
+      width: 243
+    - data:
+        answer: '{{#llm.text#}}{{#llm_direct.text#}}'
+        desc: ''
+        title: Reponse
+        type: answer
+        variables: []
+      height: 98
+      id: answer
+      position:
+        x: 1700
+        y: 160
+      positionAbsolute:
+        x: 1700
+        y: 160
+      type: custom
+      width: 243
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: c_aca
+            value: 'true'
+            varType: boolean
+            variable_selector:
+            - detect_input
+            - is_academic
+          id: 'true'
+          logical_operator: and
+        desc: Si is_academic=true → HAL+OpenAlex, sinon → KB
+        outputs:
+          result:
+            type: string
+        title: Mode academique ?
+        type: if-else
+      id: academic_router
+      position:
+        x: 320
+        y: 240
+    - data:
+        context:
+          enabled: false
+        memory:
+          window:
+            enabled: false
+            size: 0
+        model:
+          completion_params:
+            max_tokens: 200
+            temperature: 0.1
+          mode: chat
+          name: deepseek-v4-flash
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+          stream: false
+        prompt_template:
+        - role: system
+          text: 'Tu es un expert en recherche documentaire academique francophone.
+
+            Tu transformes des questions en requetes TRES PRECISES pour HAL et OpenAlex.
+
+            CONTRAINTE ABSOLUE : chaque requete NE DOIT PAS depasser 2 mots (concepts
+            les plus specifiques).
+
+            Exemple : "intelligence artificielle enseignement" → "IA pedagogie" (1-2
+            mots max).
+
+            Tu reponds UNIQUEMENT en JSON valide, sans markdown, sans explication.'
+        - role: user
+          text: 'Question : {{#sys.query#}}
+
+
+            Extrais 1-2 concepts academiques LES PLUS SPECIFIQUES de cette question.
+
+            CONTRAINTE : query_hal et query_en NE DOIVENT PAS depasser 2 mots chacun.
+
+
+            Reponds UNIQUEMENT avec ce JSON exact :
+
+            {"concepts": ["concept1"], "query_hal": "mot1 mot2", "query_en": "word1
+            word2"}'
+        title: Query Rewriter
+        type: llm
+        vision:
+          enabled: false
+      id: query_rewriter_001
+    - data:
+        code: "import json as _j\n\ndef main(rewriter_output: str) -> dict:\n    try:\n\
+          \        clean = rewriter_output.strip()\n        if \"```\" in clean:\n\
+          \            for p in clean.split(\"```\"):\n                p = p.strip().lstrip(\"\
+          json\").strip()\n                if p.startswith(\"{\"):\n             \
+          \       clean = p\n                    break\n        d = _j.loads(clean)\n\
+          \        return {\"query_hal\": d.get(\"query_hal\", \"\"), \"query_en\"\
+          : d.get(\"query_en\", \"\"), \"concepts\": \", \".join(d.get(\"concepts\"\
+          , []))}\n    except:\n        return {\"query_hal\": \"\", \"query_en\"\
+          : \"\", \"concepts\": \"\"}\n"
+        code_language: python3
+        outputs:
+          concepts:
+            type: string
+          query_en:
+            type: string
+          query_hal:
+            type: string
+        title: Parse Rewriter
+        type: code
+        variables:
+        - value_selector:
+          - query_rewriter_001
+          - text
+          variable: rewriter_output
+      id: parse_rewriter_001
+    - data:
+        code: "import json\nimport xml.etree.ElementTree as ET\nimport urllib.request\n\
+          \ndef main(academic_xml: str, query: str) -> dict:\n    # Si pas de donnees\
+          \ proxy → passer directement\n    if not academic_xml or not academic_xml.strip():\n\
+          \        return {\"reranked_xml\": \"\", \"reranked_count\": 0}\n\n    try:\n\
+          \        proxy_data = json.loads(academic_xml)\n    except Exception:\n\
+          \        return {\"reranked_xml\": academic_xml, \"reranked_count\": 0}\n\
+          \n    xml_str = (proxy_data.get(\"xml\") or \"\").strip()\n    if not xml_str:\n\
+          \        return {\"reranked_xml\": academic_xml, \"reranked_count\": 0}\n\
+          \n    # Parser le XML des sources\n    try:\n        if not xml_str.startswith(\"\
+          <sources>\"):\n            xml_str = \"<sources>\" + xml_str + \"</sources>\"\
+          \n        root = ET.fromstring(xml_str)\n        sources = root.findall(\"\
+          .//source\")\n    except Exception:\n        return {\"reranked_xml\": academic_xml,\
+          \ \"reranked_count\": 0}\n\n    if not sources:\n        return {\"reranked_xml\"\
+          : academic_xml, \"reranked_count\": 0}\n\n    # Construire les textes pour\
+          \ TEI (titre + resume)\n    texts = []\n    for src in sources:\n      \
+          \  titre = src.findtext(\"titre\", \"\")\n        resume = src.findtext(\"\
+          resume\", \"\")\n        text = (titre + \" \" + resume).strip()[:512]\n\
+          \        texts.append(text if text else titre or \"\")\n\n    # Appel TEI\
+          \ Reranker\n    try:\n        payload = json.dumps({\n            \"query\"\
+          : query,\n            \"texts\": texts,\n            \"truncate\": True\n\
+          \        }).encode(\"utf-8\")\n\n        req = urllib.request.Request(\n\
+          \            \"${RERANKER_URL}",\n            data=payload,\n\
+          \            headers={\"Content-Type\": \"application/json\"},\n       \
+          \     method=\"POST\"\n        )\n        with urllib.request.urlopen(req,\
+          \ timeout=8) as resp:\n            scores = json.loads(resp.read().decode(\"\
+          utf-8\"))\n    except Exception:\n        # Si TEI indisponible → fallback\
+          \ sans reranking\n        return {\"reranked_xml\": academic_xml, \"reranked_count\"\
+          : len(sources)}\n\n    # Filtrer (score >= 0.05) et garder top 5\n    SCORE_THRESHOLD\
+          \ = 0.05\n    TOP_K = 5\n\n    filtered = [s for s in scores if s.get(\"\
+          score\", 0) >= SCORE_THRESHOLD]\n    top = filtered[:TOP_K]\n\n    if not\
+          \ top:\n        # Si tout filtre → garder le meilleur quand meme\n     \
+          \   top = scores[:1]\n\n    # Reconstruire le XML dans l'ordre reranked\n\
+          \    reranked_sources = []\n    for rank, item in enumerate(top, 1):\n \
+          \       idx = item[\"index\"]\n        if idx < len(sources):\n        \
+          \    src = sources[idx]\n            src.set(\"rerank_score\", f\"{item['score']:.3f}\"\
+          )\n            src.set(\"id\", str(rank))\n            reranked_sources.append(ET.tostring(src,\
+          \ encoding=\"unicode\"))\n\n    reranked_xml = \"<sources>\\n\" + \"\\n\"\
+          .join(reranked_sources) + \"\\n</sources>\"\n\n    # Reconstruire le JSON\
+          \ proxy avec XML reranked\n    proxy_data[\"xml\"] = reranked_xml\n    proxy_data[\"\
+          reranked\"] = True\n    proxy_data[\"reranked_count\"] = len(top)\n    proxy_data[\"\
+          original_count\"] = len(sources)\n\n    return {\n        \"reranked_xml\"\
+          : json.dumps(proxy_data),\n        \"reranked_count\": len(top)\n    }"
+        code_language: python3
+        desc: Reranking TEI des sources academiques
+        error_strategy: fail-branch
+        outputs:
+          reranked_count:
+            type: number
+          reranked_xml:
+            type: string
+        title: Reranker academique
+        type: code
+        variables:
+        - value_selector:
+          - openalex
+          - body
+          variable: academic_xml
+        - value_selector:
+          - start
+          - sys.query
+          variable: query
+      height: 160
+      id: rerank_academic
+      position:
+        x: 2000
+        y: 800
+      positionAbsolute:
+        x: 2000
+        y: 800
+      type: custom
+      width: 243
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: c_web_help
+            value: web_no_url
+            varType: string
+            variable_selector:
+            - detect_input
+            - source_type
+          id: 'true'
+          logical_operator: and
+        desc: ''
+        error_strategy: fail-branch
+        selected: false
+        title: Web sans URL ?
+        type: if-else
+      height: 120
+      id: web_help_router
+      position:
+        x: 700
+        y: 180
+      positionAbsolute:
+        x: 700
+        y: 180
+      type: custom
+      width: 243
+    - data:
+        code: "def main(query: str) -> dict:\n    import urllib.request, json, urllib.parse\n\
+          \    \n    encoded = urllib.parse.quote(query)\n    url = f\"${SEARXNG_URL}/search?q={encoded}&format=json&language=fr&categories=general&pageno=1\"\
+          \n    \n    req = urllib.request.Request(url)\n    with urllib.request.urlopen(req,\
+          \ timeout=15) as resp:\n        data = json.loads(resp.read().decode(\"\
+          utf-8\"))\n    \n    results = data.get(\"results\", [])[:5]\n    \n   \
+          \ out_urls = []\n    out_titles = []\n    out_contents = []\n    \n    for\
+          \ r in results:\n        out_urls.append(r.get(\"url\", \"\"))\n       \
+          \ out_titles.append(r.get(\"title\", \"\"))\n        out_contents.append(r.get(\"\
+          content\", \"\"))\n    \n    search_data = json.dumps([\n        {\"url\"\
+          : u, \"title\": t, \"content\": c}\n        for u, t, c in zip(out_urls,\
+          \ out_titles, out_contents)\n    ])\n    \n    return {\n        \"urls\"\
+          : \"\\n\".join(out_urls),\n        \"count\": len(out_urls),\n        \"\
+          search_data\": search_data\n    }"
+        code_language: python3
+        desc: Recherche SearXNG
+        error_strategy: fail-branch
+        outputs:
+          count:
+            type: number
+          search_data:
+            type: string
+          urls:
+            type: string
+        title: Web Search
+        type: code
+        variables:
+        - value_selector:
+          - start
+          - sys.query
+          variable: query
+      id: web_search
+      position:
+        x: 950
+        y: 100
+    - data:
+        code: "def main(urls: str, count: int, search_data: str, query: str) -> dict:\n\
+          \    import urllib.request, json, urllib.parse\n    from xml.sax.saxutils\
+          \ import escape\n\n    url_list = [u for u in urls.split(\"\\n\") if u.strip()][:5]\n\
+          \    if not url_list:\n        return {\"web_xml\": \"\", \"fetched_count\"\
+          : 0}\n\n    try:\n        sdata = json.loads(search_data)\n    except Exception:\n\
+          \        sdata = []\n\n    parts = []\n\n    for i, url in enumerate(url_list):\n\
+          \        src_id = str(i + 1)\n        meta = {}\n        if i < len(sdata):\n\
+          \            meta = sdata[i]\n\n        title = escape(meta.get(\"title\"\
+          , \"\") or \"\")\n        snippet = escape(meta.get(\"content\", \"\") or\
+          \ \"\")\n\n        if i < 2:\n            # Sources 1-2 : Jina Reader\n\
+          \            try:\n                encoded_url = urllib.parse.quote(url,\
+          \ safe='')\n                jina_url = f\"https://r.jina.ai/{encoded_url}\"\
+          \n                jreq = urllib.request.Request(jina_url, headers={\"Accept\"\
+          : \"text/plain\"})\n                with urllib.request.urlopen(jreq, timeout=8)\
+          \ as resp:\n                    jina_content = resp.read().decode(\"utf-8\"\
+          ).strip()\n                content = escape(jina_content[:500])\n      \
+          \          source_type = \"jina\"\n            except Exception as e:\n\
+          \                content = escape(f\"[Erreur Jina] {str(e)[:100]}\")\n \
+          \               if snippet:\n                    content = escape(snippet[:300])\n\
+          \                source_type = \"jina_fallback\"\n        else:\n      \
+          \      # Sources 3-5 : extrait SearXNG\n            content = escape(snippet[:500])\
+          \ if snippet else \"\"\n            source_type = \"searxng\"\n\n      \
+          \  xml_lines = []\n        xml_lines.append(f'  <source id=\"{src_id}\"\
+          \ source=\"{source_type}\">')\n        xml_lines.append(f'    <url>{escape(url)}</url>')\n\
+          \        xml_lines.append(f'    <titre>{title}</titre>')\n        xml_lines.append(f'\
+          \    <contenu>{content}</contenu>')\n        xml_lines.append(f'  </source>')\n\
+          \        parts.append(\"\\n\".join(xml_lines))\n\n    web_xml = \"<sources>\\\
+          n\" + \"\\n\".join(parts) + \"\\n</sources>\"\n\n    return {\"web_xml\"\
+          : web_xml, \"fetched_count\": len(url_list)}\n"
+        code_language: python3
+        desc: Fetch Jina (sources 1-2) + extraits SearXNG (sources 3-5)
+        error_strategy: fail-branch
+        outputs:
+          fetched_count:
+            type: number
+          web_xml:
+            type: string
+        title: Web Fetch
+        type: code
+        variables:
+        - value_selector:
+          - web_search
+          - urls
+          variable: urls
+        - value_selector:
+          - web_search
+          - count
+          variable: count
+        - value_selector:
+          - web_search
+          - search_data
+          variable: search_data
+        - value_selector:
+          - start
+          - sys.query
+          variable: query
+      id: web_fetch
+      position:
+        x: 950
+        y: 320
+    - data:
+        context:
+          enabled: false
+        desc: Categorise la question en direct/academique/document (< 1s)
+        memory: null
+        memory_config: null
+        model:
+          completion_params:
+            max_tokens: 10
+            temperature: 0.1
+          mode: chat
+          name: deepseek-v4-flash
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        outputs:
+          text:
+            type: string
+        prompt_template:
+        - role: system
+          text: 'Tu categorises des questions en UN SEUL MOT parmi ces trois choix
+            :
+
+            - direct : question factuelle, conseil, methode, redaction, explication
+
+            - academique : demande de travaux, publications, auteurs, bibliographie,
+            etat de l art
+
+            - document : analyse d un fichier joint ou d une URL
+
+
+            Reponds UNIQUEMENT par un des trois mots. Rien d autre.'
+        - role: user
+          text: '{{#sys.query#}}'
+        title: Classifieur rapide
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      id: question_classifier
+      position:
+        x: 2050
+        y: 200
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: c_direct
+            value: direct
+            variable_selector:
+            - question_classifier
+            - text
+          - comparison_operator: is
+            id: c_no_acad
+            value: 'false'
+            variable_selector:
+            - detect_input
+            - is_academic
+          - comparison_operator: is
+            id: c_no_file
+            value: 'false'
+            variable_selector:
+            - detect_input
+            - has_file
+          - comparison_operator: is
+            id: c_no_url
+            value: 'false'
+            variable_selector:
+            - detect_input
+            - has_url
+          id: 'true'
+          logical_operator: and
+        desc: Si question directe (pas academique, pas fichier, pas URL) → court-circuit
+          KB
+        title: Route directe ?
+        type: if-else
+      id: route_direct
+      position:
+        x: 2100
+        y: 350
+    - data:
+        context:
+          enabled: false
+        desc: Reponse rapide sans pipeline KB pour les questions directes
+        memory: null
+        memory_config: null
+        model:
+          completion_params:
+            max_tokens: 2000
+            temperature: 0.3
+          mode: chat
+          name: deepseek-v4-flash
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        outputs:
+          text:
+            type: string
+        prompt_template:
+        - role: system
+          text: 'Tu es un assistant IA pour les enseignants-chercheurs de l''Universite
+            [Institution].
+
+            Tu es polyvalent, direct et precis. Tu t adaptes au besoin sans le faire
+            reformuler.
+
+
+            Ton d un collegue expert: direct, sans ceremonial.
+
+            Ne commence jamais par: Bonjour, Bien sur, Absolument, Certainement.'
+        - role: user
+          text: '{{#sys.query#}}'
+        title: Reponse directe
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      id: llm_direct
+      position:
+        x: 2150
+        y: 500
+  rag_pipeline_variables: []
